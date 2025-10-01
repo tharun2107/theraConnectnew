@@ -143,10 +143,7 @@ export const getMySlotsForDate = async (therapistId: string, input: GetSlotsInpu
     where: {
       therapistId,
       startTime: { gte: dayStart, lte: dayEnd },
-      OR: [
-        { isActive: true },
-        { isBooked: true },
-      ],
+      // Return all slots for the date, including inactive/unbooked so therapist can activate them
     },
     orderBy: { startTime: 'asc' },
   });

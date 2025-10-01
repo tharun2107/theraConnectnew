@@ -8,6 +8,7 @@ import {
   getMyBookingsHandler,
 } from './booking.controller';
 import { getSlotsQuerySchema, createBookingSchema } from './booking.validation';
+import * as zoomController from './zoom.controller';
 
 const router = Router();
 router.use(authenticate);
@@ -25,5 +26,27 @@ router.post('/', authorize([Role.PARENT]), validate({ body: createBookingSchema.
 
 // Both parents and therapists can view their own bookings
 router.get('/me', authorize([Role.PARENT, Role.THERAPIST]), getMyBookingsHandler);
+
+// Zoom meeting integration
+// Therapist creates a Zoom meeting for a booking (stores meetingId/password)
+router.post(
+  '/:bookingId/zoom/create',
+  authorize([Role.THERAPIST]),
+  zoomController.createMeetingForBooking
+);
+
+// Therapist toggles that host has started the session
+router.post(
+  '/:bookingId/zoom/host-started',
+  authorize([Role.THERAPIST]),
+  zoomController.markHostStarted
+);
+
+// Get SDK signature for current user (role derived), blocked if parent and host not started
+router.get(
+  '/:bookingId/zoom/signature',
+  authorize([Role.PARENT, Role.THERAPIST]),
+  zoomController.getSignature
+);
 
 export default router;

@@ -2,6 +2,7 @@
 import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+export const ZOOM_SDK_JS_CDN = 'https://source.zoom.us/3.2.1/zoom-meeting-embedded-3.2.1.min.js'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -134,6 +135,9 @@ export const bookingAPI = {
     timeSlotId: string
   }) => api.post('/bookings', data),
   getMyBookings: () => api.get('/bookings/me'),
+  createZoomMeeting: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/create`),
+  markHostStarted: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/host-started`),
+  getSignature: (bookingId: string) => api.get(`/bookings/${bookingId}/zoom/signature`),
 }
 
 // Slots API

@@ -163,6 +163,9 @@ model Booking {
   id         String        @id @default(cuid())
   status     BookingStatus @default(SCHEDULED)
   zoomLink   String?
+  meetingId  String?
+  meetingPassword String?
+  hostStarted Boolean @default(false)
   createdAt  DateTime      @default(now())
 
   parent      ParentProfile    @relation(fields: [parentId], references: [id])

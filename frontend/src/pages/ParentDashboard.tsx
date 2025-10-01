@@ -11,7 +11,9 @@ import {
   Eye,
   TrendingUp,
   Star,
+  Video,
 } from "lucide-react"
+import ZoomMeeting from "../components/ZoomMeeting"
 import AddChildModal from "../components/AddChildModal"
 import BookSessionModal from "../components/BookSessionModal"
 
@@ -77,6 +79,7 @@ const ParentDashboard: React.FC = () => {
     .filter((booking: Booking) => new Date(booking.timeSlot.startTime) > new Date())
     .slice(0, 3)
 
+  const [activeMeetingBookingId, setActiveMeetingBookingId] = useState<string | null>(null)
   const stats = [
     {
       name: "Total Children",
@@ -305,15 +308,20 @@ const ParentDashboard: React.FC = () => {
                           ).toLocaleTimeString()}
                         </div>
                       </div>
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          booking.status === "SCHEDULED"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {booking.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-3 py-1 text-xs font-medium rounded-full ${
+                            booking.status === "SCHEDULED"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {booking.status}
+                        </span>
+                        <button onClick={() => setActiveMeetingBookingId(booking.id)} className="btn btn-secondary inline-flex items-center">
+                          <Video className="h-4 w-4 mr-2" /> Join
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -321,6 +329,18 @@ const ParentDashboard: React.FC = () => {
             )}
           </div>
         </div>
+
+        {activeMeetingBookingId && (
+          <div className="rounded-xl bg-white dark:bg-gray-800 shadow-sm mt-6">
+            <div className="flex items-center gap-2 border-b px-6 py-4">
+              <Video className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Live Session</h3>
+            </div>
+            <div className="p-6">
+              <ZoomMeeting bookingId={activeMeetingBookingId} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

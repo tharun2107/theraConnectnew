@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import { therapistAPI, bookingAPI } from '../lib/api'
-import { Calendar, Clock, Users, Plus, UserCheck } from 'lucide-react'
+import { Calendar, Clock, Users, Plus, UserCheck, Play, Video } from 'lucide-react'
+import ZoomMeeting from '../components/ZoomMeeting'
 import CreateTimeSlotsModal from '../components/CreateTimeSlotsModal'
 import RequestLeaveModal from '../components/RequestLeaveModal'
 
@@ -27,6 +28,7 @@ const TherapistDashboard: React.FC = () => {
   const [showRequestLeaveModal, setShowRequestLeaveModal] = useState(false)
   const [selectedSlotsDate, setSelectedSlotsDate] = useState<string>(new Date().toISOString().slice(0,10))
   const queryClient = useQueryClient()
+  const [activeMeetingBookingId, setActiveMeetingBookingId] = useState<string | null>(null)
 
   const { data: profile, isLoading: profileLoading } = useQuery(
     'therapistProfile',
@@ -92,6 +94,17 @@ const TherapistDashboard: React.FC = () => {
       color: 'bg-orange-500',
     },
   ]
+
+  const handleStartMeeting = async (bookingId: string) => {
+    try {
+      await bookingAPI.createZoomMeeting(bookingId)
+      await bookingAPI.markHostStarted(bookingId)
+      setActiveMeetingBookingId(bookingId)
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e)
+    }
+  }
 
   if (profileLoading) {
     return (
@@ -285,7 +298,9 @@ const TherapistDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {mySlots.map((slot: any) => (
+                  {mySlots
+                    .filter((slot: any) => slot.isActive || slot.isBooked)
+                    .map((slot: any) => (
                     <tr key={slot.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
@@ -328,9 +343,8 @@ const TherapistDashboard: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -362,6 +376,11 @@ const TherapistDashboard: React.FC = () => {
                           {booking.status}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <button onClick={() => handleStartMeeting(booking.id)} className="btn btn-primary inline-flex items-center">
+                          <Play className="h-4 w-4 mr-2" /> Start
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -370,6 +389,18 @@ const TherapistDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {activeMeetingBookingId && (
+        <div className="card">
+          <div className="card-header flex items-center gap-2">
+            <Video className="h-5 w-5" />
+            <h3 className="card-title">Live Session</h3>
+          </div>
+          <div className="card-content">
+            <ZoomMeeting bookingId={activeMeetingBookingId} />
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {showCreateSlotsModal && (

@@ -144,10 +144,7 @@ const getMySlotsForDate = (therapistId, input) => __awaiter(void 0, void 0, void
         where: {
             therapistId,
             startTime: { gte: dayStart, lte: dayEnd },
-            OR: [
-                { isActive: true },
-                { isBooked: true },
-            ],
+            // Return all slots for the date, including inactive/unbooked so therapist can activate them
         },
         orderBy: { startTime: 'asc' },
     });

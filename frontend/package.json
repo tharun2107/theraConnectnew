@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@zoom/meetingsdk": "^3.13.2",
+    "@zoomus/websdk": "^2.18.3",
     "axios": "^1.12.2",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
