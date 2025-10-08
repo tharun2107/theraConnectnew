@@ -82,6 +82,9 @@ export const authAPI = {
     password: string
     name: string
   }) => api.post('/auth/register/adminthera-connect395', data),
+
+  changePassword: (data: { email: string; currentPassword: string; newPassword: string }) =>
+    api.post('/auth/change-password', data),
 }
 
 // Parent API

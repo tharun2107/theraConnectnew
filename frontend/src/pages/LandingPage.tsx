@@ -56,11 +56,10 @@ const LandingPage: React.FC = () => {
               <span>Join as Parent</span>
             </Link>
             <Link
-              to="/register/therapist"
+              to="/login/parent"
               className="btn btn-outline btn-lg flex items-center justify-center space-x-2 hover:scale-105 transition-transform"
             >
-              <Stethoscope className="h-5 w-5" />
-              <span>Join as Therapist</span>
+              <span>Parent Login</span>
             </Link>
             <button className="btn btn-outline btn-lg flex items-center justify-center space-x-2 hover:scale-105 transition-transform">
               <Play className="h-5 w-5" />
@@ -129,8 +128,8 @@ const LandingPage: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{step}</h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  {step === 'Sign Up' && 'Create your account as a parent or therapist and complete your profile.'}
-                  {step === 'Connect' && 'Parents can browse therapists and book sessions, therapists can manage their schedule.'}
+                  {step === 'Sign Up' && 'Create your account as a parent and complete your profile.'}
+                  {step === 'Connect' && 'Parents can browse therapists and book sessions.'}
                   {step === 'Thrive' && 'Start your therapy journey with professional support and convenient scheduling.'}
                 </p>
               </div>
@@ -192,17 +191,14 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of families and therapists who trust TheraConnect for their therapy needs
+            Join thousands of families who trust TheraConnect for their therapy needs
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link to="/register/parent" className="btn bg-primary-600 text-white hover:bg-primary-700 btn-lg flex items-center justify-center space-x-2">
               <Users className="h-5 w-5" /><span>Join as Parent</span>
             </Link>
-            <Link to="/register/therapist" className="btn bg-primary-600 text-white hover:bg-primary-700 btn-lg flex items-center justify-center space-x-2">
-              <Stethoscope className="h-5 w-5" /><span>Join as Therapist</span>
-            </Link>
             <Link to="/login/parent" className="btn border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white btn-lg">
-              Sign In
+              Parent Login
             </Link>
           </div>
         </div>

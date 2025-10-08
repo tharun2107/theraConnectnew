@@ -64,21 +64,6 @@ const ParentRegister: React.FC = () => {
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
               Create your family account and start your therapy journey
             </p>
-            <div className="flex justify-center space-x-4 text-sm">
-              <Link
-                to="/register/therapist"
-                className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                Join as Therapist
-              </Link>
-              <span className="text-gray-300 dark:text-gray-600">|</span>
-              <Link
-                to="/register/admin"
-                className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                Admin Access
-              </Link>
-            </div>
             <div className="mt-4">
               <Link
                 to="/"

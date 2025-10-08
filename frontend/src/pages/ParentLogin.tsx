@@ -146,9 +146,9 @@ const ParentLogin: React.FC = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
-                  Forgot your password?
-                </a>
+                <Link to="/change-password?role=parent" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
+                  Change password
+                </Link>
               </div>
             </div>
 

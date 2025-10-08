@@ -23,13 +23,12 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
     const user = await authService.registerTherapist(req.body);
     const  token = signJwt({ userId: user.id, role: user.role });
     const { password, ...userWithoutPassword } = user;
-    res.status(201).json({ message: 'Therapist registration pending approval', user: userWithoutPassword, token });
+    res.status(201).json({ message: 'Therapist registered successfully', user: userWithoutPassword, token });
   } catch (error) {
     handleServiceError(res, error);
   }
 };
 
- 
 export const registerAdminHandler = async (req: Request, res: Response) => {
   try {
     const user = await authService.registerAdmin(req.body);
@@ -47,5 +46,15 @@ export const loginHandler = async (req: Request, res: Response) => {
     res.status(200).json(result);
   } catch (error: any) {
     res.status(401).json({ message: error.message });
+  }
+};
+
+export const changePasswordHandler = async (req: Request, res: Response) => {
+  try {
+    const result = await authService.changePassword(req.body);
+    res.status(200).json(result);
+  } catch (error: any) {
+    const status = /incorrect|No account/i.test(error.message) ? 400 : 500;
+    res.status(status).json({ message: error.message });
   }
 };

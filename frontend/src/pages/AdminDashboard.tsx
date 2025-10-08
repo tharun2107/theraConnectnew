@@ -1,8 +1,9 @@
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { adminAPI } from '../lib/api'
-import { Users, UserCheck, UserX, Clock, Shield } from 'lucide-react'
+import { Users, UserCheck, UserX, Shield, Stethoscope } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { Link } from 'react-router-dom'
 
 interface Therapist {
   id: string
@@ -49,9 +50,6 @@ const AdminDashboard: React.FC = () => {
     updateStatusMutation.mutate({ therapistId, status })
   }
 
-  const pendingTherapists = therapists.filter(
-    (therapist: Therapist) => therapist.status === 'PENDING_VERIFICATION'
-  )
   const activeTherapists = therapists.filter(
     (therapist: Therapist) => therapist.status === 'ACTIVE'
   )
@@ -62,12 +60,6 @@ const AdminDashboard: React.FC = () => {
       value: therapists.length,
       icon: Users,
       color: 'bg-blue-500',
-    },
-    {
-      name: 'Pending Approval',
-      value: pendingTherapists.length,
-      icon: Clock,
-      color: 'bg-yellow-500',
     },
     {
       name: 'Active Therapists',
@@ -94,6 +86,10 @@ const AdminDashboard: React.FC = () => {
         <div className="flex items-center space-x-2">
           <Shield className="h-6 w-6 text-primary-600" />
           <span className="text-sm font-medium text-gray-700">Admin Panel</span>
+          <Link to="/register/therapist?from=admin" className="btn btn-primary btn-sm ml-4 flex items-center">
+            <Stethoscope className="h-4 w-4 mr-1" />
+            Create Therapist
+          </Link>
         </div>
       </div>
 
@@ -115,54 +111,6 @@ const AdminDashboard: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {/* Pending Approvals */}
-      {pendingTherapists.length > 0 && (
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title text-yellow-800">Pending Therapist Approvals</h3>
-            <p className="text-sm text-gray-600">
-              {pendingTherapists.length} therapist(s) waiting for approval
-            </p>
-          </div>
-          <div className="card-content">
-            <div className="space-y-4">
-              {pendingTherapists.map((therapist: Therapist) => (
-                <div key={therapist.id} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{therapist.name}</h4>
-                      <p className="text-sm text-gray-600">{therapist.user.email}</p>
-                      <p className="text-sm text-gray-500">
-                        {therapist.specialization} • {therapist.experience} years experience
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Base cost: ${therapist.baseCostPerSession}/session
-                      </p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleStatusUpdate(therapist.id, 'ACTIVE')}
-                        className="btn btn-primary btn-sm"
-                        disabled={updateStatusMutation.isLoading}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleStatusUpdate(therapist.id, 'SUSPENDED')}
-                        className="btn btn-outline btn-sm"
-                        disabled={updateStatusMutation.isLoading}
-                      >
-                        Suspend
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* All Therapists */}
       <div className="card">
@@ -237,24 +185,6 @@ const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
-                          {therapist.status === 'PENDING_VERIFICATION' && (
-                            <>
-                              <button
-                                onClick={() => handleStatusUpdate(therapist.id, 'ACTIVE')}
-                                className="text-green-600 hover:text-green-900"
-                                disabled={updateStatusMutation.isLoading}
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleStatusUpdate(therapist.id, 'SUSPENDED')}
-                                className="text-red-600 hover:text-red-900"
-                                disabled={updateStatusMutation.isLoading}
-                              >
-                                Suspend
-                              </button>
-                            </>
-                          )}
                           {therapist.status === 'ACTIVE' && (
                             <button
                               onClick={() => handleStatusUpdate(therapist.id, 'SUSPENDED')}

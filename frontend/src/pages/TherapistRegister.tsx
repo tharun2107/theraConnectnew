@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../contexts/AuthContext'
 import { Eye, EyeOff, UserPlus, Stethoscope, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
-import ThemeToggle from '../components/ThemeToggle'
+import { authAPI } from '../lib/api'
 
 interface RegisterFormData {
   email: string
@@ -23,6 +23,8 @@ const TherapistRegister: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
+  const { search } = useLocation()
+  const isAdminFlow = new URLSearchParams(search).get('from') === 'admin'
 
   const {
     register,
@@ -41,17 +43,33 @@ const TherapistRegister: React.FC = () => {
 
     setIsLoading(true)
     try {
-      await registerUser(
-        data.email,
-        data.password,
-        data.name,
-        data.phone,
-        'THERAPIST',
-        data.specialization,
-        data.experience,
-        data.baseCostPerSession
-      )
-      toast.success('Account created successfully! Welcome to TheraConnect!')
+      if (isAdminFlow) {
+        // Admin creating a therapist: call API directly, do NOT log in as therapist
+        await authAPI.registerTherapist({
+          email: data.email,
+          password: data.password,
+          name: data.name,
+          phone: data.phone,
+          specialization: data.specialization,
+          experience: data.experience,
+          baseCostPerSession: data.baseCostPerSession,
+        })
+        toast.success('Therapist created successfully')
+        navigate('/admin')
+      } else {
+        // Self registration: proceed with normal register (auto-login)
+        await registerUser(
+          data.email,
+          data.password,
+          data.name,
+          data.phone,
+          'THERAPIST',
+          data.specialization,
+          data.experience,
+          data.baseCostPerSession
+        )
+        toast.success('Account created successfully! Welcome to TheraConnect!')
+      }
     } catch (error: any) {
       const status = error?.response?.status
       const message = error?.response?.data?.message || error?.message || 'Registration failed'
@@ -67,12 +85,10 @@ const TherapistRegister: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+
       {/* Removed glow effect */}
 
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
 
       <div className="max-w-md w-full space-y-8 relative z-10">
         <div className="animate-fade-in-up">
@@ -81,33 +97,18 @@ const TherapistRegister: React.FC = () => {
               <Stethoscope className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
-              Join as Therapist
+              Create Therapist
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-              Start your professional therapy practice with us
+            Create, configure, and empower new therapists.
             </p>
-            <div className="flex justify-center space-x-4 text-sm">
-              <Link
-                to="/register/parent"
-                className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                Join as Parent
-              </Link>
-              <span className="text-gray-300 dark:text-gray-600">|</span>
-              <Link
-                to="/register/admin"
-                className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                Admin Access
-              </Link>
-            </div>
             <div className="mt-4">
               <Link
-                to="/"
+                to={isAdminFlow ? '/admin' : '/'}
                 className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Home
+                {isAdminFlow ? 'Back to Admin' : 'Back to Home'}
               </Link>
             </div>
           </div>
@@ -206,12 +207,12 @@ const TherapistRegister: React.FC = () => {
                 <input
                   {...register('experience', {
                     required: 'Experience is required',
-                    min: { value: 0, message: 'Experience must be 0 or more years' },
+                    min: { value: 1, message: 'Experience must be at least 1 year' },
                     max: { value: 50, message: 'Experience must be less than 50 years' },
                     valueAsNumber: true,
                   })}
                   type="number"
-                  min="0"
+                  min="1"
                   max="50"
                   className="input mt-1 w-full"
                   placeholder="Enter years of experience"
@@ -250,7 +251,7 @@ const TherapistRegister: React.FC = () => {
                   <input
                     {...register('password', {
                       required: 'Password is required',
-                      minLength: { value: 6, message: 'Password must be at least 6 characters' },
+                      minLength: { value: 8, message: 'Password must be at least 8 characters' },
                     })}
                     type={showPassword ? 'text' : 'password'}
                     className="input w-full pr-10"
@@ -342,19 +343,6 @@ const TherapistRegister: React.FC = () => {
                   </div>
                 )}
               </button>
-            </div>
-
-            {/* Login link */}
-            <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Already have an account?{' '}
-                <Link
-                  to="/login/therapist"
-                  className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
-                >
-                  Sign in as Therapist
-                </Link>
-              </p>
             </div>
           </form>
         </div>

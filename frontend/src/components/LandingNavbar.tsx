@@ -45,13 +45,13 @@ const LandingNavbar: React.FC = () => {
               to="/login/parent"
               className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
-              Sign In
+              Parent Login
             </Link>
             <Link
               to="/register/parent"
               className="btn btn-primary btn-sm"
             >
-              Get Started
+              Join as Parent
             </Link>
           </div>
 
@@ -105,18 +105,18 @@ const LandingNavbar: React.FC = () => {
               </a>
               <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
                 <Link
-                  to="/login"
+                  to="/login/parent"
                   className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Sign In
+                  Parent Login
                 </Link>
                 <Link
-                  to="/register"
+                  to="/register/parent"
                   className="block px-3 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors mx-3 mt-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Get Started
+                  Join as Parent
                 </Link>
               </div>
             </div>

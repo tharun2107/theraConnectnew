@@ -14,6 +14,11 @@ const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
 const prisma = new client_1.PrismaClient();
 const getAllTherapists = () => __awaiter(void 0, void 0, void 0, function* () {
+    // Auto-activate legacy pending therapists since admin-created profiles shouldn't require approval
+    yield prisma.therapistProfile.updateMany({
+        where: { status: client_1.TherapistStatus.PENDING_VERIFICATION },
+        data: { status: client_1.TherapistStatus.ACTIVE },
+    });
     return prisma.therapistProfile.findMany({
         include: { user: { select: { email: true, createdAt: true } } },
     });

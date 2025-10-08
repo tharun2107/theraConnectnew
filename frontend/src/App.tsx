@@ -17,6 +17,7 @@ import FindTherapists from './pages/FindTherapists'
 import TherapistDashboard from './pages/TherapistDashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import LoadingSpinner from './components/LoadingSpinner'
+import ChangePassword from './pages/ChangePassword.tsx'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="/register/parent" element={<ParentRegister />} />
         <Route path="/register/therapist" element={<TherapistRegister />} />
         <Route path="/register/admin" element={<AdminRegister />} />
+        <Route path="/change-password" element={<ChangePassword />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     )
@@ -51,6 +53,9 @@ function AppRoutes() {
         <Route path="/therapist" element={<TherapistDashboard />} />
         <Route path="/therapist/bookings" element={<TherapistDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        {/* Allow access to therapist registration for admins or logged-in users when needed */}
+        <Route path="/register/therapist" element={<TherapistRegister />} />
+        <Route path="/change-password" element={<ChangePassword />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
