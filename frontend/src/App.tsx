@@ -16,7 +16,9 @@ import ParentChildDetails from './pages/ParentChildDetails'
 import FindTherapists from './pages/FindTherapists'
 import TherapistDashboard from './pages/TherapistDashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import VideoCallPage from './pages/VideoCallPage'
 import LoadingSpinner from './components/LoadingSpinner'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -41,29 +43,39 @@ function AppRoutes() {
   }
 
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to={`/${user.role.toLowerCase()}`} replace />} />
-        <Route path="/parent" element={<ParentDashboard />} />
-        <Route path="/parent/children" element={<ParentChildren />} />
-        <Route path="/parent/children/:childId" element={<ParentChildDetails />} />
-        <Route path="/parent/therapists" element={<FindTherapists />} />
-        <Route path="/therapist" element={<TherapistDashboard />} />
-        <Route path="/therapist/bookings" element={<TherapistDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      {/* Video call route without layout (fullscreen) */}
+      <Route path="/video-call/:bookingId" element={<VideoCallPage />} />
+      
+      {/* All other routes with layout */}
+      <Route path="/*" element={
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Navigate to={`/${user.role.toLowerCase()}`} replace />} />
+            <Route path="/parent" element={<ParentDashboard />} />
+            <Route path="/parent/children" element={<ParentChildren />} />
+            <Route path="/parent/children/:childId" element={<ParentChildDetails />} />
+            <Route path="/parent/therapists" element={<FindTherapists />} />
+            <Route path="/therapist" element={<TherapistDashboard />} />
+            <Route path="/therapist/bookings" element={<TherapistDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
+      } />
+    </Routes>
   )
 }
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
 

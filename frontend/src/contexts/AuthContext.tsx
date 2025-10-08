@@ -4,6 +4,7 @@ import { authAPI } from '../lib/api'
 interface User {
   id: string
   email: string
+  name: string
   role: 'PARENT' | 'THERAPIST' | 'ADMIN'
   createdAt: string
 }
