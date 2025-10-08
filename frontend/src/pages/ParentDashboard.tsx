@@ -1,21 +1,35 @@
-import React, { useState } from "react"
-import { useMutation, useQuery, useQueryClient } from "react-query"
-import { parentAPI, bookingAPI } from "../lib/api"
-import {
-  Plus,
-  Calendar,
-  Users,
-  Clock,
+import React, { useState } from 'react'
+import { useQuery } from 'react-query'
+import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
+import { parentAPI, bookingAPI } from '../lib/api'
+import { 
+  Users, 
+  Calendar, 
+  Clock, 
+  Star, 
+  Plus, 
   Heart,
-  Edit,
-  Eye,
-  TrendingUp,
-  Star,
   Video,
-} from "lucide-react"
-import ZoomMeeting from "../components/ZoomMeeting"
-import AddChildModal from "../components/AddChildModal"
-import BookSessionModal from "../components/BookSessionModal"
+  TrendingUp,
+  UserPlus,
+  ChevronRight,
+  Play,
+  Zap
+} from 'lucide-react'
+import { Button } from '../components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import { Avatar, AvatarFallback } from '../components/ui/avatar'
+import { StatsCard } from '../components/ui/stats-card'
+import { FloatingCard } from '../components/ui/floating-card'
+import { GlowCard } from '../components/ui/glow-card'
+import { LoadingSpinner } from '../components/ui/loading-spinner'
+import { GradientText } from '../components/ui/gradient-text'
+import { AnimatedCounter } from '../components/ui/animated-counter'
+import AddChildModal from '../components/AddChildModal'
+import BookSessionModal from '../components/BookSessionModal'
+import CurrentSessions from '../components/CurrentSessions'
 
 interface Child {
   id: string
@@ -30,6 +44,8 @@ interface Booking {
   id: string
   status: string
   createdAt: string
+  meetingId?: string
+  hostStarted?: boolean
   child: Child
   therapist: {
     name: string
@@ -44,303 +60,415 @@ interface Booking {
 const ParentDashboard: React.FC = () => {
   const [showAddChildModal, setShowAddChildModal] = useState(false)
   const [showBookSessionModal, setShowBookSessionModal] = useState(false)
-  const queryClient = useQueryClient()
-
-  const { data: children = [], isLoading: childrenLoading } = useQuery(
-    "children",
-    parentAPI.getChildren,
-    {
-      select: (response) => response.data,
-    }
-  )
+  const navigate = useNavigate()
+  const [joiningId, setJoiningId] = useState<string | null>(null)
 
   const { data: profile, isLoading: profileLoading } = useQuery(
-    "parentProfile",
+    'parentProfile',
     parentAPI.getProfile,
     { select: (response) => response.data }
   )
 
+  const { data: children = [], isLoading: childrenLoading } = useQuery(
+    'parentChildren',
+    parentAPI.getChildren,
+    { select: (response) => response.data }
+  )
+
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(
-    "parentBookings",
+    'parentBookings',
     bookingAPI.getMyBookings,
-    {
-      select: (response) => response.data,
-    }
+    { select: (response) => response.data }
   )
 
-  const deleteChildMutation = useMutation(
-    (childId: string) => parentAPI.deleteChild(childId),
-    {
-      onSuccess: () => queryClient.invalidateQueries("children"),
-    }
-  )
+  // Calculate stats
+  const totalChildren = children.length
+  const upcomingSessions = bookings.filter((booking: Booking) => 
+    new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
+  ).length
+  const totalBookings = bookings.length
+  const completedSessions = bookings.filter((booking: Booking) => 
+    booking.status === 'COMPLETED'
+  ).length
 
+  // Get upcoming sessions (all of them)
   const upcomingBookings = bookings
-    .filter((booking: Booking) => new Date(booking.timeSlot.startTime) > new Date())
-    .slice(0, 3)
+    .filter((booking: Booking) => 
+      new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
+    )
+    .sort((a: Booking, b: Booking) => 
+      new Date(a.timeSlot.startTime).getTime() - new Date(b.timeSlot.startTime).getTime()
+    )
 
-  const [activeMeetingBookingId, setActiveMeetingBookingId] = useState<string | null>(null)
+  // Handle joining a session
+  const handleJoinSession = async (bookingId: string) => {
+    if (joiningId) return
+    console.log('[ParentDashboard] Join clicked', { bookingId })
+    setJoiningId(bookingId)
+    try {
+      // For parents, ensure the meeting and signature are available by probing the signature endpoint.
+      // Retry briefly to allow therapist host-start propagation.
+      const maxAttempts = 5
+      let attempt = 0
+      while (attempt < maxAttempts) {
+        attempt++
+        try {
+          console.log('[ParentDashboard] Probing signature (attempt)', attempt)
+          await bookingAPI.getSignature(bookingId)
+          break
+        } catch (e: any) {
+          const status = e?.response?.status
+          console.warn('[ParentDashboard] Signature not ready', status)
+          if (attempt >= maxAttempts) throw e
+          await new Promise((res) => setTimeout(res, 800))
+        }
+      }
+      console.log('[ParentDashboard] Navigating to video call')
+      navigate(`/video-call/${bookingId}`)
+    } finally {
+      setJoiningId(null)
+    }
+  }
+
   const stats = [
     {
-      name: "Total Children",
-      value: children.length,
+      title: 'Total Children',
+      value: totalChildren,
+      change: '+2 this month',
+      changeType: 'positive' as const,
       icon: Users,
-      color: "bg-blue-100 text-blue-600",
-      change: "+2 this month",
+      iconColor: 'blue'
     },
     {
-      name: "Upcoming Sessions",
-      value: upcomingBookings.length,
+      title: 'Upcoming Sessions',
+      value: upcomingSessions,
+      change: '3 this week',
+      changeType: 'positive' as const,
       icon: Calendar,
-      color: "bg-green-100 text-green-600",
-      change: "3 this week",
+      iconColor: 'green'
     },
     {
-      name: "Total Bookings",
-      value: bookings.length,
+      title: 'Total Bookings',
+      value: totalBookings,
+      change: '+5 this month',
+      changeType: 'positive' as const,
       icon: Clock,
-      color: "bg-purple-100 text-purple-600",
-      change: "+5 this month",
+      iconColor: 'purple'
     },
     {
-      name: "Sessions Completed",
-      value: bookings.filter((b: Booking) => b.status === "COMPLETED").length,
+      title: 'Sessions Completed',
+      value: completedSessions,
+      change: 'Great progress!',
+      changeType: 'positive' as const,
       icon: Star,
-      color: "bg-orange-100 text-orange-600",
-      change: "Great progress!",
-    },
+      iconColor: 'orange'
+    }
   ]
 
+  if (profileLoading || childrenLoading || bookingsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <LoadingSpinner size="lg" className="mx-auto mb-4" />
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {profileLoading ? "Loading..." : `Welcome${profile?.name ? ", " + profile.name : ""}`}
+    <div className="ml-72 pt-16 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="p-8 space-y-8">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center space-y-4"
+        >
+          <h1 className="text-5xl font-bold">
+            <GradientText>Welcome, {profile?.name || 'Parent'}!</GradientText>
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Manage your children and therapy sessions with ease
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Manage your children and therapy sessions with ease. Track progress and connect with professional therapists.
           </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={() => setShowAddChildModal(true)}
-            className="btn btn-primary flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Child
-          </button>
-          <button
-            onClick={() => setShowBookSessionModal(true)}
-            className="btn btn-secondary flex items-center gap-2"
-          >
-            <Heart className="h-4 w-4" />
-            Book Session
-          </button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="rounded-xl bg-white dark:bg-gray-800 p-6 shadow-sm hover:shadow-md transition"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-lg ${stat.color}`}>
-                  <stat.icon className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {stat.name}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stat.value}
-                  </p>
-                </div>
-              </div>
-              <TrendingUp className="h-5 w-5 text-green-500" />
-            </div>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              {stat.change}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* My Children */}
-        <div className="rounded-xl bg-white dark:bg-gray-800 shadow-sm">
-          <div className="flex items-center justify-between border-b px-6 py-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              My Children
-            </h3>
-            <button
-              onClick={() => setShowAddChildModal(true)}
-              className="btn btn-outline btn-sm"
+          
+          <div className="flex justify-center space-x-4 mt-8">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Plus className="h-4 w-4" />
-            </button>
+              <Button
+                onClick={() => setShowAddChildModal(true)}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full shadow-lg"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add Child
+              </Button>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                onClick={() => setShowBookSessionModal(true)}
+                variant="outline"
+                size="lg"
+                className="px-8 py-3 rounded-full border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white shadow-lg"
+              >
+                <Heart className="w-5 h-5 mr-2" />
+                Book Session
+              </Button>
+            </motion.div>
           </div>
-          <div className="p-6">
-            {childrenLoading ? (
-              <p className="text-center text-gray-500">Loading children...</p>
-            ) : children.length === 0 ? (
-              <div className="text-center space-y-4">
-                <Users className="h-10 w-10 text-gray-400 mx-auto" />
-                <p className="text-gray-600 dark:text-gray-300">
-                  No children added yet. Start by adding your first child.
-                </p>
-                <button
+        </motion.div>
+
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          {stats.map((stat, index) => (
+            <StatsCard
+              key={stat.title}
+              {...stat}
+              delay={index * 0.1}
+            />
+          ))}
+        </motion.div>
+
+        {/* Current Sessions Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="flex items-center mb-6">
+            <Zap className="w-6 h-6 text-yellow-500 mr-3" />
+            <h2 className="text-2xl font-bold text-gray-900">Current Sessions</h2>
+          </div>
+          <CurrentSessions 
+            bookings={bookings} 
+            onJoinSession={handleJoinSession}
+            userRole="PARENT"
+          />
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* My Children Section */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <GlowCard className="h-full">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center">
+                  <Users className="w-5 h-5 mr-2 text-blue-600" />
+                  My Children
+                </CardTitle>
+                <Button
                   onClick={() => setShowAddChildModal(true)}
-                  className="btn btn-primary"
+                  size="sm"
+                  className="rounded-full"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Child
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {children.map((child: Child) => (
-                  <div
-                    key={child.id}
-                    className="p-4 border rounded-lg hover:shadow-md transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                          {child.name.charAt(0)}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white">
-                            {child.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Age: {child.age} years
-                          </p>
-                          {child.condition && (
-                            <p className="text-sm text-blue-600 dark:text-blue-400">
-                              {child.condition}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="p-2 text-gray-400 hover:text-blue-600">
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-gray-400 hover:text-green-600">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          className="p-2 text-gray-400 hover:text-red-600"
-                          onClick={() => deleteChildMutation.mutate(child.id)}
-                          disabled={deleteChildMutation.isLoading}
-                          aria-label="Delete child"
-                        >
-                          <span className="block h-4 w-4">×</span>
-                        </button>
-                      </div>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {children.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <UserPlus className="w-8 h-8 text-blue-600" />
                     </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No children added yet</h3>
+                    <p className="text-gray-600 mb-4">Add your first child to get started with therapy sessions.</p>
+                    <Button
+                      onClick={() => setShowAddChildModal(true)}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Child
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Upcoming Sessions */}
-        <div className="rounded-xl bg-white dark:bg-gray-800 shadow-sm">
-          <div className="flex items-center gap-2 border-b px-6 py-4">
-            <Calendar className="h-5 w-5 text-green-500" />
-            <h3 className="text-lg font-semibold">Upcoming Sessions</h3>
-          </div>
-          <div className="p-6">
-            {bookingsLoading ? (
-              <p className="text-center text-gray-500">Loading bookings...</p>
-            ) : upcomingBookings.length === 0 ? (
-              <div className="text-center space-y-4">
-                <Calendar className="h-10 w-10 text-gray-400 mx-auto" />
-                <p className="text-gray-600 dark:text-gray-300">
-                  No upcoming sessions. Book your first therapy session.
-                </p>
-                <button
-                  onClick={() => setShowBookSessionModal(true)}
-                  className="btn btn-primary"
-                >
-                  <Heart className="h-4 w-4 mr-2" />
-                  Book a Session
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {upcomingBookings.map((booking: Booking) => (
-                  <div
-                    key={booking.id}
-                    className="p-4 border rounded-lg hover:shadow-md transition"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">
-                            {booking.child.name.charAt(0)}
-                          </div>
+                ) : (
+                  <div className="space-y-4">
+                    {children.map((child: Child, index) => (
+                      <motion.div
+                        key={child.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 + index * 0.1 }}
+                        className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600">
+                            <AvatarFallback className="text-white font-bold">
+                              {child.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
                           <div>
-                            <h4 className="font-semibold text-gray-900 dark:text-white">
-                              {booking.child.name}
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                              with {booking.therapist.name}
-                            </p>
+                            <h4 className="font-semibold text-gray-900">{child.name}</h4>
+                            <p className="text-sm text-gray-600">{child.age} years old</p>
+                            {child.condition && (
+                              <Badge variant="secondary" className="mt-1 text-xs">
+                                {child.condition}
+                              </Badge>
+                            )}
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(
-                            booking.timeSlot.startTime
-                          ).toLocaleDateString()}{" "}
-                          •{" "}
-                          {new Date(
-                            booking.timeSlot.startTime
-                          ).toLocaleTimeString()}
+                        <div className="flex space-x-2">
+                          <Button variant="ghost" size="sm">
+                            View
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            Edit
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            booking.status === "SCHEDULED"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {booking.status}
-                        </span>
-                        <button onClick={() => setActiveMeetingBookingId(booking.id)} className="btn btn-secondary inline-flex items-center">
-                          <Video className="h-4 w-4 mr-2" /> Join
-                        </button>
-                      </div>
-                    </div>
+                      </motion.div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                )}
+              </CardContent>
+            </GlowCard>
+          </motion.div>
+
+          {/* Upcoming Sessions Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <GlowCard className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2 text-green-600" />
+                  Upcoming Sessions
+                  <Badge variant="secondary" className="ml-2">
+                    <AnimatedCounter value={upcomingBookings.length} />
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {upcomingBookings.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Calendar className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No upcoming sessions</h3>
+                    <p className="text-gray-600 mb-4">Book a session with a therapist to get started.</p>
+                    <Button
+                      onClick={() => setShowBookSessionModal(true)}
+                      className="bg-gradient-to-r from-green-600 to-blue-600"
+                    >
+                      <Heart className="w-4 h-4 mr-2" />
+                      Book Session
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {upcomingBookings.map((booking: Booking, index) => (
+                      <motion.div
+                        key={booking.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 + index * 0.1 }}
+                        className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-12 w-12 bg-gradient-to-r from-green-500 to-blue-600">
+                            <AvatarFallback className="text-white font-bold">
+                              {booking.child.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {booking.child.name} with {booking.therapist.name}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {new Date(booking.timeSlot.startTime).toLocaleDateString()} • {' '}
+                              {new Date(booking.timeSlot.startTime).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </p>
+                            <Badge variant="secondary" className="mt-1 text-xs">
+                              {booking.therapist.specialization}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-2">
+                          <Badge variant="default" className="bg-green-100 text-green-800">
+                            {booking.status}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full px-4 py-1"
+                            onClick={() => handleJoinSession(booking.id)}
+                            disabled={joiningId === booking.id}
+                          >
+                            <Video className="w-4 h-4 mr-1" />
+                            {joiningId === booking.id ? 'Joining...' : 'Join'}
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </GlowCard>
+          </motion.div>
         </div>
 
-        {activeMeetingBookingId && (
-          <div className="rounded-xl bg-white dark:bg-gray-800 shadow-sm mt-6">
-            <div className="flex items-center gap-2 border-b px-6 py-4">
-              <Video className="h-5 w-5" />
-              <h3 className="text-lg font-semibold">Live Session</h3>
-            </div>
-            <div className="p-6">
-              <ZoomMeeting bookingId={activeMeetingBookingId} />
-            </div>
-          </div>
-        )}
+        {/* Recent Activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <GlowCard>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {bookings.slice(0, 5).map((booking: Booking, index) => (
+                  <motion.div
+                    key={booking.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 + index * 0.1 }}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <Play className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Session with {booking.therapist.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {booking.child.name} • {new Date(booking.timeSlot.startTime).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant={booking.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                      {booking.status}
+                    </Badge>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </GlowCard>
+        </motion.div>
       </div>
 
       {/* Modals */}
@@ -348,8 +476,8 @@ const ParentDashboard: React.FC = () => {
         <AddChildModal
           onClose={() => setShowAddChildModal(false)}
           onSuccess={() => {
-            queryClient.invalidateQueries("children")
             setShowAddChildModal(false)
+            // Refetch children data
           }}
         />
       )}
@@ -358,8 +486,8 @@ const ParentDashboard: React.FC = () => {
         <BookSessionModal
           onClose={() => setShowBookSessionModal(false)}
           onSuccess={() => {
-            queryClient.invalidateQueries("parentBookings")
             setShowBookSessionModal(false)
+            // Refetch bookings data
           }}
         />
       )}
