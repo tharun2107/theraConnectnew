@@ -21,10 +21,10 @@ const TherapistRegister: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { register: registerUser } = useAuth()
+  const { register: registerUser, user } = useAuth()
   const navigate = useNavigate()
   const { search } = useLocation()
-  const isAdminFlow = new URLSearchParams(search).get('from') === 'admin'
+  const isAdminFlow = user?.role === 'ADMIN' || new URLSearchParams(search).get('from') === 'admin'
 
   const {
     register,
@@ -75,7 +75,7 @@ const TherapistRegister: React.FC = () => {
       const message = error?.response?.data?.message || error?.message || 'Registration failed'
       if (status === 409 || /exists/i.test(message)) {
         toast.error('An account with this email/phone already exists. Please sign in instead.')
-        navigate('/login/therapist')
+        navigate('/login')
       } else {
         toast.error(message)
       }

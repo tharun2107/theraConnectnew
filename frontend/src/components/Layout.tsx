@@ -1,5 +1,6 @@
 import React, { ReactNode, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../contexts/ThemeContext'
 import ModernSidebar from './ModernSidebar'
 import ModernHeader from './ModernHeader'
 
@@ -9,20 +10,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user } = useAuth()
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { theme, toggleTheme } = useTheme()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   if (!user) {
     return <div>{children}</div>
   }
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
-    // You can add theme switching logic here
-  }
-
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen transition-colors duration-200 ${theme === 'dark' ? 'dark' : ''}`}>
       <ModernSidebar 
         userRole={user.role || 'USER'}
         userName={user.name || 'User'}
@@ -34,12 +30,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         userName={user.name || 'User'}
         userEmail={user.email || 'user@example.com'}
         notifications={0}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={toggleDarkMode}
+        isDarkMode={theme === 'dark'}
+        onToggleDarkMode={toggleTheme}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-      <main>
-        {children}
+      <main className="ml-72 pt-16 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 overflow-y-auto">
+        <div className="p-6 pb-20">
+          {children}
+        </div>
       </main>
     </div>
   )

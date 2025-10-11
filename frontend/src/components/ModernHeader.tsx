@@ -36,7 +36,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-0 right-0 left-72 h-16 bg-white border-b border-gray-200 z-30 shadow-sm"
+      className="fixed top-0 right-0 left-72 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-30 shadow-sm"
     >
       <div className="flex items-center justify-between h-full px-6">
         {/* Left side - Mobile menu button */}
@@ -59,7 +59,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Welcome back, {userName || 'User'}!
               </h1>
-              <p className="text-sm text-gray-600">{userEmail || 'user@example.com'}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{userEmail || 'user@example.com'}</p>
             </motion.div>
           </div>
         </div>

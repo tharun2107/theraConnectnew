@@ -12,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (email: string, password: string, role?: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name: string, phone: string, role: string, specialization?: string, experience?: number, baseCostPerSession?: number) => Promise<void>
   registerParent: (data: RegisterParentData) => Promise<void>
   registerTherapist: (data: RegisterTherapistData) => Promise<void>
@@ -76,15 +76,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false)
   }, [])
 
-  const login = async (email: string, password: string, role?: string) => {
+  const login = async (email: string, password: string) => {
     try {
       const response = await authAPI.login(email, password)
       const { user: userData, token } = response.data
-      
-      // If role is specified, check if user has that role
-      if (role && userData.role !== role) {
-        throw new Error(`Access denied. This account is for ${userData.role.toLowerCase()}s, not ${role.toLowerCase()}s.`)
-      }
       
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(userData))

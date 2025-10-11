@@ -42,10 +42,10 @@ const LandingNavbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
             <Link
-              to="/login/parent"
+              to="/login"
               className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
-              Parent Login
+              Sign In
             </Link>
             <Link
               to="/register/parent"
@@ -105,11 +105,11 @@ const LandingNavbar: React.FC = () => {
               </a>
               <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
                 <Link
-                  to="/login/parent"
+                  to="/login"
                   className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Parent Login
+                  Sign In
                 </Link>
                 <Link
                   to="/register/parent"

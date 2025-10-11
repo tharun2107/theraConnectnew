@@ -238,7 +238,7 @@ const ParentRegister: React.FC = () => {
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Already have an account?{' '}
                 <Link
-                  to="/login/parent"
+                  to="/login"
                   className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
                 >
                   Sign in as Parent

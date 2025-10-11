@@ -4,11 +4,9 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
-import ParentLogin from './pages/ParentLogin'
-import TherapistLogin from './pages/TherapistLogin'
-import AdminLogin from './pages/AdminLogin'
+import UnifiedLogin from './pages/UnifiedLogin'
 import ParentRegister from './pages/ParentRegister'
-import TherapistRegister from './pages/TherapistRegister'
+import AdminOnlyTherapistRegister from './pages/AdminOnlyTherapistRegister'
 import AdminRegister from './pages/AdminRegister'
 import ParentDashboard from './pages/ParentDashboard'
 import ParentChildren from './pages/ParentChildren'
@@ -32,11 +30,8 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login/parent" element={<ParentLogin />} />
-        <Route path="/login/therapist" element={<TherapistLogin />} />
-        <Route path="/login/admin" element={<AdminLogin />} />
+        <Route path="/login" element={<UnifiedLogin />} />
         <Route path="/register/parent" element={<ParentRegister />} />
-        <Route path="/register/therapist" element={<TherapistRegister />} />
         <Route path="/register/admin" element={<AdminRegister />} />
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -61,6 +56,7 @@ function AppRoutes() {
             <Route path="/therapist" element={<TherapistDashboard />} />
             <Route path="/therapist/bookings" element={<TherapistDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/create-therapist" element={<AdminOnlyTherapistRegister />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

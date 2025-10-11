@@ -56,10 +56,10 @@ const LandingPage: React.FC = () => {
               <span>Join as Parent</span>
             </Link>
             <Link
-              to="/login/parent"
+              to="/login"
               className="btn btn-outline btn-lg flex items-center justify-center space-x-2 hover:scale-105 transition-transform"
             >
-              <span>Parent Login</span>
+              <span>Sign In</span>
             </Link>
             <button className="btn btn-outline btn-lg flex items-center justify-center space-x-2 hover:scale-105 transition-transform">
               <Play className="h-5 w-5" />
@@ -197,8 +197,8 @@ const LandingPage: React.FC = () => {
             <Link to="/register/parent" className="btn bg-primary-600 text-white hover:bg-primary-700 btn-lg flex items-center justify-center space-x-2">
               <Users className="h-5 w-5" /><span>Join as Parent</span>
             </Link>
-            <Link to="/login/parent" className="btn border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white btn-lg">
-              Parent Login
+            <Link to="/login" className="btn border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white btn-lg">
+              Sign In
             </Link>
           </div>
         </div>

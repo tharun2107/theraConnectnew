@@ -170,305 +170,272 @@ const ParentDashboard: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <LoadingSpinner size="lg" className="mx-auto mb-4" />
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading your dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="ml-72 pt-16 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="p-8 space-y-8">
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center space-y-4"
-        >
-          <h1 className="text-5xl font-bold">
-            <GradientText>Welcome, {profile?.name || 'Parent'}!</GradientText>
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Manage your children and therapy sessions with ease. Track progress and connect with professional therapists.
-          </p>
-          
-          <div className="flex justify-center space-x-4 mt-8">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                onClick={() => setShowAddChildModal(true)}
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full shadow-lg"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Add Child
-              </Button>
-            </motion.div>
-            
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                onClick={() => setShowBookSessionModal(true)}
-                variant="outline"
-                size="lg"
-                className="px-8 py-3 rounded-full border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white shadow-lg"
-              >
-                <Heart className="w-5 h-5 mr-2" />
-                Book Session
-              </Button>
-            </motion.div>
-          </div>
-        </motion.div>
+    <div className="space-y-6 min-h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Parent Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300">Manage your children and therapy sessions with ease</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={() => setShowAddChildModal(true)}
+            className="btn btn-primary btn-sm flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Child
+          </Button>
+          <Button
+            onClick={() => setShowBookSessionModal(true)}
+            variant="outline"
+            className="btn btn-outline btn-sm flex items-center"
+          >
+            <Heart className="h-4 w-4 mr-1" />
+            Book Session
+          </Button>
+        </div>
+      </div>
 
-        {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {stats.map((stat, index) => (
-            <StatsCard
-              key={stat.title}
-              {...stat}
-              delay={index * 0.1}
-            />
-          ))}
-        </motion.div>
-
-        {/* Current Sessions Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <div className="flex items-center mb-6">
-            <Zap className="w-6 h-6 text-yellow-500 mr-3" />
-            <h2 className="text-2xl font-bold text-gray-900">Current Sessions</h2>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <div key={stat.title} className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="card-content p-6">
+              <div className="flex items-center">
+                <div className={`p-3 rounded-lg ${
+                  stat.iconColor === 'blue' ? 'bg-blue-500' :
+                  stat.iconColor === 'green' ? 'bg-green-500' :
+                  stat.iconColor === 'purple' ? 'bg-purple-500' :
+                  'bg-orange-500'
+                }`}>
+                  <stat.icon className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                </div>
+              </div>
+            </div>
           </div>
+        ))}
+      </div>
+
+      {/* Current Sessions */}
+      <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+            <Zap className="h-5 w-5 mr-2 text-yellow-500 dark:text-yellow-400" />
+            Current Sessions
+          </h3>
+        </div>
+        <div className="card-content p-6">
           <CurrentSessions 
             bookings={bookings} 
             onJoinSession={handleJoinSession}
             userRole="PARENT"
           />
-        </motion.div>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* My Children Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <GlowCard className="h-full">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center">
-                  <Users className="w-5 h-5 mr-2 text-blue-600" />
-                  My Children
-                </CardTitle>
-                <Button
-                  onClick={() => setShowAddChildModal(true)}
-                  size="sm"
-                  className="rounded-full"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {children.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <UserPlus className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No children added yet</h3>
-                    <p className="text-gray-600 mb-4">Add your first child to get started with therapy sessions.</p>
-                    <Button
-                      onClick={() => setShowAddChildModal(true)}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600"
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* My Children Section */}
+        <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
+            <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <Users className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+              My Children
+            </h3>
+            <Button
+              onClick={() => setShowAddChildModal(true)}
+              size="sm"
+              className="rounded-full"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="card-content p-6">
+              {children.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <UserPlus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No children added yet</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">Add your first child to get started with therapy sessions.</p>
+                  <Button
+                    onClick={() => setShowAddChildModal(true)}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Child
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {children.map((child: Child, index) => (
+                    <motion.div
+                      key={child.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 + index * 0.1 }}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-100 dark:border-blue-800 hover:shadow-md transition-all duration-300"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Child
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {children.map((child: Child, index) => (
-                      <motion.div
-                        key={child.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 + index * 0.1 }}
-                        className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <Avatar className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600">
-                            <AvatarFallback className="text-white font-bold">
-                              {child.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h4 className="font-semibold text-gray-900">{child.name}</h4>
-                            <p className="text-sm text-gray-600">{child.age} years old</p>
-                            {child.condition && (
-                              <Badge variant="secondary" className="mt-1 text-xs">
-                                {child.condition}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm">
-                            View
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            Edit
-                          </Button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </GlowCard>
-          </motion.div>
-
-          {/* Upcoming Sessions Section */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            <GlowCard className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="w-5 h-5 mr-2 text-green-600" />
-                  Upcoming Sessions
-                  <Badge variant="secondary" className="ml-2">
-                    <AnimatedCounter value={upcomingBookings.length} />
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {upcomingBookings.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Calendar className="w-8 h-8 text-green-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No upcoming sessions</h3>
-                    <p className="text-gray-600 mb-4">Book a session with a therapist to get started.</p>
-                    <Button
-                      onClick={() => setShowBookSessionModal(true)}
-                      className="bg-gradient-to-r from-green-600 to-blue-600"
-                    >
-                      <Heart className="w-4 h-4 mr-2" />
-                      Book Session
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {upcomingBookings.map((booking: Booking, index) => (
-                      <motion.div
-                        key={booking.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 + index * 0.1 }}
-                        className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <Avatar className="h-12 w-12 bg-gradient-to-r from-green-500 to-blue-600">
-                            <AvatarFallback className="text-white font-bold">
-                              {booking.child.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              {booking.child.name} with {booking.therapist.name}
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              {new Date(booking.timeSlot.startTime).toLocaleDateString()} • {' '}
-                              {new Date(booking.timeSlot.startTime).toLocaleTimeString([], { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
-                            </p>
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600">
+                          <AvatarFallback className="text-white font-bold">
+                            {child.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white">{child.name}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{child.age} years old</p>
+                          {child.condition && (
                             <Badge variant="secondary" className="mt-1 text-xs">
-                              {booking.therapist.specialization}
+                              {child.condition}
                             </Badge>
-                          </div>
+                          )}
                         </div>
-                        <div className="flex flex-col items-end space-y-2">
-                          <Badge variant="default" className="bg-green-100 text-green-800">
-                            {booking.status}
-                          </Badge>
-                          <Button
-                            size="sm"
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full px-4 py-1"
-                            onClick={() => handleJoinSession(booking.id)}
-                            disabled={joiningId === booking.id}
-                          >
-                            <Video className="w-4 h-4 mr-1" />
-                            {joiningId === booking.id ? 'Joining...' : 'Join'}
-                          </Button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </GlowCard>
-          </motion.div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="sm" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                          View
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                          Edit
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+          </div>
         </div>
 
-        {/* Recent Activity */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <GlowCard>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {bookings.slice(0, 5).map((booking: Booking, index) => (
-                  <motion.div
-                    key={booking.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.7 + index * 0.1 }}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+        {/* Upcoming Sessions Section */}
+        <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <Calendar className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
+              Upcoming Sessions
+              <Badge variant="secondary" className="ml-2">
+                <AnimatedCounter value={upcomingBookings.length} />
+              </Badge>
+            </h3>
+          </div>
+          <div className="card-content p-6">
+              {upcomingBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No upcoming sessions</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">Book a session with a therapist to get started.</p>
+                  <Button
+                    onClick={() => setShowBookSessionModal(true)}
+                    className="bg-gradient-to-r from-green-600 to-blue-600"
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <Play className="w-4 h-4 text-white" />
+                    <Heart className="w-4 h-4 mr-2" />
+                    Book Session
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {upcomingBookings.map((booking: Booking, index) => (
+                    <motion.div
+                      key={booking.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 + index * 0.1 }}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl border border-green-100 dark:border-green-800 hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12 bg-gradient-to-r from-green-500 to-blue-600">
+                          <AvatarFallback className="text-white font-bold">
+                            {booking.child.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                            {booking.child.name} with {booking.therapist.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            {new Date(booking.timeSlot.startTime).toLocaleDateString()} • {' '}
+                            {new Date(booking.timeSlot.startTime).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </p>
+                          <Badge variant="secondary" className="mt-1 text-xs">
+                            {booking.therapist.specialization}
+                          </Badge>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          Session with {booking.therapist.name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {booking.child.name} • {new Date(booking.timeSlot.startTime).toLocaleDateString()}
-                        </p>
+                      <div className="flex flex-col items-end space-y-2">
+                        <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          {booking.status}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full px-4 py-1"
+                          onClick={() => handleJoinSession(booking.id)}
+                          disabled={joiningId === booking.id}
+                        >
+                          <Video className="w-4 h-4 mr-1" />
+                          {joiningId === booking.id ? 'Joining...' : 'Join'}
+                        </Button>
                       </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+            <TrendingUp className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
+            Recent Activity
+          </h3>
+        </div>
+        <div className="card-content p-6">
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {bookings.slice(0, 5).map((booking: Booking, index) => (
+                <motion.div
+                  key={booking.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <Play className="w-4 h-4 text-white" />
                     </div>
-                    <Badge variant={booking.status === 'COMPLETED' ? 'default' : 'secondary'}>
-                      {booking.status}
-                    </Badge>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </GlowCard>
-        </motion.div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        Session with {booking.therapist.name}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {booking.child.name} • {new Date(booking.timeSlot.startTime).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={booking.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                    {booking.status}
+                  </Badge>
+                </motion.div>
+              ))}
+            </div>
+        </div>
       </div>
 
       {/* Modals */}

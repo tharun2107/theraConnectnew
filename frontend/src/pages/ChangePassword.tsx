@@ -30,7 +30,7 @@ const ChangePassword: React.FC = () => {
     try {
       await authAPI.changePassword({ email: data.email, currentPassword: data.currentPassword, newPassword: data.newPassword })
       toast.success('Password changed successfully')
-      navigate(role === 'therapist' ? '/login/therapist' : '/login/parent')
+      navigate('/login')
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Failed to change password')
     } finally {

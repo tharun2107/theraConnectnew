@@ -30,26 +30,10 @@ api.interceptors.response.use(
   (response: any) => response,
   (error: any) => {
     if (error.response?.status === 401) {
-      // Try to route the user to the correct login page based on their last known role
-      const userRaw = localStorage.getItem('user')
-      let role: string | undefined
-      try {
-        role = userRaw ? JSON.parse(userRaw)?.role : undefined
-      } catch {}
-
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-
-      if (role === 'THERAPIST') {
-        window.location.href = '/login/therapist'
-      } else if (role === 'PARENT') {
-        window.location.href = '/login/parent'
-      } else if (role === 'ADMIN') {
-        window.location.href = '/login/admin'
-      } else {
-        // Fallback to landing page which has all login choices
-        window.location.href = '/'
-      }
+      // Redirect to unified login
+      window.location.href = '/login'
     }
     return Promise.reject(error)
   }
