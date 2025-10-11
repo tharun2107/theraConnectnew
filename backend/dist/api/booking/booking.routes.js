@@ -55,4 +55,6 @@ router.post('/:bookingId/zoom/create', (0, auth_middleware_1.authorize)([client_
 router.post('/:bookingId/zoom/host-started', (0, auth_middleware_1.authorize)([client_1.Role.THERAPIST]), zoomController.markHostStarted);
 // Get SDK signature for current user (role derived), blocked if parent and host not started
 router.get('/:bookingId/zoom/signature', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), zoomController.getSignature);
+// Mark session as completed (can be called by both parent and therapist)
+router.post('/:bookingId/complete', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), booking_controller_1.markSessionCompletedHandler);
 exports.default = router;

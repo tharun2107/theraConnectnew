@@ -45,9 +45,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = void 0;
+exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = exports.markSessionCompletedHandler = void 0;
 const bookingService = __importStar(require("./booking.service"));
 const prisma_1 = __importDefault(require("../../utils/prisma"));
+const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { bookingId } = req.params;
+        const updatedBooking = yield bookingService.markSessionCompleted(bookingId);
+        res.status(200).json({
+            message: 'Session marked as completed',
+            booking: updatedBooking
+        });
+    }
+    catch (error) {
+        console.error('[booking.markSessionCompleted][ERROR]', error);
+        res.status(400).json({ message: error.message || 'Failed to mark session as completed' });
+    }
+});
+exports.markSessionCompletedHandler = markSessionCompletedHandler;
 const getAvailableSlotsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {

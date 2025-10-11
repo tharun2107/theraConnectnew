@@ -125,6 +125,7 @@ export const bookingAPI = {
   createZoomMeeting: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/create`),
   markHostStarted: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/host-started`),
   getSignature: (bookingId: string) => api.get(`/bookings/${bookingId}/zoom/signature`),
+  markSessionCompleted: (bookingId: string) => api.post(`/bookings/${bookingId}/complete`),
 }
 
 // Slots API
@@ -133,4 +134,34 @@ export const slotsAPI = {
     api.post('/slots', { therapistId, date }),
   bookSlot: (timeSlotId: string, childId: string) =>
     api.post('/slots/book', { timeSlotId, childId }),
+}
+
+// Feedback API
+export const feedbackAPI = {
+  createFeedback: (data: {
+    bookingId: string
+    rating: number
+    comment?: string
+    isAnonymous?: boolean
+    consentToDataSharing?: boolean
+  }) => api.post('/feedback/feedback', data),
+  
+  createSessionReport: (data: {
+    bookingId: string
+    sessionExperience: string
+    childPerformance?: string
+    improvements?: string
+    medication?: string
+    recommendations?: string
+    nextSteps?: string
+  }) => api.post('/feedback/session-report', data),
+  
+  updateConsent: (data: {
+    bookingId: string
+    status: 'GRANTED' | 'DENIED'
+    notes?: string
+  }) => api.put('/feedback/consent', data),
+  
+  getSessionDetails: (bookingId: string) =>
+    api.get(`/feedback/session/${bookingId}`),
 }

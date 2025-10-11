@@ -23,6 +23,7 @@ const parent_routes_js_1 = __importDefault(require("./api/parent/parent.routes.j
 const therapist_routes_js_1 = __importDefault(require("./api/therapist/therapist.routes.js"));
 const booking_routes_js_1 = __importDefault(require("./api/booking/booking.routes.js"));
 const slots_routes_js_1 = __importDefault(require("./api/slots/slots.routes.js"));
+const feedback_routes_js_1 = __importDefault(require("./api/feedback/feedback.routes.js"));
 // Load environment variables
 dotenv_1.default.config();
 const prisma = new client_1.PrismaClient();
@@ -38,6 +39,7 @@ app.use('/api/v1/parents', parent_routes_js_1.default);
 app.use('/api/v1/therapists', therapist_routes_js_1.default);
 app.use('/api/v1/bookings', booking_routes_js_1.default);
 app.use('/api/v1/slots', slots_routes_js_1.default);
+app.use('/api/v1/feedback', feedback_routes_js_1.default);
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$connect();

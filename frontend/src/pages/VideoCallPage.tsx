@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { bookingAPI } from '../lib/api'
+import { bookingAPI, feedbackAPI } from '../lib/api'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
@@ -12,6 +12,9 @@ import {
   Minimize2
 } from 'lucide-react'
 import VideoControls from '../components/VideoControls'
+import FeedbackForm from '../components/FeedbackForm'
+import SessionReportForm from '../components/SessionReportForm'
+import { useAuth } from '../hooks/useAuth'
 import { cn } from '../lib/utils'
 
 
@@ -24,6 +27,7 @@ declare global {
 const VideoCallPage: React.FC = () => {
   const { bookingId } = useParams<{ bookingId: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const clientRef = useRef<any>(null)
   const joinStartedRef = useRef<boolean>(false)
@@ -37,6 +41,10 @@ const VideoCallPage: React.FC = () => {
   const [meetingStarted, setMeetingStarted] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
+  const [callEnded, setCallEnded] = useState(false)
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false)
+  const [showSessionReportForm, setShowSessionReportForm] = useState(false)
+  const [sessionDetails, setSessionDetails] = useState<any>(null)
 
   useEffect(() => {
     if (!bookingId) {
@@ -159,8 +167,94 @@ const VideoCallPage: React.FC = () => {
     }
   }
 
-  const handleEndCall = () => {
-    navigate(-1)
+  const handleEndCall = async () => {
+    console.log('🎯 handleEndCall called, user role:', user?.role)
+    try {
+      // Leave the meeting
+      if (clientRef.current) {
+        console.log('📞 Leaving meeting...')
+        try {
+          // Try different leave methods based on Zoom SDK version
+          if (typeof clientRef.current.leave === 'function') {
+            await clientRef.current.leave()
+          } else if (typeof clientRef.current.endMeeting === 'function') {
+            await clientRef.current.endMeeting()
+          } else if (typeof clientRef.current.destroy === 'function') {
+            await clientRef.current.destroy()
+          } else {
+            console.log('⚠️ No leave method found, proceeding without leaving')
+          }
+        } catch (leaveError) {
+          console.log('⚠️ Leave method failed:', leaveError)
+          // Continue anyway - don't block the form
+        }
+      }
+      
+      // Mark session as completed
+      console.log('✅ Marking session as completed...')
+      try {
+        await bookingAPI.markSessionCompleted(bookingId!)
+        console.log('✅ Session marked as completed successfully')
+      } catch (completionError) {
+        console.error('❌ Failed to mark session as completed:', completionError)
+        // Continue anyway - we'll show the form with fallback data
+      }
+      
+      setCallEnded(true)
+      
+      // Load session details
+      try {
+        console.log('📋 Loading session details...')
+        const response = await feedbackAPI.getSessionDetails(bookingId!)
+        console.log('📋 Session details loaded:', response.data)
+        setSessionDetails(response.data.sessionDetails)
+      } catch (error) {
+        console.error('❌ Failed to load session details:', error)
+        // Create fallback session details if API fails
+        setSessionDetails({
+          child: { name: 'Child' },
+          therapist: { name: 'Therapist' },
+          parent: { name: 'Parent' }
+        })
+      }
+      
+      // Show appropriate form based on user role
+      console.log('🎭 User role:', user?.role)
+      if (user?.role === 'PARENT') {
+        console.log('👨‍👩‍👧‍👦 Showing feedback form for parent')
+        setShowFeedbackForm(true)
+      } else if (user?.role === 'THERAPIST') {
+        console.log('👩‍⚕️ Showing session report form for therapist')
+        setShowSessionReportForm(true)
+      } else {
+        console.log('👤 Admin or other role, navigating back')
+        // Admin or other roles - just navigate back
+        navigate(-1)
+      }
+    } catch (error) {
+      console.error('❌ Error ending call:', error)
+      // Even if there's an error, try to show the form
+      setCallEnded(true)
+      if (user?.role === 'PARENT') {
+        console.log('👨‍👩‍👧‍👦 Error fallback: Showing feedback form for parent')
+        setShowFeedbackForm(true)
+        setSessionDetails({
+          child: { name: 'Child' },
+          therapist: { name: 'Therapist' },
+          parent: { name: 'Parent' }
+        })
+      } else if (user?.role === 'THERAPIST') {
+        console.log('👩‍⚕️ Error fallback: Showing session report form for therapist')
+        setShowSessionReportForm(true)
+        setSessionDetails({
+          child: { name: 'Child' },
+          therapist: { name: 'Therapist' },
+          parent: { name: 'Parent' }
+        })
+      } else {
+        navigate(-1)
+      }
+    }
   }
 
   const handleShareScreen = () => {
@@ -168,9 +262,45 @@ const VideoCallPage: React.FC = () => {
     console.log('Share screen clicked')
   }
 
+  const handleTestFeedback = () => {
+    console.log('🧪 Testing feedback form')
+    setCallEnded(true)
+    setSessionDetails({
+      child: { name: 'Test Child' },
+      therapist: { name: 'Test Therapist' },
+      parent: { name: 'Test Parent' }
+    })
+    
+    if (user?.role === 'PARENT') {
+      setShowFeedbackForm(true)
+    } else if (user?.role === 'THERAPIST') {
+      setShowSessionReportForm(true)
+    }
+  }
+
   const handleShowSettings = () => {
     // Settings functionality would be implemented here
     console.log('Show settings clicked')
+  }
+
+  const handleFeedbackSuccess = () => {
+    setShowFeedbackForm(false)
+    navigate(-1)
+  }
+
+  const handleSessionReportSuccess = () => {
+    setShowSessionReportForm(false)
+    navigate(-1)
+  }
+
+  const handleFeedbackCancel = () => {
+    setShowFeedbackForm(false)
+    navigate(-1)
+  }
+
+  const handleSessionReportCancel = () => {
+    setShowSessionReportForm(false)
+    navigate(-1)
   }
 
   if (error) {
@@ -188,6 +318,34 @@ const VideoCallPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+    )
+  }
+
+  // Show feedback form for parents
+  if (showFeedbackForm) {
+    console.log('🎯 Rendering feedback form for parent')
+    return (
+      <FeedbackForm
+        bookingId={bookingId!}
+        childName={sessionDetails?.child?.name || 'Child'}
+        therapistName={sessionDetails?.therapist?.name || 'Therapist'}
+        onSuccess={handleFeedbackSuccess}
+        onCancel={handleFeedbackCancel}
+      />
+    )
+  }
+
+  // Show session report form for therapists
+  if (showSessionReportForm) {
+    console.log('🎯 Rendering session report form for therapist')
+    return (
+      <SessionReportForm
+        bookingId={bookingId!}
+        childName={sessionDetails?.child?.name || 'Child'}
+        parentName={sessionDetails?.parent?.name || 'Parent'}
+        onSuccess={handleSessionReportSuccess}
+        onCancel={handleSessionReportCancel}
+      />
     )
   }
 
@@ -214,6 +372,14 @@ const VideoCallPage: React.FC = () => {
           <Badge variant={meetingStarted ? "default" : "secondary"}>
             {participants} participants
           </Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleTestFeedback}
+            className="text-yellow-400 hover:text-yellow-300"
+          >
+            Test Feedback
+          </Button>
           <Button
             variant="ghost"
             size="icon"

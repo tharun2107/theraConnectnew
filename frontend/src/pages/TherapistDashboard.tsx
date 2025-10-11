@@ -34,6 +34,8 @@ import { AnimatedCounter } from '../components/ui/animated-counter'
 import CreateTimeSlotsModal from '../components/CreateTimeSlotsModal'
 import RequestLeaveModal from '../components/RequestLeaveModal'
 import CurrentSessions from '../components/CurrentSessions'
+import SessionDetails from '../components/SessionDetails'
+import TherapistChildrenView from '../components/TherapistChildrenView'
 import { useNavigate } from 'react-router-dom'
 
 interface Booking {
@@ -130,6 +132,11 @@ const TherapistDashboard: React.FC = () => {
     .sort((a: Booking, b: Booking) => 
       new Date(a.timeSlot.startTime).getTime() - new Date(b.timeSlot.startTime).getTime()
     )
+
+  // Calculate completed sessions
+  const completedSessions = bookings.filter((booking: Booking) => 
+    booking.status === 'COMPLETED'
+  ).length
 
   const stats = [
     {
@@ -257,6 +264,7 @@ const TherapistDashboard: React.FC = () => {
             {[
               { id: 'overview', label: 'Overview', icon: Activity },
               { id: 'sessions', label: 'Current Sessions', icon: Play },
+              { id: 'children', label: 'My Children', icon: Users },
               { id: 'schedule', label: 'Schedule', icon: Calendar },
               { id: 'profile', label: 'Profile', icon: User }
             ].map((tab) => {
@@ -446,6 +454,14 @@ const TherapistDashboard: React.FC = () => {
                     onJoinSession={handleJoinSession}
                     userRole="THERAPIST"
                   />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'children' && (
+              <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="card-content p-6">
+                  <TherapistChildrenView />
                 </div>
               </div>
             )}
@@ -646,6 +662,56 @@ const TherapistDashboard: React.FC = () => {
             </CardContent>
           </GlowCard>
         </motion.div>
+
+      {/* Past Sessions */}
+      <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+            <Calendar className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
+            Past Sessions
+          </h3>
+        </div>
+        <div className="card-content p-6">
+          {bookingsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <span className="ml-2 text-gray-600">Loading past sessions...</span>
+            </div>
+          ) : completedSessions === 0 ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-4xl mb-3">📅</div>
+              <p className="text-lg font-medium mb-2">No completed sessions yet</p>
+              <p className="text-sm">Completed therapy sessions will appear here with session reports and parent feedback.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {bookings
+                .filter((booking: Booking) => booking.status === 'COMPLETED')
+                .sort((a: Booking, b: Booking) => 
+                  new Date(b.timeSlot.startTime).getTime() - new Date(a.timeSlot.startTime).getTime()
+                )
+                .slice(0, 5) // Show only the 5 most recent sessions
+                .map((booking: Booking) => {
+                  console.log('🔍 TherapistDashboard - Booking data:', booking)
+                  return (
+                    <SessionDetails
+                      key={booking.id}
+                      booking={booking}
+                      userRole="THERAPIST"
+                    />
+                  )
+                })}
+              {completedSessions > 5 && (
+                <div className="text-center pt-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing 5 most recent sessions.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Modals */}
       {showCreateSlotsModal && (

@@ -30,6 +30,8 @@ import { AnimatedCounter } from '../components/ui/animated-counter'
 import AddChildModal from '../components/AddChildModal'
 import BookSessionModal from '../components/BookSessionModal'
 import CurrentSessions from '../components/CurrentSessions'
+import SessionDetails from '../components/SessionDetails'
+import ParentConsentManagement from '../components/ParentConsentManagement'
 
 interface Child {
   id: string
@@ -435,6 +437,72 @@ const ParentDashboard: React.FC = () => {
                 </motion.div>
               ))}
             </div>
+        </div>
+      </div>
+
+      {/* Past Sessions */}
+      <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+            <Calendar className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
+            Past Sessions
+          </h3>
+        </div>
+        <div className="card-content p-6">
+          {bookingsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <span className="ml-2 text-gray-600">Loading past sessions...</span>
+            </div>
+          ) : completedSessions === 0 ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-4xl mb-3">📅</div>
+              <p className="text-lg font-medium mb-2">No completed sessions yet</p>
+              <p className="text-sm">Completed therapy sessions will appear here with feedback and reports.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {bookings
+                .filter((booking: Booking) => booking.status === 'COMPLETED')
+                .sort((a: Booking, b: Booking) => 
+                  new Date(b.timeSlot.startTime).getTime() - new Date(a.timeSlot.startTime).getTime()
+                )
+                .slice(0, 5) // Show only the 5 most recent sessions
+                .map((booking: Booking) => {
+                  console.log('🔍 ParentDashboard - Booking data:', booking)
+                  return (
+                    <SessionDetails
+                      key={booking.id}
+                      booking={booking}
+                      userRole="PARENT"
+                    />
+                  )
+                })}
+              {completedSessions > 5 && (
+                <div className="text-center pt-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing 5 most recent sessions. View all sessions in individual child profiles.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Consent Management */}
+      <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+            <Users className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+            Consent Management
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Manage which therapists can access your children's detailed information
+          </p>
+        </div>
+        <div className="card-content p-6">
+          <ParentConsentManagement />
         </div>
       </div>
 

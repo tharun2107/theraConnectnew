@@ -1,5 +1,3 @@
-// This is your final, complete Prisma schema file
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,7 +7,259 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ENUMS
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String
+  role             Role
+  createdAt        DateTime          @default(now())
+  adminProfile     AdminProfile?
+  auditLogs        AuditLog[]        @relation("AdminActions")
+  notifications    Notification[]
+  parentProfile    ParentProfile?
+  therapistProfile TherapistProfile?
+}
+
+model AdminProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  name   String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model ParentProfile {
+  id              String            @id @default(cuid())
+  userId          String            @unique
+  name            String
+  phone           String?           @unique
+  customFee       Float?
+  bookings        Booking[]
+  children        Child[]
+  ConsentRequest  ConsentRequest[]
+  user            User              @relation(fields: [userId], references: [id])
+  payments        Payment[]
+  SessionFeedback SessionFeedback[]
+}
+
+model TherapistProfile {
+  id                       String                 @id @default(cuid())
+  userId                   String                 @unique
+  name                     String
+  phone                    String                 @unique
+  specialization           String
+  experience               Int
+  baseCostPerSession       Float
+  averageRating            Float                  @default(0)
+  status                   TherapistStatus        @default(PENDING_VERIFICATION)
+  leavesRemainingThisMonth Int                    @default(3)
+  maxSlotsPerDay           Int                    @default(8)
+  scheduleStartTime        String                 @default("10:00")
+  slotDurationInMinutes    Int                    @default(45)
+  bookings                 Booking[]
+  ConsentRequest           ConsentRequest[]
+  dataAccess               DataAccessPermission[]
+  payments                 Payment[]
+  sessionReports           SessionReport[]
+  testimonials             Testimonial[]
+  breaks                   TherapistBreak[]
+  leaves                   TherapistLeave[]
+  user                     User                   @relation(fields: [userId], references: [id])
+  timeSlots                TimeSlot[]
+
+  @@index([specialization])
+}
+
+model TherapistBreak {
+  id          String           @id @default(cuid())
+  therapistId String
+  name        String
+  startTime   String
+  endTime     String
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  @@index([therapistId])
+}
+
+model Child {
+  id         String                 @id @default(cuid())
+  name       String
+  age        Int
+  address    String?
+  condition  String?
+  notes      String?
+  parentId   String
+  bookings   Booking[]
+  parent     ParentProfile          @relation(fields: [parentId], references: [id])
+  dataAccess DataAccessPermission[]
+
+  @@unique([parentId, name])
+  @@index([parentId])
+}
+
+model TimeSlot {
+  id          String           @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime
+  isBooked    Boolean          @default(false)
+  therapistId String
+  isActive    Boolean          @default(false)
+  booking     Booking?
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  @@index([therapistId, startTime])
+}
+
+model Booking {
+  id              String                @id @default(cuid())
+  status          BookingStatus         @default(SCHEDULED)
+  zoomLink        String?
+  createdAt       DateTime              @default(now())
+  parentId        String
+  childId         String
+  therapistId     String
+  timeSlotId      String                @unique
+  hostStarted     Boolean               @default(false)
+  meetingId       String?
+  meetingPassword String?
+  completedAt     DateTime?
+  isCompleted     Boolean               @default(false)
+  child           Child                 @relation(fields: [childId], references: [id])
+  parent          ParentProfile         @relation(fields: [parentId], references: [id])
+  therapist       TherapistProfile      @relation(fields: [therapistId], references: [id])
+  timeSlot        TimeSlot              @relation(fields: [timeSlotId], references: [id])
+  ConsentRequest  ConsentRequest?
+  dataAccess      DataAccessPermission?
+  payment         Payment?
+  SessionFeedback SessionFeedback?
+  sessionReport   SessionReport?
+  testimonial     Testimonial?
+
+  @@index([parentId, therapistId, childId])
+}
+
+model TherapistLeave {
+  id          String           @id @default(cuid())
+  date        DateTime         @db.Date
+  type        LeaveType
+  reason      String?
+  isApproved  Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  therapistId String
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  @@index([therapistId, date])
+}
+
+model DataAccessPermission {
+  id              String           @id @default(cuid())
+  canViewDetails  Boolean          @default(false)
+  accessStartTime DateTime
+  accessEndTime   DateTime
+  childId         String
+  therapistId     String
+  bookingId       String           @unique
+  booking         Booking          @relation(fields: [bookingId], references: [id])
+  child           Child            @relation(fields: [childId], references: [id])
+  therapist       TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  @@index([childId, therapistId])
+}
+
+model Payment {
+  id              String           @id @default(cuid())
+  amount          Float
+  status          PaymentStatus    @default(PENDING)
+  transactionDate DateTime         @default(now())
+  bookingId       String           @unique
+  parentId        String
+  therapistId     String
+  booking         Booking          @relation(fields: [bookingId], references: [id])
+  parent          ParentProfile    @relation(fields: [parentId], references: [id])
+  therapist       TherapistProfile @relation(fields: [therapistId], references: [id])
+}
+
+model Testimonial {
+  id          String           @id @default(cuid())
+  rating      Int
+  text        String?
+  bookingId   String           @unique
+  therapistId String
+  booking     Booking          @relation(fields: [bookingId], references: [id])
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  @@index([therapistId])
+}
+
+model SessionReport {
+  id                String           @id @default(cuid())
+  sessionExperience String
+  childPerformance  String?
+  improvements      String?
+  medication        String?
+  recommendations   String?
+  nextSteps         String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime
+  bookingId         String           @unique
+  therapistId       String
+  booking           Booking          @relation(fields: [bookingId], references: [id])
+  therapist         TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  @@index([therapistId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  message   String
+  isRead    Boolean          @default(false)
+  type      NotificationType
+  createdAt DateTime         @default(now())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+  adminId   String
+  admin     User     @relation("AdminActions", fields: [adminId], references: [id])
+}
+
+model ConsentRequest {
+  id               String           @id
+  status           ConsentStatus    @default(PENDING)
+  requestedAt      DateTime         @default(now())
+  respondedAt      DateTime?
+  notes            String?
+  bookingId        String           @unique
+  parentId         String
+  therapistId      String
+  Booking          Booking          @relation(fields: [bookingId], references: [id])
+  ParentProfile    ParentProfile    @relation(fields: [parentId], references: [id])
+  TherapistProfile TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  @@index([parentId])
+  @@index([therapistId])
+}
+
+model SessionFeedback {
+  id            String        @id
+  rating        Int
+  comment       String?
+  isAnonymous   Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  bookingId     String        @unique
+  parentId      String
+  Booking       Booking       @relation(fields: [bookingId], references: [id])
+  ParentProfile ParentProfile @relation(fields: [parentId], references: [id])
+
+  @@index([parentId])
+}
+
 enum Role {
   PARENT
   THERAPIST
@@ -48,218 +298,14 @@ enum NotificationType {
   SESSION_REMINDER
   PAYMENT_SUCCESS
   THERAPIST_ACCOUNT_APPROVED
+  SESSION_COMPLETED
+  REPORT_READY
+  CONSENT_REQUESTED
+  CONSENT_RESPONSE
 }
 
-// CORE MODELS
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-
-  parentProfile    ParentProfile?
-  therapistProfile TherapistProfile?
-  adminProfile     AdminProfile?
-  notifications    Notification[]
-  auditLogs        AuditLog[]      @relation("AdminActions")
-}
-
-model AdminProfile {
-  id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
-  name   String
-}
-
-model ParentProfile {
-  id        String  @id @default(cuid())
-  user      User    @relation(fields: [userId], references: [id])
-  userId    String  @unique
-  name      String
-  phone     String? @unique
-  customFee Float? 
-
-  children Child[]
-  bookings Booking[]
-  payments Payment[]
-}
-
-model TherapistProfile {
-  id                         String          @id @default(cuid())
-  user                       User            @relation(fields: [userId], references: [id])
-  userId                     String          @unique
-  name                       String
-  phone                      String         @unique
-  specialization             String
-  experience                 Int
-  baseCostPerSession         Float
-  averageRating              Float           @default(0)
-  status                     TherapistStatus @default(PENDING_VERIFICATION)
-  leavesRemainingThisMonth   Int             @default(3)
-   scheduleStartTime       String   @default("10:00") // Store as "HH:mm" in 24-hour format (UTC)
-  slotDurationInMinutes   Int      @default(45)
-  maxSlotsPerDay          Int      @default(8)
-
-   breaks                  TherapistBreak[]
-  timeSlots    TimeSlot[]
-  bookings     Booking[]
-  payments     Payment[]
-  testimonials Testimonial[]
-  leaves       TherapistLeave[]
-  dataAccess   DataAccessPermission[]
-
-  @@index([specialization])
-}
-
-model TherapistBreak {
-  id          String   @id @default(cuid())
-  therapistId String
-  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
-
-  name        String   // e.g., "Lunch Break"
-  startTime   String   // "HH:mm" format in UTC
-  endTime     String   // "HH:mm" format in UTC
-
-  @@index([therapistId])
-}
-
-
-model Child {
-  id        String  @id @default(cuid())
-  name      String
-  age       Int
-  address   String? // NEW: As requested
-  condition String?
-  notes     String?
-
-  parent   ParentProfile @relation(fields: [parentId], references: [id])
-  parentId String
-
-  bookings   Booking[]
-  dataAccess DataAccessPermission[]
-
- @@unique([parentId, name])
-  @@index([parentId])
-}
-
-// TRANSACTIONAL MODELS
-model TimeSlot {
-  id          String   @id @default(cuid())
-  startTime   DateTime
-  endTime     DateTime
-  isBooked    Boolean  @default(false)
-  isActive    Boolean  @default(false)
-
-  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
-  therapistId String
-
-  booking Booking?
-
-  @@index([therapistId, startTime])
-}
-
-model Booking {
-  id         String        @id @default(cuid())
-  status     BookingStatus @default(SCHEDULED)
-  zoomLink   String?
-  meetingId  String?
-  meetingPassword String?
-  hostStarted Boolean @default(false)
-  createdAt  DateTime      @default(now())
-
-  parent      ParentProfile    @relation(fields: [parentId], references: [id])
-  parentId    String
-  child       Child            @relation(fields: [childId], references: [id])
-  childId     String
-  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
-  therapistId String
-  timeSlot    TimeSlot         @relation(fields: [timeSlotId], references: [id])
-  timeSlotId  String           @unique
-
-  payment     Payment?
-  testimonial Testimonial?
-  dataAccess  DataAccessPermission?
-
-  @@index([parentId, therapistId, childId])
-}
-
-model TherapistLeave {
-  id          String    @id @default(cuid())
-  date        DateTime  @db.Date
-  type        LeaveType
-  reason      String?
-  isApproved  Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-
-  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
-  therapistId String
-
-  @@index([therapistId, date])
-}
-
-model DataAccessPermission {
-  id              String   @id @default(cuid())
-  canViewDetails  Boolean  @default(false)
-  accessStartTime DateTime
-  accessEndTime   DateTime
-
-  child       Child            @relation(fields: [childId], references: [id])
-  childId     String
-  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
-  therapistId String
-  booking     Booking          @relation(fields: [bookingId], references: [id])
-  bookingId   String           @unique
-
-  @@index([childId, therapistId])
-}
-
-model Payment {
-  id              String        @id @default(cuid())
-  amount          Float
-  status          PaymentStatus @default(PENDING)
-  transactionDate DateTime      @default(now())
-
-  booking     Booking          @relation(fields: [bookingId], references: [id])
-  bookingId   String           @unique
-  parent      ParentProfile    @relation(fields: [parentId], references: [id])
-  parentId    String
-  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
-  therapistId String
-}
-
-model Testimonial {
-  id      String   @id @default(cuid())
-  rating  Int
-  text    String?
-
-  booking     Booking          @relation(fields: [bookingId], references: [id])
-  bookingId   String           @unique
-  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
-  therapistId String
-
-  @@index([therapistId])
-}
-
-model Notification {
-  id        String           @id @default(cuid())
-  message   String
-  isRead    Boolean          @default(false)
-  type      NotificationType
-  createdAt DateTime         @default(now())
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  @@index([userId])
-}
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  action    String
-  details   Json?
-  createdAt DateTime @default(now())
-
-  admin   User   @relation("AdminActions", fields: [adminId], references: [id])
-  adminId String
+enum ConsentStatus {
+  PENDING
+  GRANTED
+  DENIED
 }
