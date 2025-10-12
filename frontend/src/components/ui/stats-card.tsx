@@ -50,12 +50,12 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         transition: { duration: 0.2 }
       }}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl",
+        "group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-lg transition-all duration-300 hover:shadow-xl",
         className
       )}
     >
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       
       <div className="relative z-10">
         {/* Icon */}
@@ -88,7 +88,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: delay + 0.3, duration: 0.5 }}
-            className="text-3xl font-bold text-gray-900"
+            className="text-3xl font-bold text-gray-900 dark:text-white"
           >
             <AnimatedCounter value={value} />
           </motion.div>
@@ -99,14 +99,14 @@ export const StatsCard: React.FC<StatsCardProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: delay + 0.4, duration: 0.5 }}
-          className="text-sm font-medium text-gray-600"
+          className="text-sm font-medium text-gray-600 dark:text-gray-400"
         >
           {title}
         </motion.p>
       </div>
 
       {/* Hover effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 dark:from-blue-500/10 dark:to-purple-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </motion.div>
   )
 }

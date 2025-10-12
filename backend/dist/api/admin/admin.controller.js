@@ -42,7 +42,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTherapistStatusHandler = exports.getAllTherapistsHandler = void 0;
+exports.updateTherapistStatusHandler = exports.updatePlatformSettingsHandler = exports.getPlatformSettingsHandler = exports.updateProfileHandler = exports.getProfileHandler = exports.getAllBookingsHandler = exports.getChildSessionsHandler = exports.getAllChildrenHandler = exports.getTherapistSessionsHandler = exports.getAllTherapistsHandler = void 0;
 const adminService = __importStar(require("./admin.service"));
 const getAllTherapistsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -54,6 +54,98 @@ const getAllTherapistsHandler = (req, res) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.getAllTherapistsHandler = getAllTherapistsHandler;
+const getTherapistSessionsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { therapistId } = req.params;
+        const sessions = yield adminService.getTherapistSessions(therapistId);
+        res.status(200).json(sessions);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve therapist sessions' });
+    }
+});
+exports.getTherapistSessionsHandler = getTherapistSessionsHandler;
+const getAllChildrenHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const children = yield adminService.getAllChildren();
+        res.status(200).json(children);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve children' });
+    }
+});
+exports.getAllChildrenHandler = getAllChildrenHandler;
+const getChildSessionsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { childId } = req.params;
+        const sessions = yield adminService.getChildSessions(childId);
+        res.status(200).json(sessions);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve child sessions' });
+    }
+});
+exports.getChildSessionsHandler = getChildSessionsHandler;
+const getAllBookingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const bookings = yield adminService.getAllBookings();
+        res.status(200).json(bookings);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve bookings' });
+    }
+});
+exports.getAllBookingsHandler = getAllBookingsHandler;
+const getProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+        const profile = yield adminService.getProfile(userId);
+        res.status(200).json(profile);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve profile' });
+    }
+});
+exports.getProfileHandler = getProfileHandler;
+const updateProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+        const profile = yield adminService.updateProfile(userId, req.body);
+        res.status(200).json(profile);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to update profile' });
+    }
+});
+exports.updateProfileHandler = updateProfileHandler;
+const getPlatformSettingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const settings = yield adminService.getPlatformSettings();
+        res.status(200).json(settings);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve platform settings' });
+    }
+});
+exports.getPlatformSettingsHandler = getPlatformSettingsHandler;
+const updatePlatformSettingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const settings = yield adminService.updatePlatformSettings(req.body);
+        res.status(200).json(settings);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to update platform settings' });
+    }
+});
+exports.updatePlatformSettingsHandler = updatePlatformSettingsHandler;
 const updateTherapistStatusHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { therapistId } = req.params;
