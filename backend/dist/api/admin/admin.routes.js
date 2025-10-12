@@ -9,6 +9,19 @@ const admin_validation_1 = require("./admin.validation");
 const router = (0, express_1.Router)();
 // All routes in this file are protected and for Admins only
 router.use(auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)([client_1.Role.ADMIN]));
+// Therapist management
 router.get('/therapists', admin_controller_1.getAllTherapistsHandler);
-router.patch('/therapists/:therapistId/status', (0, validate_middleware_1.validate)({ body: admin_validation_1.updateTherapistStatusSchema.shape.body, params: admin_validation_1.updateTherapistStatusSchema.shape.params }), admin_controller_1.updateTherapistStatusHandler);
+router.get('/therapists/:therapistId/sessions', admin_controller_1.getTherapistSessionsHandler);
+router.patch('/therapists/:therapistId/status', (0, validate_middleware_1.validate)(admin_validation_1.updateTherapistStatusSchema), admin_controller_1.updateTherapistStatusHandler);
+// Children management
+router.get('/children', admin_controller_1.getAllChildrenHandler);
+router.get('/children/:childId/sessions', admin_controller_1.getChildSessionsHandler);
+// Bookings management
+router.get('/bookings', admin_controller_1.getAllBookingsHandler);
+// Profile management
+router.get('/profile', admin_controller_1.getProfileHandler);
+router.put('/profile', admin_controller_1.updateProfileHandler);
+// Platform settings
+router.get('/settings', admin_controller_1.getPlatformSettingsHandler);
+router.put('/settings', admin_controller_1.updatePlatformSettingsHandler);
 exports.default = router;

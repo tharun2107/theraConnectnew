@@ -88,6 +88,7 @@ export const parentAPI = {
     api.delete(`/parents/me/children/${childId}`),
   // Returns only ACTIVE therapists
   getActiveTherapists: () => api.get('/parents/therapists'),
+  getAllChildren: () => api.get('/admin/children'),
 }
 
 // Therapist API
@@ -111,6 +112,14 @@ export const adminAPI = {
   getAllTherapists: () => api.get('/admin/therapists'),
   updateTherapistStatus: (therapistId: string, status: string) =>
     api.patch(`/admin/therapists/${therapistId}/status`, { status }),
+  getTherapistSessions: (therapistId: string) => api.get(`/admin/therapists/${therapistId}/sessions`),
+  getAllChildren: () => api.get('/admin/children'),
+  getChildSessions: (childId: string) => api.get(`/admin/children/${childId}/sessions`),
+  getAllBookings: () => api.get('/admin/bookings'),
+  getProfile: () => api.get('/admin/profile'),
+  updateProfile: (data: any) => api.put('/admin/profile', data),
+  getPlatformSettings: () => api.get('/admin/settings'),
+  updatePlatformSettings: (data: any) => api.put('/admin/settings', data),
 }
 
 // Booking API

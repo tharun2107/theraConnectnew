@@ -10,7 +10,9 @@ import {
   Heart,
   Bell,
   Settings,
-  LogOut
+  LogOut,
+  BarChart3,
+  User
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
@@ -48,13 +50,14 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
         { name: 'My Children', href: `${basePath}/children`, icon: Users },
         { name: 'Bookings', href: `${basePath}/bookings`, icon: Calendar },
         { name: 'Find Therapists', href: `${basePath}/therapists`, icon: Search },
+        { name: 'Analytics', href: `${basePath}/analytics`, icon: BarChart3 },
       ]
     } else if (userRole === 'THERAPIST') {
       return [
         { name: 'Dashboard', href: basePath, icon: LayoutDashboard },
         { name: 'Schedule', href: `${basePath}/schedule`, icon: Calendar },
         { name: 'Bookings', href: `${basePath}/bookings`, icon: Users },
-        { name: 'Leave Requests', href: `${basePath}/leaves`, icon: UserPlus },
+        { name: 'Analytics', href: `${basePath}/analytics`, icon: BarChart3 },
       ]
     } else if (userRole === 'ADMIN') {
       return [

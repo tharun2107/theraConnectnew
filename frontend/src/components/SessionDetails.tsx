@@ -24,17 +24,17 @@ interface SessionDetailsProps {
     status: string
     completedAt?: string
     child?: {
-      id: string
+      id?: string
       name: string
       age: number
     }
     therapist?: {
-      id: string
+      id?: string
       name: string
       specialization: string
     }
     parent?: {
-      id: string
+      id?: string
       name: string
     }
     timeSlot: {
@@ -42,7 +42,7 @@ interface SessionDetailsProps {
       endTime: string
     }
   }
-  userRole: 'PARENT' | 'THERAPIST'
+  userRole: 'PARENT' | 'THERAPIST' | 'ADMIN'
 }
 
 interface SessionData {
@@ -214,6 +214,8 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
               <span className="text-sm text-gray-600">
                 {userRole === 'PARENT' 
                   ? `Therapist: ${booking.therapist?.name || 'Unknown Therapist'}`
+                  : userRole === 'ADMIN'
+                  ? `Child: ${booking.child?.name || 'Unknown Child'} | Therapist: ${booking.therapist?.name || 'Unknown Therapist'}`
                   : `Child: ${booking.child?.name || 'Unknown Child'}`
                 }
               </span>
@@ -322,12 +324,14 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                     </div>
                   )}
 
-                  {/* Session Report (for Therapists) */}
-                  {userRole === 'THERAPIST' && sessionData?.sessionReport && (
+                  {/* Session Report (for Therapists and Admins) */}
+                  {(userRole === 'THERAPIST' || userRole === 'ADMIN') && sessionData?.sessionReport && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                        <h4 className="font-semibold text-blue-800 dark:text-blue-200">Your Session Report</h4>
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+                          {userRole === 'ADMIN' ? 'Session Report' : 'Your Session Report'}
+                        </h4>
                       </div>
                       <div className="space-y-3">
                         <div>
@@ -350,6 +354,39 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                           </div>
                         )}
 
+                        {sessionData.sessionReport.improvements && (
+                          <div>
+                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                              Improvements
+                            </h5>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                              {sessionData.sessionReport.improvements}
+                            </p>
+                          </div>
+                        )}
+
+                        {sessionData.sessionReport.recommendations && (
+                          <div>
+                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                              Recommendations
+                            </h5>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                              {sessionData.sessionReport.recommendations}
+                            </p>
+                          </div>
+                        )}
+
+                        {sessionData.sessionReport.nextSteps && (
+                          <div>
+                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                              Next Steps
+                            </h5>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                              {sessionData.sessionReport.nextSteps}
+                            </p>
+                          </div>
+                        )}
+
                         <div className="text-xs text-blue-600 dark:text-blue-400">
                           Report created on {formatDate(sessionData.sessionReport.createdAt)}
                         </div>
@@ -357,12 +394,14 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                     </div>
                   )}
 
-                  {/* Parent Feedback (for Therapists) */}
-                  {userRole === 'THERAPIST' && sessionData?.sessionFeedback && (
+                  {/* Parent Feedback (for Therapists and Admins) */}
+                  {(userRole === 'THERAPIST' || userRole === 'ADMIN') && sessionData?.sessionFeedback && (
                     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <Star className="h-5 w-5 text-green-600 mr-2" />
-                        <h4 className="font-semibold text-green-800 dark:text-green-200">Parent's Feedback</h4>
+                        <h4 className="font-semibold text-green-800 dark:text-green-200">
+                          {userRole === 'ADMIN' ? 'Parent Feedback' : 'Parent\'s Feedback'}
+                        </h4>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
@@ -424,6 +463,8 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                       <p className="text-sm">
                         {userRole === 'PARENT' 
                           ? 'No feedback or session report available yet.'
+                          : userRole === 'ADMIN'
+                          ? 'No session report or parent feedback available yet.'
                           : 'No session report or parent feedback available yet.'
                         }
                       </p>

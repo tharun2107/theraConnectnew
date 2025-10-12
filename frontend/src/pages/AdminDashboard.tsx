@@ -1,9 +1,26 @@
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
+import { motion } from 'framer-motion'
 import { adminAPI } from '../lib/api'
-import { Users, UserCheck, UserX, Shield, Stethoscope } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { 
+  Users, 
+  UserCheck, 
+  UserX, 
+  Shield, 
+  Stethoscope,
+  Star,
+  Plus,
+  Settings
+} from 'lucide-react'
+import { Button } from '../components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import { Avatar, AvatarFallback } from '../components/ui/avatar'
+import { StatsCard } from '../components/ui/stats-card'
+import { LoadingSpinner } from '../components/ui/loading-spinner'
+import { GradientText } from '../components/ui/gradient-text'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 interface Therapist {
   id: string
@@ -50,169 +67,267 @@ const AdminDashboard: React.FC = () => {
     updateStatusMutation.mutate({ therapistId, status })
   }
 
-  const activeTherapists = therapists.filter(
-    (therapist: Therapist) => therapist.status === 'ACTIVE'
-  )
+  // Calculate stats
+  const totalTherapists = therapists.length
+  const activeTherapists = therapists.filter((t: Therapist) => t.status === 'ACTIVE').length
+  const pendingTherapists = therapists.filter((t: Therapist) => t.status === 'PENDING_VERIFICATION').length
+  const averageRating = therapists.length > 0 
+    ? therapists.reduce((sum: number, t: Therapist) => sum + t.averageRating, 0) / therapists.length 
+    : 0
 
   const stats = [
     {
-      name: 'Total Therapists',
-      value: therapists.length,
+      title: 'Total Therapists',
+      value: totalTherapists,
       icon: Users,
-      color: 'bg-blue-500',
+      color: 'from-blue-500 to-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+      textColor: 'text-blue-600 dark:text-blue-400'
     },
     {
-      name: 'Active Therapists',
-      value: activeTherapists.length,
+      title: 'Active Therapists',
+      value: activeTherapists,
       icon: UserCheck,
-      color: 'bg-green-500',
+      color: 'from-green-500 to-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
+      textColor: 'text-green-600 dark:text-green-400'
     },
     {
-      name: 'Suspended',
-      value: therapists.filter((t: Therapist) => t.status === 'SUSPENDED').length,
-      icon: UserX,
-      color: 'bg-red-500',
+      title: 'Pending Verification',
+      value: pendingTherapists,
+      icon: Shield,
+      color: 'from-orange-500 to-orange-600',
+      bgColor: 'bg-orange-50 dark:bg-orange-900/20',
+      textColor: 'text-orange-600 dark:text-orange-400'
     },
+    {
+      title: 'Average Rating',
+      value: averageRating.toFixed(1),
+      icon: Star,
+      color: 'from-purple-500 to-purple-600',
+      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+      textColor: 'text-purple-600 dark:text-purple-400'
+    }
   ]
 
-  return (
-    <div className="space-y-6 min-h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300">Manage therapists and platform settings</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Shield className="h-6 w-6 text-primary-600" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Admin Panel</span>
-          <Link to="/admin/create-therapist" className="btn btn-primary btn-sm ml-4 flex items-center">
-            <Stethoscope className="h-4 w-4 mr-1" />
-            Create Therapist
-          </Link>
-        </div>
-      </div>
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      case 'PENDING_VERIFICATION':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+      case 'INACTIVE':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+      case 'SUSPENDED':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+    }
+  }
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <div key={stat.name} className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="card-content p-6">
-              <div className="flex items-center">
-                <div className={`p-3 rounded-lg ${stat.color}`}>
-                  <stat.icon className="h-6 w-6 text-white" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{stat.name}</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                </div>
-              </div>
+  if (therapistsLoading) {
+    return <LoadingSpinner />
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-purple-600/20 rounded-2xl" />
+        <div className="relative p-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Welcome back, <GradientText>Admin</GradientText>!
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">
+                Manage your therapy platform and support your team.
+              </p>
+            </div>
+            <div className="hidden md:flex items-center space-x-4">
+              <Link to="/admin/create-therapist">
+                <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Stethoscope className="h-4 w-4 mr-2" />
+                  Create Therapist
+                </Button>
+              </Link>
+              <Link to="/admin/settings">
+                <Button
+                  variant="outline"
+                  className="border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
+              </Link>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      </motion.div>
 
-      {/* All Therapists */}
-      <div className="card bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="card-header p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="card-title text-xl font-semibold text-gray-900 dark:text-white">All Therapists</h3>
-        </div>
-        <div className="card-content p-6">
-          {therapistsLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600 dark:text-gray-300">Loading therapists...</p>
+      {/* Stats Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        {stats.map((stat, index) => (
+          <StatsCard
+            key={stat.title}
+            {...stat}
+            delay={index * 0.1}
+          />
+        ))}
+      </motion.div>
+
+      {/* Therapists Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <Users className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+                Therapists Management
+              </CardTitle>
+              <Link to="/admin/create-therapist">
+                <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Therapist
+                </Button>
+              </Link>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-900">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Therapist
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Specialization
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Experience
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Cost/Session
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {therapists.map((therapist: Therapist) => (
-                    <tr key={therapist.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
+          </CardHeader>
+          <CardContent className="p-6">
+            {therapists.length === 0 ? (
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No therapists yet
+                </h3>
+                <p className="text-sm mb-4">Create your first therapist to get started.</p>
+                <Link to="/admin/create-therapist">
+                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+                    <Stethoscope className="h-4 w-4 mr-2" />
+                    Create First Therapist
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {therapists.map((therapist: Therapist) => (
+                  <motion.div
+                    key={therapist.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white font-semibold">
+                            {therapist.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                             {therapist.name}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {therapist.user.email}
-                          </div>
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {therapist.specialization} • {therapist.experience} years experience
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            {therapist.user.email} • Joined {new Date(therapist.user.createdAt).toLocaleDateString()}
+                          </p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {therapist.specialization}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {therapist.experience} years
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        ${therapist.baseCostPerSession}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          therapist.status === 'ACTIVE' 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : therapist.status === 'PENDING_VERIFICATION'
-                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                            : therapist.status === 'SUSPENDED'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                        }`}>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {therapist.averageRating.toFixed(1)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            ${therapist.baseCostPerSession}/session
+                          </p>
+                        </div>
+                        
+                        <Badge className={`${getStatusColor(therapist.status)}`}>
                           {therapist.status.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        </Badge>
+                        
                         <div className="flex space-x-2">
-                          {therapist.status === 'ACTIVE' && (
-                            <button
-                              onClick={() => handleStatusUpdate(therapist.id, 'SUSPENDED')}
-                              className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors"
-                              disabled={updateStatusMutation.isLoading}
-                            >
-                              Suspend
-                            </button>
+                          {therapist.status === 'PENDING_VERIFICATION' && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate(therapist.id, 'ACTIVE')}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                disabled={updateStatusMutation.isLoading}
+                              >
+                                <UserCheck className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStatusUpdate(therapist.id, 'SUSPENDED')}
+                                className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                disabled={updateStatusMutation.isLoading}
+                              >
+                                <UserX className="h-4 w-4 mr-1" />
+                                Reject
+                              </Button>
+                            </>
                           )}
-                          {therapist.status === 'SUSPENDED' && (
-                            <button
-                              onClick={() => handleStatusUpdate(therapist.id, 'ACTIVE')}
-                              className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 transition-colors"
+                          
+                          {therapist.status === 'ACTIVE' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStatusUpdate(therapist.id, 'INACTIVE')}
+                              className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/20"
                               disabled={updateStatusMutation.isLoading}
                             >
-                              Reactivate
-                            </button>
+                              <UserX className="h-4 w-4 mr-1" />
+                              Deactivate
+                            </Button>
+                          )}
+                          
+                          {therapist.status === 'INACTIVE' && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleStatusUpdate(therapist.id, 'ACTIVE')}
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              disabled={updateStatusMutation.isLoading}
+                            >
+                              <UserCheck className="h-4 w-4 mr-1" />
+                              Activate
+                            </Button>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }
