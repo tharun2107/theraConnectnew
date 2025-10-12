@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
+import NewLandingPage from './pages/NewLandingPage'
 import UnifiedLogin from './pages/UnifiedLogin'
 import ParentRegister from './pages/ParentRegister'
 import AdminOnlyTherapistRegister from './pages/AdminOnlyTherapistRegister'
@@ -42,6 +43,7 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/new-landing" element={<NewLandingPage />} />
         <Route path="/login" element={<UnifiedLogin />} />
         <Route path="/register/parent" element={<ParentRegister />} />
         <Route path="/register/admin" element={<AdminRegister />} />
