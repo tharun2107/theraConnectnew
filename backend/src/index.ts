@@ -10,6 +10,7 @@ import parentRoutes from './api/parent/parent.routes.js';
 import therapistRoutes from './api/therapist/therapist.routes.js';
 import bookingRoutes from './api/booking/booking.routes.js';
 import slotRoutes from './api/slots/slots.routes.js';
+import feedbackRoutes from './api/feedback/feedback.routes.js';
 // Load environment variables
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/v1/parents', parentRoutes);
 app.use('/api/v1/therapists', therapistRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/slots', slotRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
 
 
 const startServer = async () => {

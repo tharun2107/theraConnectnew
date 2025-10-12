@@ -53,7 +53,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginHandler = exports.registerAdminHandler = exports.registerTherapistHandler = exports.registerParentHandler = void 0;
+exports.changePasswordHandler = exports.loginHandler = exports.registerAdminHandler = exports.registerTherapistHandler = exports.registerParentHandler = void 0;
 const authService = __importStar(require("./auth.service"));
 const jwt_1 = require("../../utils/jwt");
 const handleServiceError = (res, error) => {
@@ -78,7 +78,7 @@ const registerTherapistHandler = (req, res) => __awaiter(void 0, void 0, void 0,
         const user = yield authService.registerTherapist(req.body);
         const token = (0, jwt_1.signJwt)({ userId: user.id, role: user.role });
         const { password } = user, userWithoutPassword = __rest(user, ["password"]);
-        res.status(201).json({ message: 'Therapist registration pending approval', user: userWithoutPassword, token });
+        res.status(201).json({ message: 'Therapist registered successfully', user: userWithoutPassword, token });
     }
     catch (error) {
         handleServiceError(res, error);
@@ -107,3 +107,14 @@ const loginHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.loginHandler = loginHandler;
+const changePasswordHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield authService.changePassword(req.body);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        const status = /incorrect|No account/i.test(error.message) ? 400 : 500;
+        res.status(status).json({ message: error.message });
+    }
+});
+exports.changePasswordHandler = changePasswordHandler;

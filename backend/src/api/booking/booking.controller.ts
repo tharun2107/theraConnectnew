@@ -2,6 +2,20 @@ import type { Request, Response } from 'express';
 import * as bookingService from './booking.service';
 import prisma from '../../utils/prisma';
 
+export const markSessionCompletedHandler = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params
+    const updatedBooking = await bookingService.markSessionCompleted(bookingId)
+    res.status(200).json({ 
+      message: 'Session marked as completed', 
+      booking: updatedBooking 
+    })
+  } catch (error: any) {
+    console.error('[booking.markSessionCompleted][ERROR]', error)
+    res.status(400).json({ message: error.message || 'Failed to mark session as completed' })
+  }
+}
+
 export const getAvailableSlotsHandler = async (req: Request, res: Response) => {
     try {
         const validated = (res.locals as any)?.validated?.query as { therapistId: string; date: string } | undefined;

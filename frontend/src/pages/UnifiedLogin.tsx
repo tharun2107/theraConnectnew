@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, Stethoscope, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../components/ThemeToggle'
 
@@ -11,7 +11,7 @@ interface LoginFormData {
   password: string
 }
 
-const TherapistLogin: React.FC = () => {
+const UnifiedLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
@@ -25,68 +25,51 @@ const TherapistLogin: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true)
     try {
-      await login(data.email, data.password, 'THERAPIST')
-      toast.success('Welcome back, Doctor!')
+      // Login without specifying role - let backend determine the role
+      await login(data.email, data.password)
+      toast.success('Welcome back!')
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed')
+      toast.error(error.response?.data?.message || error.message || 'Login failed')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
       <div className="max-w-md w-full space-y-8 relative z-10">
-        <div className="animate-fade-in-up">
-          <div className="text-center">
-            <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 mb-6 animate-float">
-              <Stethoscope className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
-              Therapist Login
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-              Access your professional therapy dashboard
-            </p>
-            <div className="flex justify-center space-x-4 text-sm">
-              <Link
-                to="/login/parent"
-                className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                Parent Login
-              </Link>
-              <span className="text-gray-300 dark:text-gray-600">|</span>
-              <Link
-                to="/login/admin"
-                className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                Admin Login
-              </Link>
-            </div>
-            <div className="mt-4">
-              <Link
-                to="/"
-                className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Home
-              </Link>
-            </div>
+        <div className="animate-fade-in-up text-center">
+          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-100 via-purple-100 to-green-100 dark:from-blue-900 dark:via-purple-900 dark:to-green-900 mb-6 animate-float">
+            <LogIn className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
+            Welcome Back
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+            Sign in to access your dashboard
+          </p>
+          <div className="mt-4">
+            <Link
+              to="/"
+              className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Home
+            </Link>
           </div>
         </div>
-        
-        <div className="animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Professional Email
+                  Email Address
                 </label>
                 <input
                   {...register('email', {
@@ -98,11 +81,9 @@ const TherapistLogin: React.FC = () => {
                   })}
                   type="email"
                   className="input mt-1 w-full"
-                  placeholder="Enter your professional email"
+                  placeholder="Enter your email"
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>}
               </div>
 
               {/* Password */}
@@ -114,10 +95,7 @@ const TherapistLogin: React.FC = () => {
                   <input
                     {...register('password', {
                       required: 'Password is required',
-                      minLength: {
-                        value: 6,
-                        message: 'Password must be at least 6 characters',
-                      },
+                      minLength: { value: 6, message: 'Password must be at least 6 characters' },
                     })}
                     type={showPassword ? 'text' : 'password'}
                     className="input w-full pr-10"
@@ -135,13 +113,11 @@ const TherapistLogin: React.FC = () => {
                     )}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
-                )}
+                {errors.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>}
               </div>
             </div>
 
-            {/* Remember & Forgot */}
+            {/* Remember / Forgot */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -156,18 +132,18 @@ const TherapistLogin: React.FC = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
-                  Forgot your password?
-                </a>
+                <Link to="/change-password" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
+                  Change password
+                </Link>
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300 hover:shadow-lg"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 hover:from-blue-700 hover:via-purple-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300 hover:shadow-lg"
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -175,22 +151,31 @@ const TherapistLogin: React.FC = () => {
                     Signing in...
                   </div>
                 ) : (
-                  'Sign in as Therapist'
+                  'Sign In'
                 )}
               </button>
             </div>
 
-            {/* Register Link */}
-            <div className="text-center">
+            {/* Register Links */}
+            <div className="text-center space-y-2">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Don't have an account?{' '}
-                <Link
-                  to="/register/therapist"
-                  className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
-                >
-                  Join as Therapist
-                </Link>
+                Don't have an account? Choose your role:
               </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Link
+                  to="/register/parent"
+                  className="text-sm font-medium text-pink-600 dark:text-pink-400 hover:text-pink-500 dark:hover:text-pink-300 transition-colors"
+                >
+                  Sign up as Parent
+                </Link>
+                <span className="hidden sm:inline text-gray-300 dark:text-gray-600">|</span>
+                <Link
+                  to="/register/admin"
+                  className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 transition-colors"
+                >
+                  Request Admin Access
+                </Link>
+              </div>
             </div>
           </form>
         </div>
@@ -199,4 +184,4 @@ const TherapistLogin: React.FC = () => {
   )
 }
 
-export default TherapistLogin
+export default UnifiedLogin

@@ -12,10 +12,52 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMyBookings = exports.createBooking = exports.getAvailableSlots = void 0;
+exports.getMyBookings = exports.createBooking = exports.getAvailableSlots = exports.markSessionCompleted = void 0;
 const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
+const markSessionCompleted = (bookingId) => __awaiter(void 0, void 0, void 0, function* () {
+    const booking = yield prisma_1.default.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+            parent: { include: { user: true } },
+            therapist: { include: { user: true } },
+            child: true,
+        },
+    });
+    if (!booking) {
+        throw new Error('Booking not found');
+    }
+    if (booking.status !== 'SCHEDULED') {
+        throw new Error('Session can only be completed if it was scheduled');
+    }
+    const updatedBooking = yield prisma_1.default.booking.update({
+        where: { id: bookingId },
+        data: {
+            status: 'COMPLETED',
+            completedAt: new Date(),
+            isCompleted: true,
+        },
+        include: {
+            parent: { include: { user: true } },
+            therapist: { include: { user: true } },
+            child: true,
+        },
+    });
+    // Send notifications
+    yield (0, notification_service_1.sendNotification)({
+        userId: booking.parent.userId,
+        message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
+        type: 'SESSION_COMPLETED',
+    });
+    yield (0, notification_service_1.sendNotification)({
+        userId: booking.therapist.userId,
+        message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
+        type: 'SESSION_COMPLETED',
+    });
+    return updatedBooking;
+});
+exports.markSessionCompleted = markSessionCompleted;
 const getAvailableSlots = (therapistId, date) => __awaiter(void 0, void 0, void 0, function* () {
     const startOfDay = new Date(`${date}T00:00:00.000Z`);
     const endOfDay = new Date(`${date}T23:59:59.999Z`);
@@ -107,23 +149,55 @@ const getMyBookings = (userId, role) => __awaiter(void 0, void 0, void 0, functi
     const whereClause = role === client_1.Role.PARENT
         ? { parent: { userId } }
         : { therapist: { userId, status: client_1.TherapistStatus.ACTIVE } };
-    // Hide child information from therapists
+    // Include child information for parents
     const includeForParent = {
         child: true,
         therapist: { select: { name: true, specialization: true } },
         parent: { select: { name: true } },
         timeSlot: true,
+        SessionFeedback: true,
+        sessionReport: true,
+        ConsentRequest: true,
     };
+    // For therapists, include child data only if consent is given
     const includeForTherapist = {
-        // child intentionally omitted
+        child: {
+            select: {
+                id: true,
+                name: true,
+                age: true,
+                condition: true,
+                notes: true,
+                address: true,
+            }
+        },
         therapist: { select: { name: true, specialization: true } },
         parent: { select: { name: true } },
         timeSlot: true,
+        SessionFeedback: true,
+        sessionReport: true,
+        ConsentRequest: true,
     };
-    return prisma_1.default.booking.findMany({
+    const bookings = yield prisma_1.default.booking.findMany({
         where: whereClause,
         include: role === client_1.Role.PARENT ? includeForParent : includeForTherapist,
         orderBy: { timeSlot: { startTime: 'desc' } },
     });
+    // For therapists, filter out child details if consent is not given
+    if (role === client_1.Role.THERAPIST) {
+        return bookings.map((booking) => {
+            var _a, _b, _c;
+            const hasConsent = ((_a = booking.ConsentRequest) === null || _a === void 0 ? void 0 : _a.status) === 'GRANTED';
+            return Object.assign(Object.assign({}, booking), { child: hasConsent ? booking.child : {
+                    id: (_b = booking.child) === null || _b === void 0 ? void 0 : _b.id,
+                    name: (_c = booking.child) === null || _c === void 0 ? void 0 : _c.name,
+                    age: undefined,
+                    condition: undefined,
+                    notes: undefined,
+                    address: undefined,
+                } });
+        });
+    }
+    return bookings;
 });
 exports.getMyBookings = getMyBookings;

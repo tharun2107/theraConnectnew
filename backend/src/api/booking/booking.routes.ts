@@ -6,6 +6,7 @@ import {
   getAvailableSlotsHandler,
   createBookingHandler,
   getMyBookingsHandler,
+  markSessionCompletedHandler,
 } from './booking.controller';
 import { getSlotsQuerySchema, createBookingSchema } from './booking.validation';
 import * as zoomController from './zoom.controller';
@@ -47,6 +48,13 @@ router.get(
   '/:bookingId/zoom/signature',
   authorize([Role.PARENT, Role.THERAPIST]),
   zoomController.getSignature
+);
+
+// Mark session as completed (can be called by both parent and therapist)
+router.post(
+  '/:bookingId/complete',
+  authorize([Role.PARENT, Role.THERAPIST]),
+  markSessionCompletedHandler
 );
 
 export default router;

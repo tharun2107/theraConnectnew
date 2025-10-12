@@ -30,26 +30,10 @@ api.interceptors.response.use(
   (response: any) => response,
   (error: any) => {
     if (error.response?.status === 401) {
-      // Try to route the user to the correct login page based on their last known role
-      const userRaw = localStorage.getItem('user')
-      let role: string | undefined
-      try {
-        role = userRaw ? JSON.parse(userRaw)?.role : undefined
-      } catch {}
-
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-
-      if (role === 'THERAPIST') {
-        window.location.href = '/login/therapist'
-      } else if (role === 'PARENT') {
-        window.location.href = '/login/parent'
-      } else if (role === 'ADMIN') {
-        window.location.href = '/login/admin'
-      } else {
-        // Fallback to landing page which has all login choices
-        window.location.href = '/'
-      }
+      // Redirect to unified login
+      window.location.href = '/login'
     }
     return Promise.reject(error)
   }
@@ -82,6 +66,9 @@ export const authAPI = {
     password: string
     name: string
   }) => api.post('/auth/register/adminthera-connect395', data),
+
+  changePassword: (data: { email: string; currentPassword: string; newPassword: string }) =>
+    api.post('/auth/change-password', data),
 }
 
 // Parent API
@@ -138,6 +125,7 @@ export const bookingAPI = {
   createZoomMeeting: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/create`),
   markHostStarted: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/host-started`),
   getSignature: (bookingId: string) => api.get(`/bookings/${bookingId}/zoom/signature`),
+  markSessionCompleted: (bookingId: string) => api.post(`/bookings/${bookingId}/complete`),
 }
 
 // Slots API
@@ -146,4 +134,34 @@ export const slotsAPI = {
     api.post('/slots', { therapistId, date }),
   bookSlot: (timeSlotId: string, childId: string) =>
     api.post('/slots/book', { timeSlotId, childId }),
+}
+
+// Feedback API
+export const feedbackAPI = {
+  createFeedback: (data: {
+    bookingId: string
+    rating: number
+    comment?: string
+    isAnonymous?: boolean
+    consentToDataSharing?: boolean
+  }) => api.post('/feedback/feedback', data),
+  
+  createSessionReport: (data: {
+    bookingId: string
+    sessionExperience: string
+    childPerformance?: string
+    improvements?: string
+    medication?: string
+    recommendations?: string
+    nextSteps?: string
+  }) => api.post('/feedback/session-report', data),
+  
+  updateConsent: (data: {
+    bookingId: string
+    status: 'GRANTED' | 'DENIED'
+    notes?: string
+  }) => api.put('/feedback/consent', data),
+  
+  getSessionDetails: (bookingId: string) =>
+    api.get(`/feedback/session/${bookingId}`),
 }

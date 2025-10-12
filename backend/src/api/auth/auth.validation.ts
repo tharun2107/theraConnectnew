@@ -37,3 +37,11 @@ export const loginSchema = z.object({
   }),
 });
 
+export const changePasswordSchema = z.object({
+  body: z.object({
+    email: z.string().email({ message: "Please provide a valid email address." }),
+    currentPassword: z.string().min(8, { message: "Current password must be at least 8 characters." }),
+    newPassword: z.string().min(8, { message: "New password must be at least 8 characters." }),
+  }),
+});
+

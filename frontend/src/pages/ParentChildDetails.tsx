@@ -2,6 +2,7 @@ import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { bookingAPI, parentAPI } from '../lib/api'
+import SessionDetails from '../components/SessionDetails'
 
 const ParentChildDetails: React.FC = () => {
   const { childId } = useParams()
@@ -16,6 +17,7 @@ const ParentChildDetails: React.FC = () => {
   )
 
   const childBookings = (bookings as any[]).filter((b) => b.child?.id === childId)
+  const pastSessions = childBookings.filter((b) => b.status === 'COMPLETED')
 
   return (
     <div className="p-6 space-y-6">
@@ -35,18 +37,27 @@ const ParentChildDetails: React.FC = () => {
       <div>
         <h2 className="text-xl font-semibold mb-3">Past Sessions</h2>
         {isLoading ? (
-          <div>Loading...</div>
-        ) : childBookings.length === 0 ? (
-          <div className="text-gray-600 dark:text-gray-300">No sessions yet.</div>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-2 text-gray-600">Loading sessions...</span>
+          </div>
+        ) : pastSessions.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-4xl mb-3">📅</div>
+            <p className="text-lg font-medium mb-2">No completed sessions yet</p>
+            <p className="text-sm">Completed therapy sessions will appear here with feedback and reports.</p>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {childBookings.map((b: any) => (
-              <div key={b.id} className="p-4 border">
-                <div className="font-medium">{new Date(b.timeSlot.startTime).toLocaleString()}</div>
-                <div className="text-sm">Therapist: {b.therapist?.name} ({b.therapist?.specialization})</div>
-                <div className="text-sm">Status: {b.status}</div>
-              </div>
-            ))}
+          <div className="space-y-4">
+            {pastSessions
+              .sort((a, b) => new Date(b.timeSlot.startTime).getTime() - new Date(a.timeSlot.startTime).getTime())
+              .map((booking) => (
+                <SessionDetails
+                  key={booking.id}
+                  booking={booking}
+                  userRole="PARENT"
+                />
+              ))}
           </div>
         )}
       </div>

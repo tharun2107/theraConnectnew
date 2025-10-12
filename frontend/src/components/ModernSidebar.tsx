@@ -80,10 +80,10 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
       initial={{ x: -300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed left-0 top-0 h-full w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700 z-40"
+      className="fixed left-0 top-0 h-full w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-r border-slate-700 dark:border-gray-700 z-40 overflow-y-auto"
     >
       {/* Header */}
-      <div className="p-6 border-b border-slate-700">
+      <div className="p-6 border-b border-slate-700 dark:border-gray-700">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -141,7 +141,7 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
                   variant="ghost"
                   onClick={() => navigate(item.href)}
                   className={cn(
-                    "w-full justify-start h-12 px-4 text-left hover:bg-slate-700 transition-all duration-200",
+                    "w-full justify-start h-12 px-4 text-left hover:bg-slate-700 dark:hover:bg-gray-700 transition-all duration-200",
                     isActive 
                       ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
                       : "text-slate-300 hover:text-white"
@@ -162,7 +162,7 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
       </nav>
 
       {/* Bottom Actions */}
-      <div className="p-6 border-t border-slate-700">
+      <div className="p-6 border-t border-slate-700 dark:border-gray-700">
         <div className="space-y-2">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -171,7 +171,7 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
           >
             <Button
               variant="ghost"
-              className="w-full justify-start h-12 px-4 text-slate-300 hover:text-white hover:bg-slate-700"
+              className="w-full justify-start h-12 px-4 text-slate-300 dark:text-gray-300 hover:text-white dark:hover:text-white hover:bg-slate-700 dark:hover:bg-gray-700"
             >
               <Bell className="w-5 h-5 mr-3" />
               <span className="flex-1">Notifications</span>
@@ -190,7 +190,7 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
           >
             <Button
               variant="ghost"
-              className="w-full justify-start h-12 px-4 text-slate-300 hover:text-white hover:bg-slate-700"
+              className="w-full justify-start h-12 px-4 text-slate-300 dark:text-gray-300 hover:text-white dark:hover:text-white hover:bg-slate-700 dark:hover:bg-gray-700"
             >
               <Settings className="w-5 h-5 mr-3" />
               <span>Settings</span>
