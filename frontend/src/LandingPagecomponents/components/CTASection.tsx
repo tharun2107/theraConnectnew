@@ -2,6 +2,7 @@ import { Button } from "./ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -255,56 +256,60 @@ const CTASection = () => {
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <Button 
-                size="lg" 
-                className="text-xl px-10 py-6 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-semibold group relative overflow-hidden shadow-2xl"
-              >
-                <motion.span
-                  className="relative z-10 flex items-center"
-                  initial={{ opacity: 1 }}
-                  whileHover={{ opacity: 0.9 }}
+              <Link to="/register/parent">
+                <Button 
+                  size="lg" 
+                  className="text-xl px-10 py-6 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-semibold group relative overflow-hidden shadow-2xl"
                 >
-                  Join Now
-                  <motion.div
-                    className="ml-2"
-                    whileHover={{ x: 5 }}
-                    transition={{ duration: 0.2 }}
+                  <motion.span
+                    className="relative z-10 flex items-center"
+                    initial={{ opacity: 1 }}
+                    whileHover={{ opacity: 0.9 }}
                   >
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.div>
-                </motion.span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "100%" }}
-                  transition={{ duration: 0.6 }}
-                />
-              </Button>
+                    Join Now
+                    <motion.div
+                      className="ml-2"
+                      whileHover={{ x: 5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </motion.div>
+                  </motion.span>
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: "100%" }}
+                    transition={{ duration: 0.6 }}
+                  />
+                </Button>
+              </Link>
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.05, y: -3 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-xl px-10 py-6 border-2 border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold bg-white/10 backdrop-blur-sm group relative overflow-hidden"
-              >
-                <motion.span
-                  className="relative z-10"
-                  initial={{ opacity: 1 }}
-                  whileHover={{ opacity: 0.9 }}
+              <Link to="/register/therapist">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-xl px-10 py-6 border-2 border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold bg-white/10 backdrop-blur-sm group relative overflow-hidden"
                 >
-                  Schedule Demo
-                </motion.span>
-                <motion.div
-                  className="absolute inset-0 bg-white"
-                  initial={{ scaleX: 0, originX: 0 }}
-                  whileHover={{ scaleX: 1, originX: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </Button>
+                  <motion.span
+                    className="relative z-10"
+                    initial={{ opacity: 1 }}
+                    whileHover={{ opacity: 0.9 }}
+                  >
+                    For Therapists
+                  </motion.span>
+                  <motion.div
+                    className="absolute inset-0 bg-white"
+                    initial={{ scaleX: 0, originX: 0 }}
+                    whileHover={{ scaleX: 1, originX: 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </Button>
+              </Link>
             </motion.div>
           </motion.div>
 

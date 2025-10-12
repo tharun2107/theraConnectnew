@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Shield, Video, Calendar, CreditCard, Bell, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const features = [
   {
@@ -36,7 +37,7 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <section id="features" className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50">
 
       <div className="container mx-auto px-4">
         {/* Section Header */}
@@ -81,12 +82,16 @@ const FeaturesSection = () => {
             Ready to experience the future of therapy?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105">
-              Start Free Trial
-            </button>
-            <button className="px-8 py-3 border-2 border-cyan-500 text-cyan-600 font-bold rounded-lg hover:bg-cyan-500 hover:text-white transition-all duration-300 hover:scale-105">
-              Schedule Demo
-            </button>
+            <Link to="/register/parent">
+              <button className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105">
+                Start Free Trial
+              </button>
+            </Link>
+            <Link to="/login">
+              <button className="px-8 py-3 border-2 border-cyan-500 text-cyan-600 font-bold rounded-lg hover:bg-cyan-500 hover:text-white transition-all duration-300 hover:scale-105">
+                Sign In
+              </button>
+            </Link>
           </div>
         </div>
       </div>
