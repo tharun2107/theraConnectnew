@@ -43,7 +43,7 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/" element={<NewLandingPage />} />
-        <Route path="/new-landing" element={<NewLandingPage />} />
+        <Route path="/old-landing" element={<LandingPage />} />
         <Route path="/login" element={<UnifiedLogin />} />
         <Route path="/register/parent" element={<ParentRegister />} />
         <Route path="/register/admin" element={<AdminRegister />} />
