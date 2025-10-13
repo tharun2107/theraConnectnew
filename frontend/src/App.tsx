@@ -42,7 +42,7 @@ function AppRoutes() {
   if (!user) {
     return (
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<NewLandingPage />} />
         <Route path="/new-landing" element={<NewLandingPage />} />
         <Route path="/login" element={<UnifiedLogin />} />
         <Route path="/register/parent" element={<ParentRegister />} />

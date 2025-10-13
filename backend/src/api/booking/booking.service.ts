@@ -29,7 +29,7 @@ export const markSessionCompleted = async (bookingId: string) => {
       status: 'COMPLETED',
       completedAt: new Date(),
       isCompleted: true,
-    },
+    } as any,
     include: {
       parent: { include: { user: true } },
       therapist: { include: { user: true } },
@@ -41,13 +41,13 @@ export const markSessionCompleted = async (bookingId: string) => {
   await sendNotification({
     userId: booking.parent.userId,
     message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
-    type: 'SESSION_COMPLETED',
+    type: 'SESSION_COMPLETED' as any,
   })
 
   await sendNotification({
     userId: booking.therapist.userId,
     message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
-    type: 'SESSION_COMPLETED',
+    type: 'SESSION_COMPLETED' as any,
   })
 
   return updatedBooking

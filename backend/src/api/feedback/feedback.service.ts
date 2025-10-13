@@ -29,12 +29,12 @@ export const createFeedback = async (input: CreateFeedbackInput) => {
         status: 'COMPLETED',
         completedAt: new Date(),
         isCompleted: true,
-      },
+      } as any,
     })
   }
 
   // Check if feedback already exists
-  const existingFeedback = await prisma.sessionFeedback.findUnique({
+  const existingFeedback = await (prisma as any).sessionFeedback.findUnique({
     where: { bookingId },
   })
 
@@ -43,7 +43,7 @@ export const createFeedback = async (input: CreateFeedbackInput) => {
   }
 
   // Create feedback
-  const feedback = await prisma.sessionFeedback.create({
+  const feedback = await (prisma as any).sessionFeedback.create({
     data: {
       id: `feedback_${Date.now()}`,
       rating,
@@ -59,7 +59,7 @@ export const createFeedback = async (input: CreateFeedbackInput) => {
 
   // Handle consent to data sharing
   if (consentToDataSharing) {
-    await prisma.consentRequest.create({
+    await (prisma as any).consentRequest.create({
       data: {
         id: `consent_${Date.now()}`,
         status: 'GRANTED',
@@ -103,12 +103,12 @@ export const createSessionReport = async (input: CreateSessionReportInput) => {
         status: 'COMPLETED',
         completedAt: new Date(),
         isCompleted: true,
-      },
+      } as any,
     })
   }
 
   // Check if report already exists
-  const existingReport = await prisma.sessionReport.findUnique({
+  const existingReport = await (prisma as any).sessionReport.findUnique({
     where: { bookingId },
   })
 
@@ -117,7 +117,7 @@ export const createSessionReport = async (input: CreateSessionReportInput) => {
   }
 
   // Create session report
-  const report = await prisma.sessionReport.create({
+  const report = await (prisma as any).sessionReport.create({
     data: {
       id: `report_${Date.now()}`,
       sessionExperience,
@@ -162,7 +162,7 @@ export const updateConsent = async (input: UpdateConsentInput) => {
   }
 
   // Update or create consent request
-  const consentRequest = await prisma.consentRequest.upsert({
+  const consentRequest = await (prisma as any).consentRequest.upsert({
     where: { bookingId },
     update: {
       status,
@@ -204,7 +204,7 @@ export const getSessionDetails = async (bookingId: string) => {
       sessionReport: true,
       ConsentRequest: true,
       testimonial: true,
-    },
+    } as any,
   })
 
   if (!booking) {
@@ -215,7 +215,7 @@ export const getSessionDetails = async (bookingId: string) => {
 }
 
 const updateTherapistRating = async (therapistId: string) => {
-  const feedbacks = await prisma.sessionFeedback.findMany({
+  const feedbacks = await (prisma as any).sessionFeedback.findMany({
     where: {
       Booking: {
         therapistId,
@@ -227,7 +227,7 @@ const updateTherapistRating = async (therapistId: string) => {
   })
 
   if (feedbacks.length > 0) {
-    const averageRating = feedbacks.reduce((sum, feedback) => sum + feedback.rating, 0) / feedbacks.length
+    const averageRating = feedbacks.reduce((sum: number, feedback: any) => sum + feedback.rating, 0) / feedbacks.length
 
     await prisma.therapistProfile.update({
       where: { id: therapistId },
