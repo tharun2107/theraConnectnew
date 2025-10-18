@@ -9,6 +9,13 @@ export const getParentProfile = async (userId: string) => {
     return prisma.parentProfile.findUnique({ where: { userId } });
 };
 
+export const updateParentProfile = async (userId: string, input: { name?: string; phone?: string }) => {
+    return prisma.parentProfile.update({
+        where: { userId },
+        data: input,
+    });
+};
+
 export const getChildren = async (parentId: string) => {
     return prisma.child.findMany({ where: { parentId } });
 };

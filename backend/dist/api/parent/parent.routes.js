@@ -10,6 +10,7 @@ const router = (0, express_1.Router)();
 // All routes are for authenticated Parents only
 router.use(auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)([client_1.Role.PARENT]));
 router.get('/me/profile', parent_controller_1.getMyProfileHandler);
+router.put('/me/profile', (0, validate_middleware_1.validate)({ body: parent_validation_1.updateParentProfileSchema.shape.body }), parent_controller_1.updateMyProfileHandler);
 // Children CRUD
 router.get('/me/children', parent_controller_1.getMyChildrenHandler);
 router.post('/me/children', (0, validate_middleware_1.validate)({ body: parent_validation_1.childSchema.shape.body }), parent_controller_1.addChildHandler);

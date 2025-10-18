@@ -17,3 +17,12 @@ export const childIdParamSchema = z.object({
     childId: z.string().cuid(),
   }),
 });
+
+export const updateParentProfileSchema = z.object({
+  body: z.object({
+    name: z.string().min(2).optional(),
+    phone: z.string().min(10).optional(),
+  }).refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field is required',
+  }),
+});

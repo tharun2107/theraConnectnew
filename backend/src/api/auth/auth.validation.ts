@@ -45,3 +45,9 @@ export const changePasswordSchema = z.object({
   }),
 });
 
+export const googleOAuthSchema = z.object({
+  body: z.object({
+    idToken: z.string().min(10, { message: 'Invalid Google ID token' }),
+  }),
+});
+

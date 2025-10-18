@@ -194,9 +194,7 @@ const LandingPage: React.FC = () => {
             Join thousands of families who trust TheraConnect for their therapy needs
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/register/parent" className="btn bg-primary-600 text-white hover:bg-primary-700 btn-lg flex items-center justify-center space-x-2">
-              <Users className="h-5 w-5" /><span>Join as Parent</span>
-            </Link>
+            {/* Registration removed: OAuth-only sign-in */}
             <Link to="/login" className="btn border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white btn-lg">
               Sign In
             </Link>

@@ -111,13 +111,7 @@ const LandingNavbar: React.FC = () => {
                 >
                   Sign In
                 </Link>
-                <Link
-                  to="/register/parent"
-                  className="block px-3 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors mx-3 mt-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Join as Parent
-                </Link>
+                {/* Registration removed; OAuth-only via Sign In */}
               </div>
             </div>
           </div>

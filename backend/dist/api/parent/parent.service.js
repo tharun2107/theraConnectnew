@@ -9,13 +9,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listActiveTherapists = exports.deleteChild = exports.updateChild = exports.addChild = exports.getChildren = exports.getParentProfile = void 0;
+exports.listActiveTherapists = exports.deleteChild = exports.updateChild = exports.addChild = exports.getChildren = exports.updateParentProfile = exports.getParentProfile = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getParentProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     return prisma.parentProfile.findUnique({ where: { userId } });
 });
 exports.getParentProfile = getParentProfile;
+const updateParentProfile = (userId, input) => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma.parentProfile.update({
+        where: { userId },
+        data: input,
+    });
+});
+exports.updateParentProfile = updateParentProfile;
 const getChildren = (parentId) => __awaiter(void 0, void 0, void 0, function* () {
     return prisma.child.findMany({ where: { parentId } });
 });

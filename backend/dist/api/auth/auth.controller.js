@@ -53,9 +53,10 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePasswordHandler = exports.loginHandler = exports.registerAdminHandler = exports.registerTherapistHandler = exports.registerParentHandler = void 0;
+exports.googleOAuthHandler = exports.changePasswordHandler = exports.loginHandler = exports.registerAdminHandler = exports.registerTherapistHandler = exports.registerParentHandler = void 0;
 const authService = __importStar(require("./auth.service"));
 const jwt_1 = require("../../utils/jwt");
+const auth_validation_1 = require("./auth.validation");
 const handleServiceError = (res, error) => {
     var _a;
     const isConflict = (_a = error.message) === null || _a === void 0 ? void 0 : _a.includes('exists');
@@ -118,3 +119,21 @@ const changePasswordHandler = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.changePasswordHandler = changePasswordHandler;
+const googleOAuthHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        // Basic debug without logging tokens
+        console.log('[AUTH][GOOGLE] Incoming request to /auth/google');
+        const parsed = auth_validation_1.googleOAuthSchema.parse({ body: req.body });
+        console.log('[AUTH][GOOGLE] Payload received (token length):', (_a = parsed.body.idToken) === null || _a === void 0 ? void 0 : _a.length);
+        const result = yield authService.loginWithGoogle(parsed.body);
+        console.log('[AUTH][GOOGLE] Login success for user', (_b = result === null || result === void 0 ? void 0 : result.user) === null || _b === void 0 ? void 0 : _b.email);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        const status = (error === null || error === void 0 ? void 0 : error.issues) ? 400 : 401;
+        console.error('[AUTH][GOOGLE][ERROR]', (error === null || error === void 0 ? void 0 : error.message) || error);
+        res.status(status).json({ message: error.message || 'Google login failed' });
+    }
+});
+exports.googleOAuthHandler = googleOAuthHandler;

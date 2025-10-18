@@ -42,7 +42,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getActiveTherapistsHandler = exports.deleteChildHandler = exports.updateChildHandler = exports.addChildHandler = exports.getMyChildrenHandler = exports.getMyProfileHandler = void 0;
+exports.getActiveTherapistsHandler = exports.deleteChildHandler = exports.updateChildHandler = exports.addChildHandler = exports.getMyChildrenHandler = exports.updateMyProfileHandler = exports.getMyProfileHandler = void 0;
 const parentService = __importStar(require("./parent.service"));
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
@@ -62,6 +62,20 @@ const getMyProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.getMyProfileHandler = getMyProfileHandler;
+const updateMyProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.userId;
+        console.log('[PARENT][UPDATE_PROFILE]', userId, req.body);
+        const updated = yield parentService.updateParentProfile(userId, req.body);
+        res.status(200).json(updated);
+    }
+    catch (error) {
+        console.error('[PARENT][UPDATE_PROFILE][ERROR]', (error === null || error === void 0 ? void 0 : error.message) || error);
+        const status = /unique|constraint/i.test(error === null || error === void 0 ? void 0 : error.message) ? 409 : 500;
+        res.status(status).json({ message: error.message || 'Failed to update profile' });
+    }
+});
+exports.updateMyProfileHandler = updateMyProfileHandler;
 const getMyChildrenHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const parentId = yield getParentId(req.user.userId);

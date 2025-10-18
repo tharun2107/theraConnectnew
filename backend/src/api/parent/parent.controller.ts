@@ -18,6 +18,19 @@ export const getMyProfileHandler = async (req: Request, res: Response) => {
     }
 }
 
+export const updateMyProfileHandler = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user!.userId;
+        console.log('[PARENT][UPDATE_PROFILE]', userId, req.body)
+        const updated = await parentService.updateParentProfile(userId, req.body);
+        res.status(200).json(updated);
+    } catch (error: any) {
+        console.error('[PARENT][UPDATE_PROFILE][ERROR]', error?.message || error)
+        const status = /unique|constraint/i.test(error?.message) ? 409 : 500;
+        res.status(status).json({ message: error.message || 'Failed to update profile' });
+    }
+}
+
 export const getMyChildrenHandler = async (req: Request, res: Response) => {
     try {
         const parentId = await getParentId(req.user!.userId);

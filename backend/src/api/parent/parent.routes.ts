@@ -4,13 +4,14 @@ import { validate } from '../../middleware/validate.middleware';
 import { Role } from '@prisma/client';
 import {
   getMyProfileHandler,
+  updateMyProfileHandler,
   getMyChildrenHandler,
   addChildHandler,
   updateChildHandler,
   deleteChildHandler,
   getActiveTherapistsHandler,
 } from './parent.controller';
-import { childIdParamSchema, childSchema, updateChildSchema } from './parent.validation';
+import { childIdParamSchema, childSchema, updateChildSchema, updateParentProfileSchema } from './parent.validation';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ const router = Router();
 router.use(authenticate, authorize([Role.PARENT]));
 
 router.get('/me/profile', getMyProfileHandler);
+router.put('/me/profile', validate({ body: updateParentProfileSchema.shape.body }), updateMyProfileHandler);
 
 // Children CRUD
 router.get('/me/children', getMyChildrenHandler);

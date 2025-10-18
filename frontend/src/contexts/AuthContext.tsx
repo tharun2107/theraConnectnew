@@ -12,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: (idToken: string) => Promise<{ needsProfileCompletion?: boolean }>
   register: (email: string, password: string, name: string, phone: string, role: string, specialization?: string, experience?: number, baseCostPerSession?: number) => Promise<void>
   registerParent: (data: RegisterParentData) => Promise<void>
   registerTherapist: (data: RegisterTherapistData) => Promise<void>
@@ -76,14 +76,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false)
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const loginWithGoogle = async (idToken: string) => {
     try {
-      const response = await authAPI.login(email, password)
-      const { user: userData, token } = response.data
-      
+      const response = await authAPI.loginWithGoogle(idToken)
+      const { user: userData, token, needsProfileCompletion } = response.data
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(userData))
       setUser(userData)
+      return { needsProfileCompletion }
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Login failed')
     }
@@ -159,7 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     loading,
-    login,
+    loginWithGoogle,
     register,
     registerParent,
     registerTherapist,

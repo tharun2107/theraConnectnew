@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePasswordSchema = exports.loginSchema = exports.registerAdminSchema = exports.registerTherapistSchema = exports.registerParentSchema = void 0;
+exports.googleOAuthSchema = exports.changePasswordSchema = exports.loginSchema = exports.registerAdminSchema = exports.registerTherapistSchema = exports.registerParentSchema = void 0;
 const zod_1 = require("zod");
 exports.registerParentSchema = zod_1.z.object({
     body: zod_1.z.object({
@@ -40,5 +40,10 @@ exports.changePasswordSchema = zod_1.z.object({
         email: zod_1.z.string().email({ message: "Please provide a valid email address." }),
         currentPassword: zod_1.z.string().min(8, { message: "Current password must be at least 8 characters." }),
         newPassword: zod_1.z.string().min(8, { message: "New password must be at least 8 characters." }),
+    }),
+});
+exports.googleOAuthSchema = zod_1.z.object({
+    body: zod_1.z.object({
+        idToken: zod_1.z.string().min(10, { message: 'Invalid Google ID token' }),
     }),
 });

@@ -22,6 +22,19 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Basic request logger (path, method, status)
+app.use((req, res, next) => {
+  const started = Date.now();
+  // eslint-disable-next-line no-console
+  console.log('[REQ]', req.method, req.originalUrl);
+  res.on('finish', () => {
+    const ms = Date.now() - started;
+    // eslint-disable-next-line no-console
+    console.log('[RES]', req.method, req.originalUrl, res.statusCode, ms + 'ms');
+  });
+  next();
+});
+
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
@@ -30,6 +43,11 @@ app.use('/api/v1/therapists', therapistRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/slots', slotRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
+
+// Health endpoint for connectivity checks
+app.get('/api/v1/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 
 const startServer = async () => {

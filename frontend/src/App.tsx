@@ -45,8 +45,7 @@ function AppRoutes() {
         <Route path="/" element={<NewLandingPage />} />
         <Route path="/old-landing" element={<LandingPage />} />
         <Route path="/login" element={<UnifiedLogin />} />
-        <Route path="/register/parent" element={<ParentRegister />} />
-        <Route path="/register/admin" element={<AdminRegister />} />
+        {/* Manual registration disabled; OAuth only */}
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

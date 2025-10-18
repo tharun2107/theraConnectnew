@@ -20,13 +20,17 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.changePassword = exports.registerAdmin = exports.registerTherapist = exports.registerParent = void 0;
+exports.loginWithGoogle = exports.login = exports.changePassword = exports.registerAdmin = exports.registerTherapist = exports.registerParent = void 0;
 const client_1 = require("@prisma/client");
 const password_1 = require("../../utils/password");
 const jwt_1 = require("../../utils/jwt");
+const google_auth_library_1 = require("google-auth-library");
+const config_1 = require("../../utils/config");
 const prisma = new client_1.PrismaClient();
+const googleClient = new google_auth_library_1.OAuth2Client(config_1.config.google.clientId);
 const registerParent = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name, phone } = input;
+    console.log('[AUTH][REGISTER_PARENT] Attempt:', { email });
     const existingUser = yield prisma.user.findUnique({ where: { email } });
     if (existingUser)
         throw new Error('User with this email already exists');
@@ -42,6 +46,7 @@ const registerParent = (input) => __awaiter(void 0, void 0, void 0, function* ()
 exports.registerParent = registerParent;
 const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name, phone, specialization, experience, baseCostPerSession } = input;
+    console.log('[AUTH][REGISTER_THERAPIST] Attempt:', { email, phone });
     // Pre-checks to surface conflicts as 409
     const [existingUser, existingPhone] = yield Promise.all([
         prisma.user.findUnique({ where: { email } }),
@@ -74,6 +79,7 @@ const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function*
 exports.registerTherapist = registerTherapist;
 const registerAdmin = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name } = input;
+    console.log('[AUTH][REGISTER_ADMIN] Attempt:', { email });
     const existingUser = yield prisma.user.findUnique({ where: { email } });
     if (existingUser)
         throw new Error('User with this email already exists');
@@ -112,3 +118,51 @@ const login = (input) => __awaiter(void 0, void 0, void 0, function* () {
     return { user: userWithoutPassword, token };
 });
 exports.login = login;
+const loginWithGoogle = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    const { idToken } = input;
+    if (!config_1.config.google.clientId) {
+        console.error('[AUTH][GOOGLE] Missing GOOGLE_CLIENT_ID');
+        throw new Error('Google OAuth not configured');
+    }
+    console.log('[AUTH][GOOGLE] Verifying ID token (len):', idToken === null || idToken === void 0 ? void 0 : idToken.length);
+    const ticket = yield googleClient.verifyIdToken({ idToken, audience: config_1.config.google.clientId });
+    const payload = ticket.getPayload();
+    if (!(payload === null || payload === void 0 ? void 0 : payload.email)) {
+        console.error('[AUTH][GOOGLE] Token verification failed, no email in payload');
+        throw new Error('Google token verification failed');
+    }
+    const email = payload.email;
+    const nameFromGoogle = payload.name || email.split('@')[0];
+    // Find existing user
+    let user = yield prisma.user.findUnique({ where: { email } });
+    console.log('[AUTH][GOOGLE] Lookup user by email:', email);
+    if (!user) {
+        // Assume first-time parent sign-in → create PARENT user with minimal profile
+        console.log('[AUTH][GOOGLE] Creating new PARENT for', email);
+        user = yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+            const created = yield tx.user.create({
+                data: {
+                    email,
+                    password: '', // OAuth users have no local password
+                    role: client_1.Role.PARENT,
+                },
+            });
+            yield tx.parentProfile.create({
+                data: { userId: created.id, name: nameFromGoogle, phone: null },
+            });
+            return created;
+        }));
+    }
+    // If therapist is pre-registered by admin, just allow login; role is already set
+    const token = (0, jwt_1.signJwt)({ userId: user.id, role: user.role });
+    const _a = user, { password: _pw } = _a, userWithoutPassword = __rest(_a, ["password"]);
+    // Indicate whether profile completion may be needed for parents (no phone)
+    let needsProfileCompletion = false;
+    if (user.role === client_1.Role.PARENT) {
+        const parent = yield prisma.parentProfile.findUnique({ where: { userId: user.id } });
+        needsProfileCompletion = !(parent === null || parent === void 0 ? void 0 : parent.phone);
+        console.log('[AUTH][GOOGLE] needsProfileCompletion:', needsProfileCompletion);
+    }
+    return { user: userWithoutPassword, token, needsProfileCompletion };
+});
+exports.loginWithGoogle = loginWithGoogle;

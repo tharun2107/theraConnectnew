@@ -1,7 +1,12 @@
 // @ts-ignore
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://theraconnectnew.onrender.com/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+// Debug: surface which API base URL is used at runtime
+try {
+  // eslint-disable-next-line no-console
+  console.log('[API] Base URL:', API_BASE_URL)
+} catch {}
 export const ZOOM_SDK_JS_CDN = 'https://source.zoom.us/3.2.1/zoom-meeting-embedded-3.2.1.min.js'
 
 export const api = axios.create({
@@ -18,6 +23,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    try {
+      // eslint-disable-next-line no-console
+      console.log('[API][request]', config.method?.toUpperCase(), config.baseURL + config.url, {
+        headers: { Authorization: !!token ? 'Bearer ***' : 'none' },
+      })
+    } catch {}
     return config
   },
   (error: any) => {
@@ -29,6 +40,20 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response: any) => response,
   (error: any) => {
+    try {
+      // eslint-disable-next-line no-console
+      console.error('[API][response][error]', {
+        url: error?.config?.baseURL + error?.config?.url,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        message: error?.message,
+        code: error?.code,
+        readyState: error?.request?.readyState,
+        xhrStatus: error?.request?.status,
+        method: error?.config?.method,
+        withCredentials: error?.config?.withCredentials,
+      })
+    } catch {}
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
@@ -43,6 +68,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
+  loginWithGoogle: (idToken: string) =>
+    api.post('/auth/google', { idToken }),
   
   registerParent: (data: {
     email: string
@@ -74,6 +101,7 @@ export const authAPI = {
 // Parent API
 export const parentAPI = {
   getProfile: () => api.get('/parents/me/profile'),
+  updateProfile: (data: { name?: string; phone?: string }) => api.put('/parents/me/profile', data),
   getChildren: () => api.get('/parents/me/children'),
   addChild: (data: {
     name: string

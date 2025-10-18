@@ -2,24 +2,30 @@ import { PrismaClient, Role, Prisma, TherapistStatus } from '@prisma/client';
 import { z } from 'zod';
 import { hashPassword, comparePassword } from '../../utils/password';
 import { signJwt } from '../../utils/jwt';
+import { OAuth2Client } from 'google-auth-library';
+import { config } from '../../utils/config';
 import type {
   registerParentSchema,
   registerTherapistSchema,
   registerAdminSchema,
   loginSchema,
 } from './auth.validation';
+import type { googleOAuthSchema } from './auth.validation';
 
 const prisma = new PrismaClient();
+const googleClient = new OAuth2Client(config.google.clientId);
 
 type RegisterParentInput = z.infer<typeof registerParentSchema>['body'];
 type RegisterTherapistInput = z.infer<typeof registerTherapistSchema>['body'];
 type RegisterAdminInput = z.infer<typeof registerAdminSchema>['body'];
 type LoginInput = z.infer<typeof loginSchema>['body'];
+type GoogleOAuthInput = z.infer<typeof googleOAuthSchema>['body'];
 
 type ChangePasswordInput = { email: string; currentPassword: string; newPassword: string };
 
 export const registerParent = async (input: RegisterParentInput) => {
   const { email, password, name, phone } = input;
+  console.log('[AUTH][REGISTER_PARENT] Attempt:', { email })
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) throw new Error('User with this email already exists');
 
@@ -35,6 +41,7 @@ export const registerParent = async (input: RegisterParentInput) => {
 
 export const registerTherapist = async (input: RegisterTherapistInput) => {
     const { email, password, name, phone, specialization, experience, baseCostPerSession } = input;
+    console.log('[AUTH][REGISTER_THERAPIST] Attempt:', { email, phone })
 
     // Pre-checks to surface conflicts as 409
     const [existingUser, existingPhone] = await Promise.all([
@@ -66,6 +73,7 @@ export const registerTherapist = async (input: RegisterTherapistInput) => {
 
 export const registerAdmin = async (input: RegisterAdminInput) => {
   const { email, password, name } = input;
+  console.log('[AUTH][REGISTER_ADMIN] Attempt:', { email })
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) throw new Error('User with this email already exists');
 
@@ -104,4 +112,58 @@ export const login = async (input: LoginInput) => {
   const token = signJwt({ userId: user.id, role: user.role });
   const { password: _, ...userWithoutPassword } = user;
   return { user: userWithoutPassword, token };
+};
+
+export const loginWithGoogle = async (input: GoogleOAuthInput) => {
+  const { idToken } = input;
+  if (!config.google.clientId) {
+    console.error('[AUTH][GOOGLE] Missing GOOGLE_CLIENT_ID')
+    throw new Error('Google OAuth not configured');
+  }
+  console.log('[AUTH][GOOGLE] Verifying ID token (len):', idToken?.length)
+  const ticket = await googleClient.verifyIdToken({ idToken, audience: config.google.clientId });
+  const payload = ticket.getPayload();
+  if (!payload?.email) {
+    console.error('[AUTH][GOOGLE] Token verification failed, no email in payload')
+    throw new Error('Google token verification failed');
+  }
+
+  const email = payload.email;
+  const nameFromGoogle = payload.name || email.split('@')[0];
+
+  // Find existing user
+  let user = await prisma.user.findUnique({ where: { email } });
+  console.log('[AUTH][GOOGLE] Lookup user by email:', email)
+
+  if (!user) {
+    // Assume first-time parent sign-in → create PARENT user with minimal profile
+    console.log('[AUTH][GOOGLE] Creating new PARENT for', email)
+    user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          email,
+          password: '', // OAuth users have no local password
+          role: Role.PARENT,
+        },
+      });
+      await tx.parentProfile.create({
+        data: { userId: created.id, name: nameFromGoogle, phone: null as any },
+      });
+      return created;
+    });
+  }
+
+  // If therapist is pre-registered by admin, just allow login; role is already set
+  const token = signJwt({ userId: user.id, role: user.role });
+  const { password: _pw, ...userWithoutPassword } = user as any;
+
+  // Indicate whether profile completion may be needed for parents (no phone)
+  let needsProfileCompletion = false;
+  if (user.role === Role.PARENT) {
+    const parent = await prisma.parentProfile.findUnique({ where: { userId: user.id } });
+    needsProfileCompletion = !parent?.phone;
+    console.log('[AUTH][GOOGLE] needsProfileCompletion:', needsProfileCompletion)
+  }
+
+  return { user: userWithoutPassword, token, needsProfileCompletion };
 };

@@ -1,39 +1,107 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import React, { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react'
+import { LogIn, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../components/ThemeToggle'
 
-interface LoginFormData {
-  email: string
-  password: string
+declare global {
+  interface Window {
+    google?: any
+  }
 }
 
 const UnifiedLogin: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const { loginWithGoogle } = useAuth()
+  const buttonDivRef = useRef<HTMLDivElement | null>(null)
+  const navigate = useNavigate()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>()
-
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true)
-    try {
-      // Login without specifying role - let backend determine the role
-      await login(data.email, data.password)
-      toast.success('Welcome back!')
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message || 'Login failed')
-    } finally {
-      setIsLoading(false)
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      if (!window.google) {
+        try { console.error('[GSI] google object missing after script load') } catch {}
+        return
+      }
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+      if (!clientId) {
+        try { console.warn('[GSI] Missing VITE_GOOGLE_CLIENT_ID') } catch {}
+        return
+      }
+      try { console.log('[GSI] Initializing with clientId', clientId.slice(0, 8) + '***') } catch {}
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response: any) => {
+          try {
+            setIsLoading(true)
+            const { credential } = response
+            try { console.log('[GSI] Received credential of length', credential?.length) } catch {}
+            // Connectivity probe to backend health
+            try {
+              const healthUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1') + '/health'
+              console.log('[GSI] Probing health:', healthUrl)
+              const healthRes = await fetch(healthUrl, { method: 'GET' })
+              console.log('[GSI] Health response:', healthRes.status)
+            } catch (e) {
+              console.error('[GSI] Health probe failed:', e)
+            }
+            let result
+            try {
+              result = await loginWithGoogle(credential)
+            } catch (primaryErr: any) {
+              console.error('[GSI] loginWithGoogle via axios failed, attempting fetch fallback', primaryErr)
+              try {
+                const base = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1')
+                const url = base + '/auth/google'
+                const fetchRes = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ idToken: credential }),
+                })
+                const text = await fetchRes.text()
+                console.log('[GSI][fallback] status:', fetchRes.status, 'body:', text)
+                if (!fetchRes.ok) throw new Error('Fallback fetch failed: ' + fetchRes.status)
+                try { result = JSON.parse(text) } catch { result = undefined }
+              } catch (fallbackErr) {
+                console.error('[GSI] fetch fallback error', fallbackErr)
+                throw primaryErr
+              }
+            }
+            toast.success('Signed in successfully!')
+            if (result?.needsProfileCompletion) {
+              navigate('/parent/profile', { replace: true })
+            } else {
+              navigate('/', { replace: true })
+            }
+          } catch (err: any) {
+            try { console.error('[GSI][callback][error]', err) } catch {}
+            toast.error(err?.message || 'Google sign-in failed')
+          } finally {
+            setIsLoading(false)
+          }
+        },
+      })
+      if (buttonDivRef.current) {
+        window.google.accounts.id.renderButton(buttonDivRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: 320,
+          type: 'standard',
+          text: 'continue_with',
+          shape: 'pill',
+        })
+      }
+      window.google.accounts.id.prompt()
     }
-  }
+    document.body.appendChild(script)
+    return () => {
+      if (script.parentNode) script.parentNode.removeChild(script)
+    }
+  }, [loginWithGoogle, navigate])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
@@ -64,120 +132,17 @@ const UnifiedLogin: React.FC = () => {
         </div>
 
         <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-4">
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email Address
-                </label>
-                <input
-                  {...register('email', {
-                    required: 'Email is required',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
-                    },
-                  })}
-                  type="email"
-                  className="input mt-1 w-full"
-                  placeholder="Enter your email"
-                />
-                {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
-                </label>
-                <div className="mt-1 relative">
-                  <input
-                    {...register('password', {
-                      required: 'Password is required',
-                      minLength: { value: 6, message: 'Password must be at least 6 characters' },
-                    })}
-                    type={showPassword ? 'text' : 'password'}
-                    className="input w-full pr-10"
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>}
-              </div>
+          <div className="mt-8 space-y-6">
+            <div className="flex flex-col items-center">
+              <div ref={buttonDivRef} />
+              {isLoading && (
+                <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">Signing in…</div>
+              )}
             </div>
-
-            {/* Remember / Forgot */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <Link to="/change-password" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
-                  Change password
-                </Link>
-              </div>
+            <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+              By continuing, you agree to our Terms and Privacy Policy.
             </div>
-
-            {/* Submit */}
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 hover:from-blue-700 hover:via-purple-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300 hover:shadow-lg"
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
-                  </div>
-                ) : (
-                  'Sign In'
-                )}
-              </button>
-            </div>
-
-            {/* Register Links */}
-            <div className="text-center space-y-2">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Don't have an account? Choose your role:
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <Link
-                  to="/register/parent"
-                  className="text-sm font-medium text-pink-600 dark:text-pink-400 hover:text-pink-500 dark:hover:text-pink-300 transition-colors"
-                >
-                  Sign up as Parent
-                </Link>
-                <span className="hidden sm:inline text-gray-300 dark:text-gray-600">|</span>
-                <Link
-                  to="/register/admin"
-                  className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 transition-colors"
-                >
-                  Request Admin Access
-                </Link>
-              </div>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>

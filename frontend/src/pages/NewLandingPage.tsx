@@ -43,13 +43,7 @@ const NewLandingPage: React.FC = () => {
               >
                 Sign In
               </Link>
-              <Link
-                to="/register/parent"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
-              >
-                <Users className="h-4 w-4" />
-                <span>Get Started</span>
-              </Link>
+              {/* Sign up is OAuth-only now; direct users to login */}
             </div>
           </div>
         </div>

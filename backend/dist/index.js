@@ -32,6 +32,18 @@ const PORT = process.env.PORT || 3000;
 // Global Middleware
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+// Basic request logger (path, method, status)
+app.use((req, res, next) => {
+    const started = Date.now();
+    // eslint-disable-next-line no-console
+    console.log('[REQ]', req.method, req.originalUrl);
+    res.on('finish', () => {
+        const ms = Date.now() - started;
+        // eslint-disable-next-line no-console
+        console.log('[RES]', req.method, req.originalUrl, res.statusCode, ms + 'ms');
+    });
+    next();
+});
 // API Routes
 app.use('/api/v1/auth', auth_routes_js_1.default);
 app.use('/api/v1/admin', admin_routes_js_1.default);
@@ -40,6 +52,10 @@ app.use('/api/v1/therapists', therapist_routes_js_1.default);
 app.use('/api/v1/bookings', booking_routes_js_1.default);
 app.use('/api/v1/slots', slots_routes_js_1.default);
 app.use('/api/v1/feedback', feedback_routes_js_1.default);
+// Health endpoint for connectivity checks
+app.get('/api/v1/health', (_req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$connect();

@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import * as authService from './auth.service';
 import { signJwt } from '../../utils/jwt';
+import { z } from 'zod';
+import { googleOAuthSchema } from './auth.validation';
 
 const handleServiceError = (res: Response, error: any) => {
     const isConflict = error.message?.includes('exists');
@@ -56,5 +58,21 @@ export const changePasswordHandler = async (req: Request, res: Response) => {
   } catch (error: any) {
     const status = /incorrect|No account/i.test(error.message) ? 400 : 500;
     res.status(status).json({ message: error.message });
+  }
+};
+
+export const googleOAuthHandler = async (req: Request, res: Response) => {
+  try {
+    // Basic debug without logging tokens
+    console.log('[AUTH][GOOGLE] Incoming request to /auth/google')
+    const parsed = googleOAuthSchema.parse({ body: req.body });
+    console.log('[AUTH][GOOGLE] Payload received (token length):', parsed.body.idToken?.length)
+    const result = await authService.loginWithGoogle(parsed.body);
+    console.log('[AUTH][GOOGLE] Login success for user', result?.user?.email)
+    res.status(200).json(result);
+  } catch (error: any) {
+    const status = error?.issues ? 400 : 401;
+    console.error('[AUTH][GOOGLE][ERROR]', error?.message || error)
+    res.status(status).json({ message: error.message || 'Google login failed' });
   }
 };
