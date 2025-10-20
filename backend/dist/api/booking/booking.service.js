@@ -45,15 +45,15 @@ const markSessionCompleted = (bookingId) => __awaiter(void 0, void 0, void 0, fu
         },
     });
     // Send notifications
-    yield (0, notification_service_1.sendNotification)({
+    yield (0, notification_service_1.sendNotificationAfterAnEventSessionCompleted)({
         userId: booking.parent.userId,
         message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
-        type: 'SESSION_COMPLETED',
+        sendAt: new Date()
     });
-    yield (0, notification_service_1.sendNotification)({
+    yield (0, notification_service_1.sendNotificationAfterAnEventSessionCompleted)({
         userId: booking.therapist.userId,
         message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
-        type: 'SESSION_COMPLETED',
+        sendAt: new Date()
     });
     return updatedBooking;
 });
@@ -132,15 +132,15 @@ const createBooking = (parentId, input) => __awaiter(void 0, void 0, void 0, fun
         });
         return newBooking;
     }));
-    yield (0, notification_service_1.sendNotification)({
+    yield (0, notification_service_1.sendNotificationBookingConfirmed)({
         userId: timeSlot.therapist.userId,
-        type: 'BOOKING_CONFIRMED',
-        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`
+        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt: new Date()
     });
-    yield (0, notification_service_1.sendNotification)({
+    yield (0, notification_service_1.sendNotificationBookingConfirmed)({
         userId: parent.userId,
-        type: 'BOOKING_CONFIRMED',
-        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`
+        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt: new Date()
     });
     return booking;
 });

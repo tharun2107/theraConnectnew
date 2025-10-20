@@ -1,45 +1,163 @@
-import { type NotificationType } from '@prisma/client';
+// notification.service.ts
+import { PrismaClient } from '@prisma/client';
+import { NotificationType } from '@prisma/client';
 import prisma from '../utils/prisma';
+import { sendemail } from './email.services';
+
+
 
 export interface NotificationInput {
   userId: string;
+  sendAt: Date;
   message: string;
-  type: NotificationType;
+  welcomeHtml ?:string
 }
 
-export interface EmailInput {
-  to: string;
-  subject: string;
-  html: string;
-}
+export const sendNotificationToTherapist = async (input: NotificationInput) => {
+  await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      message: input.message,
+      type: NotificationType.SESSION_COMPLETED,
+      channel: 'EMAIL',
+      status: "PENDING",
+      sendAt: input.sendAt
+    }
+  });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
+};
+
+export const sendNotificationToTherapistSessionBooked = async (input: NotificationInput) => {
+  await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      message: input.message,
+      type: NotificationType.BOOKING_CONFIRMED,
+      channel: 'EMAIL',
+      status: "PENDING",
+      sendAt: input.sendAt
+    }
+  });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
+};
+
+export const sendNotificationAfterAnEvent = async (input: NotificationInput) => {
+  const { userId, message, sendAt } = input;
+  const type = NotificationType.REGISTRATION_SUCCESSFUL;
+  await prisma.notification.create({
+    data:{
+      userId,
+      message,
+      type,
+      channel: 'EMAIL',
+      status: "PENDING",
+      sendAt
+    }
+  });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email,'', input.welcomeHtml);
+};
 
 export const sendNotification = async (input: NotificationInput) => {
   await prisma.notification.create({
     data: {
       userId: input.userId,
       message: input.message,
-      type: input.type,
-    },
+      type: NotificationType.SESSION_REMINDER,
+      channel: "EMAIL",
+      status: "PENDING",
+      sendAt: input.sendAt
+    }
   });
-  // In a real app, you would add an email/push notification service call here
-  console.log(`NOTIFICATION for ${input.userId}: ${input.message}`);
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 };
 
-export const sendEmail = async (input: EmailInput) => {
-  // In a real application, you would integrate with an email service like:
-  // - SendGrid
-  // - AWS SES
-  // - Nodemailer with SMTP
-  // - Mailgun
-  // - etc.
-  
-  console.log('EMAIL SENT:', {
-    to: input.to,
-    subject: input.subject,
-    html: input.html,
+export const sendNotificationBookingCancelled= async (input: NotificationInput) => {
+  await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      message: input.message,
+      type: NotificationType.BOOKING_CANCELLED,
+      channel: "EMAIL",
+      status: "PENDING",
+      sendAt: input.sendAt
+    }
   });
-  
-  // For now, we'll just log the email content
-  // In production, replace this with actual email service integration
-  return Promise.resolve();
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 };
+
+
+export const sendNotificationAfterAnEventSessionCompleted = async (input: NotificationInput) => {
+  await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      message: input.message,
+      type: NotificationType.SESSION_COMPLETED,
+      channel: 'EMAIL',
+      status: "PENDING",
+      sendAt: input.sendAt
+    }
+  });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
+}
+
+
+export const sendNotificationBookingConfirmed = async (input: NotificationInput) => {
+   await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      message: input.message,
+      type: NotificationType.BOOKING_CONFIRMED,
+      channel: 'EMAIL',
+      status: "PENDING",
+      sendAt: input.sendAt
+    }
+  });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
+}
+
+
+export const therapistAccountApproved = async(input:NotificationInput)=>{
+  await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      message: input.message,
+      type: NotificationType.THERAPIST_ACCOUNT_APPROVED,
+      channel: 'EMAIL',
+      status: "PENDING",
+      sendAt: input.sendAt
+    }
+  });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
+}

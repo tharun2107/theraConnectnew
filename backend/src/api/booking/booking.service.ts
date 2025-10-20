@@ -1,6 +1,6 @@
 import { Role, TherapistStatus } from '@prisma/client';
 import { z } from 'zod';
-import { sendNotification } from '../../services/notification.service';
+import { sendNotification, sendNotificationAfterAnEventSessionCompleted, sendNotificationBookingConfirmed } from '../../services/notification.service';
 import type { createBookingSchema } from './booking.validation';
 import prisma from '../../utils/prisma';
 type CreateBookingInput = z.infer<typeof createBookingSchema>['body'];
@@ -38,16 +38,16 @@ export const markSessionCompleted = async (bookingId: string) => {
   })
 
   // Send notifications
-  await sendNotification({
+  await sendNotificationAfterAnEventSessionCompleted({
     userId: booking.parent.userId,
     message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
-    type: 'SESSION_COMPLETED' as any,
+    sendAt: new Date()
   })
 
-  await sendNotification({
+  await sendNotificationAfterAnEventSessionCompleted({
     userId: booking.therapist.userId,
     message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
-    type: 'SESSION_COMPLETED' as any,
+    sendAt: new Date()
   })
 
   return updatedBooking
@@ -134,15 +134,15 @@ export const createBooking = async (parentId: string, input: CreateBookingInput)
         return newBooking;
     });
 
-    await sendNotification({
+    await sendNotificationBookingConfirmed({
         userId: timeSlot.therapist.userId,
-        type: 'BOOKING_CONFIRMED',
-        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`
+        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt: new Date()
     });
-    await sendNotification({
+    await sendNotificationBookingConfirmed({
         userId: parent!.userId,
-        type: 'BOOKING_CONFIRMED',
-        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`
+        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt: new Date()
     });
 
     return booking;

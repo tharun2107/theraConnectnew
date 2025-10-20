@@ -33,10 +33,10 @@ const updateTherapistStatus = (therapistId, status) => __awaiter(void 0, void 0,
         data: { status },
     });
     if (status === 'ACTIVE') {
-        yield (0, notification_service_1.sendNotification)({
+        yield (0, notification_service_1.therapistAccountApproved)({
             userId: updatedTherapist.userId,
-            type: 'THERAPIST_ACCOUNT_APPROVED',
             message: 'Congratulations! Your profile has been approved by the admin.',
+            sendAt: new Date(),
         });
     }
     return updatedTherapist;

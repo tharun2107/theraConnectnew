@@ -1,6 +1,8 @@
+import { email } from 'zod'
 import prisma from '../../utils/prisma'
 import { CreateFeedbackInput, CreateSessionReportInput, UpdateConsentInput } from './feedback.validation'
-import { sendEmail } from '../../services/notification.service'
+import { sendemail } from '../../services/email.services'
+
 
 export const createFeedback = async (input: CreateFeedbackInput) => {
   const { bookingId, rating, comment, isAnonymous, consentToDataSharing } = input
@@ -273,9 +275,5 @@ const sendSessionReportEmail = async (parentEmail: string, childName: string, re
     <p>Best regards,<br>TheraConnect Team</p>
   `
 
-  await sendEmail({
-    to: parentEmail,
-    subject: `Session Report for ${childName} - TheraConnect`,
-    html: emailContent,
-  })
+  await sendemail(parentEmail, `Session Report for ${childName} - TheraConnect  ${emailContent}`)
 }
