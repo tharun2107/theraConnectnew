@@ -116,15 +116,15 @@ const bookSlot = (parentId, childId, timeSlotId) => __awaiter(void 0, void 0, vo
         // Step 5 & 6 (optional but good practice): Create Payment and Permissions
         // ... (logic for payment and data access permission creation would go here)
         // After transaction succeeds, send notifications
-        yield (0, notification_service_1.sendNotification)({
+        yield (0, notification_service_1.sendNotificationBookingConfirmed)({
             userId: slot.therapist.user.id,
-            type: 'BOOKING_CONFIRMED',
             message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
+            sendAt: new Date()
         });
-        yield (0, notification_service_1.sendNotification)({
+        yield (0, notification_service_1.sendNotificationBookingConfirmed)({
             userId: child.parent.user.id,
-            type: 'BOOKING_CONFIRMED',
             message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
+            sendAt: new Date()
         });
         return newBooking;
     }));

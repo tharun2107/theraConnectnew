@@ -1,5 +1,5 @@
 import prisma from '../../utils/prisma';
-import { sendNotification } from '../../services/notification.service';
+import { sendNotification, sendNotificationBookingConfirmed } from '../../services/notification.service';
 
 /**
  * Checks if a given time falls within any of the therapist's breaks.
@@ -118,15 +118,15 @@ export const bookSlot = async (parentId: string, childId: string, timeSlotId: st
     // ... (logic for payment and data access permission creation would go here)
 
     // After transaction succeeds, send notifications
-    await sendNotification({
+    await sendNotificationBookingConfirmed({
       userId: slot.therapist.user.id,
-      type: 'BOOKING_CONFIRMED',
       message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
+      sendAt: new Date()
     });
-    await sendNotification({
+    await sendNotificationBookingConfirmed({
       userId: child.parent.user.id,
-      type: 'BOOKING_CONFIRMED',
       message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
+      sendAt: new Date()
     });
 
     return newBooking;

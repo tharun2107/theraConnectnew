@@ -209,15 +209,28 @@ model SessionReport {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
+  id        String             @id @default(cuid())
   message   String
-  isRead    Boolean          @default(false)
+  isRead    Boolean            @default(false)
   type      NotificationType
-  createdAt DateTime         @default(now())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id])
 
-  @@index([userId])
+  user      User               @relation(fields: [userId], references: [id])
+  userId    String
+
+  channel   NotificationChannel   
+  status    NotificationStatus  
+
+  sendAt    DateTime             
+  createdAt DateTime            @default(now())
+
+  @@index([userId, status, sendAt])
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
 }
 
 model AuditLog {
@@ -292,6 +305,7 @@ enum LeaveType {
   FULL_DAY
 }
 
+
 enum NotificationType {
   BOOKING_CONFIRMED
   BOOKING_CANCELLED
@@ -300,8 +314,15 @@ enum NotificationType {
   THERAPIST_ACCOUNT_APPROVED
   SESSION_COMPLETED
   REPORT_READY
+  REPORT_PENDING
   CONSENT_REQUESTED
   CONSENT_RESPONSE
+  REGISTRATION_SUCCESSFUL
+}
+
+enum NotificationChannel {
+  EMAIL
+  PUSH 
 }
 
 enum ConsentStatus {
