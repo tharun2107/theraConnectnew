@@ -947,3 +947,27 @@ export const changePasswordHandler = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+
+export const googleCallbackHandler = async (req: Request, res: Response) => {
+  // `req.user` is populated by the `passport.authenticate` middleware
+  // with the user object returned from our `findOrCreateUserFromProvider` service.
+  // `User` type was not defined/imported; cast to `any` or replace with a proper imported type.
+  const user = req.user as any;
+
+  if (!user) {
+    return res
+      .status(401)
+      .json({ message: 'Authentication failed' });
+  }
+
+  // 1. Sign a JWT for the user
+  const token = signJwt({ userId: user.id, role: user.role });
+
+  // 2. Redirect the user back to your frontend application
+  // The frontend will receive the token in the URL, save it, and log the user in.
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  
+  res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+};

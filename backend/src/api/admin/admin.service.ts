@@ -108,18 +108,6 @@ export const getProfile = async (userId: string) => {
   return admin;
 };
 
-export const updateProfile = async (userId: string, data: any) => {
-  const updatedAdmin = await prisma.adminProfile.update({
-    where: { userId },
-    data: {
-      name: data.name,
-    },
-    include: { user: true },
-  });
-
-  return updatedAdmin;
-};
-
 export const getPlatformSettings = async () => {
   // For now, return default settings
   // In a real app, you'd store these in a database table

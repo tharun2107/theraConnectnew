@@ -8,6 +8,7 @@ exports.registerParentSchema = zod_1.z.object({
         password: zod_1.z.string().min(8, { message: "Password must be at least 8 characters long." }),
         name: zod_1.z.string().min(2, { message: "Name must be at least 2 characters long." }),
         phone: zod_1.z.string().min(10, { message: "Phone number must be at least 10 characters long." }),
+        timezone: zod_1.z.string(),
     }),
 });
 exports.registerTherapistSchema = zod_1.z.object({

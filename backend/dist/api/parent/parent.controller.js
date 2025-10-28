@@ -44,7 +44,7 @@ const getParentId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const getMyProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const profile = yield parentService.getParentProfile(req.user.userId);
+        const profile = yield parentService.getParentProfile(req.user.id);
         res.status(200).json(profile);
     }
     catch (error) {
@@ -54,7 +54,7 @@ const getMyProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
 exports.getMyProfileHandler = getMyProfileHandler;
 const getMyChildrenHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const parentId = yield getParentId(req.user.userId);
+        const parentId = yield getParentId(req.user.id);
         const children = yield parentService.getChildren(parentId);
         res.status(200).json(children);
     }
@@ -66,7 +66,7 @@ exports.getMyChildrenHandler = getMyChildrenHandler;
 const addChildHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const parentId = yield getParentId(req.user.userId);
+        const parentId = yield getParentId(req.user.id);
         const child = yield parentService.addChild(parentId, req.body);
         res.status(201).json(child);
     }

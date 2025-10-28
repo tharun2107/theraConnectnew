@@ -46,7 +46,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePasswordHandler = exports.loginHandler = exports.registerAdminHandler = exports.registerTherapistHandler = exports.registerParentHandler = void 0;
+exports.googleCallbackHandler = exports.changePasswordHandler = exports.loginHandler = exports.registerAdminHandler = exports.registerTherapistHandler = exports.registerParentHandler = void 0;
 const authService = __importStar(require("./auth.service"));
 const jwt_1 = require("../../utils/jwt");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
@@ -988,3 +988,21 @@ const changePasswordHandler = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.changePasswordHandler = changePasswordHandler;
+const googleCallbackHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // `req.user` is populated by the `passport.authenticate` middleware
+    // with the user object returned from our `findOrCreateUserFromProvider` service.
+    // `User` type was not defined/imported; cast to `any` or replace with a proper imported type.
+    const user = req.user;
+    if (!user) {
+        return res
+            .status(401)
+            .json({ message: 'Authentication failed' });
+    }
+    // 1. Sign a JWT for the user
+    const token = (0, jwt_1.signJwt)({ userId: user.id, role: user.role });
+    // 2. Redirect the user back to your frontend application
+    // The frontend will receive the token in the URL, save it, and log the user in.
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+});
+exports.googleCallbackHandler = googleCallbackHandler;

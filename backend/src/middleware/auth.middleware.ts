@@ -1,47 +1,61 @@
-import type { Request, Response, NextFunction } from 'express';
-import { PrismaClient, type Role } from '@prisma/client';
-import { verifyJwt, type JwtPayload } from '../utils/jwt';
+import { RequestHandler } from "express";
+import { PrismaClient, Role, User } from "@prisma/client";
+import { verifyJwt } from "../utils/jwt";
 
 const prisma = new PrismaClient();
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JwtPayload;
-    }
-  }
+
+export interface AuthenticatedRequest extends Request {
+  user?: User;
 }
 
-export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+export const authenticate: RequestHandler = async (
+  req: any,
+  res,
+  next
+) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Authentication invalid: No token provided.' });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({ message: "Authentication invalid: No token provided." });
+    return;
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
   const decoded = verifyJwt(token);
 
   if (!decoded) {
-    return res.status(401).json({ message: 'Authentication invalid: Invalid token.' });
+    res.status(401).json({ message: "Authentication invalid: Invalid token." });
+    return;
   }
 
-  const userExists = await prisma.user.findUnique({ where: { id: decoded.userId } });
+  const userExists = await prisma.user.findUnique({
+    where: { id: decoded.userId }
+  });
+
   if (!userExists) {
-    return res.status(401).json({ message: 'Authentication invalid: User not found.' });
+    res.status(401).json({ message: "Authentication invalid: User not found." });
+    return;
   }
 
-  req.user = decoded;
+  (req as AuthenticatedRequest).user = userExists;
   next();
 };
 
-export const authorize = (allowedRoles: Role[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user?.role) {
-      return res.status(403).json({ message: 'Forbidden: Role not available.' });
+
+export const authorize = (allowedRoles: Role[]): RequestHandler => {
+  return (req: any, res, next) => {
+    const user = (req as AuthenticatedRequest).user;
+
+    if (!user?.role) {
+      res.status(403).json({ message: "Forbidden: Role not available." });
+      return;
     }
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ message: `Forbidden: Access denied.` });
+
+    if (!allowedRoles.includes(user.role)) {
+      res.status(403).json({ message: "Forbidden: Access denied." });
+      return;
     }
+
     next();
   };
 };

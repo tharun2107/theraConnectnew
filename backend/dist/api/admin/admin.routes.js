@@ -20,7 +20,7 @@ router.get('/children/:childId/sessions', admin_controller_1.getChildSessionsHan
 router.get('/bookings', admin_controller_1.getAllBookingsHandler);
 // Profile management
 router.get('/profile', admin_controller_1.getProfileHandler);
-router.put('/profile', admin_controller_1.updateProfileHandler);
+// router.put('/profile', updateProfileHandler);
 // Platform settings
 router.get('/settings', admin_controller_1.getPlatformSettingsHandler);
 router.put('/settings', admin_controller_1.updatePlatformSettingsHandler);

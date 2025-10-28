@@ -6,6 +6,7 @@ export const registerParentSchema = z.object({
     password: z.string().min(8, { message: "Password must be at least 8 characters long." }),
     name: z.string().min(2, { message: "Name must be at least 2 characters long." }),
     phone: z.string().min(10, { message: "Phone number must be at least 10 characters long." }),
+    timezone: z.string(),
   }),
 });
 

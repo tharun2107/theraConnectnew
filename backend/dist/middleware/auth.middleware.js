@@ -15,30 +15,37 @@ const jwt_1 = require("../utils/jwt");
 const prisma = new client_1.PrismaClient();
 const authenticate = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Authentication invalid: No token provided.' });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        res.status(401).json({ message: "Authentication invalid: No token provided." });
+        return;
     }
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
     const decoded = (0, jwt_1.verifyJwt)(token);
     if (!decoded) {
-        return res.status(401).json({ message: 'Authentication invalid: Invalid token.' });
+        res.status(401).json({ message: "Authentication invalid: Invalid token." });
+        return;
     }
-    const userExists = yield prisma.user.findUnique({ where: { id: decoded.userId } });
+    const userExists = yield prisma.user.findUnique({
+        where: { id: decoded.userId }
+    });
     if (!userExists) {
-        return res.status(401).json({ message: 'Authentication invalid: User not found.' });
+        res.status(401).json({ message: "Authentication invalid: User not found." });
+        return;
     }
-    req.user = decoded;
+    req.user = userExists;
     next();
 });
 exports.authenticate = authenticate;
 const authorize = (allowedRoles) => {
     return (req, res, next) => {
-        var _a;
-        if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.role)) {
-            return res.status(403).json({ message: 'Forbidden: Role not available.' });
+        const user = req.user;
+        if (!(user === null || user === void 0 ? void 0 : user.role)) {
+            res.status(403).json({ message: "Forbidden: Role not available." });
+            return;
         }
-        if (!allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ message: `Forbidden: Access denied.` });
+        if (!allowedRoles.includes(user.role)) {
+            res.status(403).json({ message: "Forbidden: Access denied." });
+            return;
         }
         next();
     };

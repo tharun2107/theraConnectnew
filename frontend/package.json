@@ -38,7 +38,7 @@
     "react-query": "^3.39.3",
     "react-router-dom": "^6.20.1",
     "react-spring": "^10.0.3",
-    "recharts": "^3.2.1",
+    "recharts": "^3.3.0",
     "tailwind-merge": "^2.0.0"
   },
   "devDependencies": {

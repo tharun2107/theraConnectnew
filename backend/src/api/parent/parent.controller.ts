@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import * as parentService from './parent.service';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../../middleware/auth.middleware';
+
 const prisma = new PrismaClient();
 
 const getParentId = async (userId: string) => {
@@ -9,18 +11,18 @@ const getParentId = async (userId: string) => {
     return parentProfile.id;
 }
 
-export const getMyProfileHandler = async (req: Request, res: Response) => {
+export const getMyProfileHandler = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const profile = await parentService.getParentProfile(req.user!.userId);
+        const profile = await parentService.getParentProfile(req.user!.id);
         res.status(200).json(profile);
     } catch (error: any) {
         res.status(404).json({ message: error.message });
     }
 }
 
-export const getMyChildrenHandler = async (req: Request, res: Response) => {
+export const getMyChildrenHandler = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const parentId = await getParentId(req.user!.userId);
+        const parentId = await getParentId(req.user!.id);
         const children = await parentService.getChildren(parentId);
         res.status(200).json(children);
     } catch (error: any) {
@@ -28,10 +30,12 @@ export const getMyChildrenHandler = async (req: Request, res: Response) => {
     }
 }
 
-export const addChildHandler = async (req: Request, res: Response) => {
+export const addChildHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const parentId = await getParentId(req.user!.userId);
-    const child = await parentService.addChild(parentId, req.body);
+    const parentId = await getParentId(req.user!.id);
+    
+    const childInput: ChildInput = req.body as ChildInput;
+    const child = await parentService.addChild(parentId, childInput);
     res.status(201).json(child);
   } catch (error: any) {
     // Check for Prisma unique constraint error

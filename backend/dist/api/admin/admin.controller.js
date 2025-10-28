@@ -32,7 +32,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTherapistStatusHandler = exports.updatePlatformSettingsHandler = exports.getPlatformSettingsHandler = exports.updateProfileHandler = exports.getProfileHandler = exports.getAllBookingsHandler = exports.getChildSessionsHandler = exports.getAllChildrenHandler = exports.getTherapistSessionsHandler = exports.getAllTherapistsHandler = void 0;
+exports.updateTherapistStatusHandler = exports.updatePlatformSettingsHandler = exports.getPlatformSettingsHandler = exports.getProfileHandler = exports.getAllBookingsHandler = exports.getChildSessionsHandler = exports.getAllChildrenHandler = exports.getTherapistSessionsHandler = exports.getAllTherapistsHandler = void 0;
 const adminService = __importStar(require("./admin.service"));
 const getAllTherapistsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -101,21 +101,6 @@ const getProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getProfileHandler = getProfileHandler;
-const updateProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        if (!userId) {
-            return res.status(401).json({ message: 'User not authenticated' });
-        }
-        const profile = yield adminService.updateProfile(userId, req.body);
-        res.status(200).json(profile);
-    }
-    catch (error) {
-        res.status(500).json({ message: 'Failed to update profile' });
-    }
-});
-exports.updateProfileHandler = updateProfileHandler;
 const getPlatformSettingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const settings = yield adminService.getPlatformSettings();

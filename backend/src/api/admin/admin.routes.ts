@@ -10,7 +10,6 @@ import {
   getChildSessionsHandler,
   getAllBookingsHandler,
   getProfileHandler,
-  updateProfileHandler,
   getPlatformSettingsHandler,
   updatePlatformSettingsHandler
 } from './admin.controller';
@@ -35,7 +34,7 @@ router.get('/bookings', getAllBookingsHandler);
 
 // Profile management
 router.get('/profile', getProfileHandler);
-router.put('/profile', updateProfileHandler);
+// router.put('/profile', updateProfileHandler);
 
 // Platform settings
 router.get('/settings', getPlatformSettingsHandler);

@@ -39,6 +39,10 @@ function AppRoutes() {
     return <LoadingSpinner />
   }
 
+
+
+  
+
   if (!user) {
     return (
       <Routes>

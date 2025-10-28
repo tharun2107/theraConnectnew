@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { childSchema } from './parent.validation';
 
 const prisma = new PrismaClient();
-type ChildInput = z.infer<typeof childSchema>['body'];
+export type ChildInput = z.infer<typeof childSchema>['body'];
 
 export const getParentProfile = async (userId: string) => {
     return prisma.parentProfile.findUnique({ where: { userId } });

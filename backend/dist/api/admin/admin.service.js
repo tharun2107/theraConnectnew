@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlatformSettings = exports.getPlatformSettings = exports.updateProfile = exports.getProfile = exports.getAllBookings = exports.getChildSessions = exports.getAllChildren = exports.getTherapistSessions = exports.updateTherapistStatus = exports.getAllTherapists = void 0;
+exports.updatePlatformSettings = exports.getPlatformSettings = exports.getProfile = exports.getAllBookings = exports.getChildSessions = exports.getAllChildren = exports.getTherapistSessions = exports.updateTherapistStatus = exports.getAllTherapists = void 0;
 const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
@@ -113,17 +113,6 @@ const getProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     return admin;
 });
 exports.getProfile = getProfile;
-const updateProfile = (userId, data) => __awaiter(void 0, void 0, void 0, function* () {
-    const updatedAdmin = yield prisma_1.default.adminProfile.update({
-        where: { userId },
-        data: {
-            name: data.name,
-        },
-        include: { user: true },
-    });
-    return updatedAdmin;
-});
-exports.updateProfile = updateProfile;
 const getPlatformSettings = () => __awaiter(void 0, void 0, void 0, function* () {
     // For now, return default settings
     // In a real app, you'd store these in a database table
