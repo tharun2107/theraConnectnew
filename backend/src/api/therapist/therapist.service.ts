@@ -1,6 +1,6 @@
 import { BookingStatus } from '@prisma/client';
 import { z } from 'zod';
-import { sendNotification } from '../../services/notification.service';
+import { sendNotification, sendNotificationBookingCancelled } from '../../services/notification.service';
 import type { requestLeaveSchema, createTimeSlotsSchema } from './therapist.validation';
 import prisma from '../../utils/prisma';
 type RequestLeaveInput = z.infer<typeof requestLeaveSchema>['body'];
@@ -125,10 +125,10 @@ export const requestLeave = async (therapistId: string, input: RequestLeaveInput
   });
 
   for (const booking of affectedBookings) {
-    await sendNotification({
+    await sendNotificationBookingCancelled({
       userId: booking.parent.userId,
-      type: 'BOOKING_CANCELLED',
       message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
+      sendAt: new Date()
     });
   }
   return { message: 'Leave approved and affected bookings have been cancelled.' };

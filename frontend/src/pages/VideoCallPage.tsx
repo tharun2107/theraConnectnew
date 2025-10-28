@@ -7,15 +7,12 @@ import { Badge } from '../components/ui/badge'
 import { Avatar, AvatarFallback } from '../components/ui/avatar'
 import { 
   Users, 
-  Grid3X3,
-  Maximize2,
-  Minimize2
+  Grid3X3
 } from 'lucide-react'
 import VideoControls from '../components/VideoControls'
 import FeedbackForm from '../components/FeedbackForm'
 import SessionReportForm from '../components/SessionReportForm'
 import { useAuth } from '../hooks/useAuth'
-import { cn } from '../lib/utils'
 
 
 declare global {
@@ -33,15 +30,8 @@ const VideoCallPage: React.FC = () => {
   const joinStartedRef = useRef<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isVideoOff, setIsVideoOff] = useState(false)
   const [participants] = useState(2)
-  const [isHost, setIsHost] = useState(false)
   const [meetingStarted, setMeetingStarted] = useState(false)
-  const [showChat, setShowChat] = useState(false)
-  const [showParticipants, setShowParticipants] = useState(false)
-  const [callEnded, setCallEnded] = useState(false)
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
   const [showSessionReportForm, setShowSessionReportForm] = useState(false)
   const [sessionDetails, setSessionDetails] = useState<any>(null)
@@ -123,7 +113,6 @@ const VideoCallPage: React.FC = () => {
         
         console.log('[VideoCallPage] join success')
         setMeetingStarted(true)
-        setIsHost(data.signature.includes('role') ? data.signature.split('role')[1] === '1' : false)
       } catch (e: any) {
         console.error('[VideoCallPage] join error', e)
         if (!cancelled) {
@@ -157,15 +146,6 @@ const VideoCallPage: React.FC = () => {
     }
   }, [bookingId, navigate])
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen()
-      setIsFullscreen(true)
-    } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
-    }
-  }
 
   const handleEndCall = async () => {
     console.log('🎯 handleEndCall called, user role:', user?.role)
@@ -200,8 +180,6 @@ const VideoCallPage: React.FC = () => {
         // Continue anyway - we'll show the form with fallback data
       }
       
-      setCallEnded(true)
-      
       // Load session details
       try {
         console.log('📋 Loading session details...')
@@ -234,7 +212,6 @@ const VideoCallPage: React.FC = () => {
     } catch (error) {
       console.error('❌ Error ending call:', error)
       // Even if there's an error, try to show the form
-      setCallEnded(true)
       if (user?.role === 'PARENT') {
         console.log('👨‍👩‍👧‍👦 Error fallback: Showing feedback form for parent')
         setShowFeedbackForm(true)
@@ -257,14 +234,8 @@ const VideoCallPage: React.FC = () => {
     }
   }
 
-  const handleShareScreen = () => {
-    // Screen sharing functionality would be implemented here
-    console.log('Share screen clicked')
-  }
-
   const handleTestFeedback = () => {
     console.log('🧪 Testing feedback form')
-    setCallEnded(true)
     setSessionDetails({
       child: { name: 'Test Child' },
       therapist: { name: 'Test Therapist' },
@@ -276,11 +247,6 @@ const VideoCallPage: React.FC = () => {
     } else if (user?.role === 'THERAPIST') {
       setShowSessionReportForm(true)
     }
-  }
-
-  const handleShowSettings = () => {
-    // Settings functionality would be implemented here
-    console.log('Show settings clicked')
   }
 
   const handleFeedbackSuccess = () => {
@@ -350,43 +316,32 @@ const VideoCallPage: React.FC = () => {
   }
 
   return (
-    <div className={cn(
-      "min-h-screen bg-gray-900 text-white",
-      isFullscreen && "fixed inset-0 z-50"
-    )}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* Header - Minimal for better video focus */}
+      <div className="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
         <div className="flex items-center space-x-3">
           <Avatar className="h-8 w-8">
             <AvatarFallback>TC</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="font-semibold">TheraConnect Session</h1>
-            <p className="text-sm text-gray-400">
+            <h1 className="font-semibold text-sm">TheraConnect Session</h1>
+            <p className="text-xs text-gray-400">
               {meetingStarted ? 'Session Active' : 'Connecting...'}
             </p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <Badge variant={meetingStarted ? "default" : "secondary"}>
+        <div className="flex items-center space-x-3">
+          <Badge variant={meetingStarted ? "default" : "secondary"} className="text-xs">
             {participants} participants
           </Badge>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleTestFeedback}
-            className="text-yellow-400 hover:text-yellow-300"
+            className="text-yellow-400 hover:text-yellow-300 text-xs"
           >
             Test Feedback
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleFullscreen}
-            className="text-gray-400 hover:text-white"
-          >
-            {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
           </Button>
         </div>
       </div>
@@ -402,14 +357,15 @@ const VideoCallPage: React.FC = () => {
           </div>
         )}
         
-        {/* Video Container */}
+        {/* Video Container - Full viewport for better UX */}
         <div 
           ref={containerRef} 
           className="w-full h-full"
           style={{ 
             width: '100%', 
             height: '100%',
-            background: '#1a1a1a'
+            background: '#1a1a1a',
+            minHeight: '600px'
           }} 
         />
 
@@ -428,21 +384,10 @@ const VideoCallPage: React.FC = () => {
         )}
       </div>
 
-      {/* Video Controls */}
+      {/* Video Controls - Simplified to only show End Call button */}
       <VideoControls
-        isMuted={isMuted}
-        isVideoOff={isVideoOff}
-        isFullscreen={isFullscreen}
         participants={participants}
-        isHost={isHost}
-        onToggleMute={() => setIsMuted(!isMuted)}
-        onToggleVideo={() => setIsVideoOff(!isVideoOff)}
-        onToggleFullscreen={toggleFullscreen}
         onEndCall={handleEndCall}
-        onShareScreen={handleShareScreen}
-        onToggleChat={() => setShowChat(!showChat)}
-        onToggleParticipants={() => setShowParticipants(!showParticipants)}
-        onShowSettings={handleShowSettings}
       />
 
       {/* Participant Info */}

@@ -119,10 +119,16 @@ const login = (input) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.login = login;
 const loginWithGoogle = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { idToken } = input;
+    console.log('[AUTH][GOOGLE] Config check:', {
+        hasClientId: !!config_1.config.google.clientId,
+        clientIdLength: ((_a = config_1.config.google.clientId) === null || _a === void 0 ? void 0 : _a.length) || 0,
+        envVar: process.env.GOOGLE_CLIENT_ID ? 'set' : 'missing'
+    });
     if (!config_1.config.google.clientId) {
-        console.error('[AUTH][GOOGLE] Missing GOOGLE_CLIENT_ID');
-        throw new Error('Google OAuth not configured');
+        console.error('[AUTH][GOOGLE] Missing GOOGLE_CLIENT_ID - Check your .env file');
+        throw new Error('Google OAuth not configured - Missing GOOGLE_CLIENT_ID');
     }
     console.log('[AUTH][GOOGLE] Verifying ID token (len):', idToken === null || idToken === void 0 ? void 0 : idToken.length);
     const ticket = yield googleClient.verifyIdToken({ idToken, audience: config_1.config.google.clientId });
@@ -155,7 +161,7 @@ const loginWithGoogle = (input) => __awaiter(void 0, void 0, void 0, function* (
     }
     // If therapist is pre-registered by admin, just allow login; role is already set
     const token = (0, jwt_1.signJwt)({ userId: user.id, role: user.role });
-    const _a = user, { password: _pw } = _a, userWithoutPassword = __rest(_a, ["password"]);
+    const _b = user, { password: _pw } = _b, userWithoutPassword = __rest(_b, ["password"]);
     // Indicate whether profile completion may be needed for parents (no phone)
     let needsProfileCompletion = false;
     if (user.role === client_1.Role.PARENT) {

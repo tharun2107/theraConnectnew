@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSessionDetails = exports.updateConsent = exports.createSessionReport = exports.createFeedback = void 0;
 const prisma_1 = __importDefault(require("../../utils/prisma"));
-const notification_service_1 = require("../../services/notification.service");
+const email_services_1 = require("../../services/email.services");
 const createFeedback = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { bookingId, rating, comment, isAnonymous, consentToDataSharing } = input;
     // Verify booking exists and belongs to parent
@@ -260,9 +260,5 @@ const sendSessionReportEmail = (parentEmail, childName, report, therapistName) =
     
     <p>Best regards,<br>TheraConnect Team</p>
   `;
-    yield (0, notification_service_1.sendEmail)({
-        to: parentEmail,
-        subject: `Session Report for ${childName} - TheraConnect`,
-        html: emailContent,
-    });
+    yield (0, email_services_1.sendemail)(parentEmail, `Session Report for ${childName} - TheraConnect  ${emailContent}`);
 });

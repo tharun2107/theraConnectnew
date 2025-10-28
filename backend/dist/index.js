@@ -29,8 +29,23 @@ dotenv_1.default.config();
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
+const allowedOrigins = [
+    "https://thera-connectnew.vercel.app",
+    "http://localhost:3001",
+];
 // Global Middleware
-app.use((0, cors_1.default)());
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 // Basic request logger (path, method, status)
 app.use((req, res, next) => {

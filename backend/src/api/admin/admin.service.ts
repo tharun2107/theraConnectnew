@@ -1,5 +1,5 @@
 import { PrismaClient, TherapistStatus, type TherapistStatus as TherapistStatusType } from '@prisma/client';
-import { sendNotification } from '../../services/notification.service';
+import { sendNotification, therapistAccountApproved } from '../../services/notification.service';
 import prisma from '../../utils/prisma';
 
 export const getAllTherapists = async () => {
@@ -21,10 +21,10 @@ export const updateTherapistStatus = async (therapistId: string, status: Therapi
   });
 
   if (status === 'ACTIVE') {
-    await sendNotification({
+    await therapistAccountApproved({
       userId: updatedTherapist.userId,
-      type: 'THERAPIST_ACCOUNT_APPROVED',
       message: 'Congratulations! Your profile has been approved by the admin.',
+      sendAt: new Date(),
     });
   }
 

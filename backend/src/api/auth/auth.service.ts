@@ -116,9 +116,14 @@ export const login = async (input: LoginInput) => {
 
 export const loginWithGoogle = async (input: GoogleOAuthInput) => {
   const { idToken } = input;
+  console.log('[AUTH][GOOGLE] Config check:', { 
+    hasClientId: !!config.google.clientId, 
+    clientIdLength: config.google.clientId?.length || 0,
+    envVar: process.env.GOOGLE_CLIENT_ID ? 'set' : 'missing'
+  });
   if (!config.google.clientId) {
-    console.error('[AUTH][GOOGLE] Missing GOOGLE_CLIENT_ID')
-    throw new Error('Google OAuth not configured');
+    console.error('[AUTH][GOOGLE] Missing GOOGLE_CLIENT_ID - Check your .env file')
+    throw new Error('Google OAuth not configured - Missing GOOGLE_CLIENT_ID');
   }
   console.log('[AUTH][GOOGLE] Verifying ID token (len):', idToken?.length)
   const ticket = await googleClient.verifyIdToken({ idToken, audience: config.google.clientId });
