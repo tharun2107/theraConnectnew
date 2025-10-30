@@ -9,8 +9,7 @@ import {
   Plus, 
   UserCheck, 
   Play, 
-  Settings, 
-  DollarSign
+  Settings
 } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -104,10 +103,6 @@ const TherapistDashboard: React.FC = () => {
   const completedSessions = bookings.filter((booking: Booking) => 
     booking.status === 'COMPLETED'
   ).length
-  const totalEarnings = bookings
-    .filter((booking: Booking) => booking.status === 'COMPLETED')
-    .reduce((sum: number) => sum + (profile?.baseCostPerSession || 0), 0)
-
   const stats = [
     {
       title: 'Total Sessions',
@@ -132,14 +127,6 @@ const TherapistDashboard: React.FC = () => {
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/20',
       textColor: 'text-purple-600 dark:text-purple-400'
-    },
-    {
-      title: 'Total Earnings',
-      value: `$${totalEarnings}`,
-      icon: DollarSign,
-      color: 'from-orange-500 to-orange-600',
-      bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-      textColor: 'text-orange-600 dark:text-orange-400'
     }
   ]
 

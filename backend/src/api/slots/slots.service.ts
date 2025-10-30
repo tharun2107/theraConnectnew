@@ -37,6 +37,14 @@ export const generateAndGetAvailableSlots = async (therapistId: string, date: st
   const dayStart = new Date(`${date}T00:00:00.000Z`);
   const dayEnd = new Date(`${date}T23:59:59.999Z`);
 
+  // If therapist has a leave on this date, no slots should be shown
+  const hasLeave = await prisma.therapistLeave.findFirst({
+    where: { therapistId, date: dayStart },
+  });
+  if (hasLeave) {
+    return [] as any[];
+  }
+
   // 1. Check if slots already exist for this day
   const existingSlotsCount = await prisma.timeSlot.count({
     where: { therapistId, startTime: { gte: dayStart, lte: dayEnd } },
@@ -91,6 +99,13 @@ export const bookSlot = async (parentId: string, childId: string, timeSlotId: st
       where: { id: timeSlotId, isBooked: false },
       include: { therapist: { include: { user: true } } },
     });
+
+    // Step 1.5: Enforce booking window: within next 30 days
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    if (slot.startTime > thirtyDaysFromNow) {
+      throw new Error('Bookings are allowed only within the next 30 days.');
+    }
 
     // Step 2: Mark the slot as booked
     await tx.timeSlot.update({

@@ -11,7 +11,7 @@ import {
   Save, 
   X,
   Shield,
-  Key
+  
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
@@ -69,9 +69,7 @@ const ParentProfile: React.FC = () => {
     setEditedProfile({ name: '', phone: '' })
   }
 
-  const handleChangePassword = () => {
-    navigate('/change-password')
-  }
+  // Change password disabled per requirements
 
   if (profileLoading) {
     return <LoadingSpinner />
@@ -98,14 +96,7 @@ const ParentProfile: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <Button
-                onClick={handleChangePassword}
-                variant="outline"
-                className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
-              >
-                <Key className="h-4 w-4 mr-2" />
-                Change Password
-              </Button>
+              {/* Change Password button removed */}
               {!isEditing ? (
                 <Button
                   onClick={handleEdit}
@@ -262,14 +253,7 @@ const ParentProfile: React.FC = () => {
                     Change your account password
                   </p>
                 </div>
-                <Button
-                  onClick={handleChangePassword}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Key className="h-4 w-4 mr-2" />
-                  Change Password
-                </Button>
+                {/* Change Password shortcut removed */}
               </div>
 
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
