@@ -20,8 +20,8 @@ const ParentChildDetails: React.FC = () => {
   const pastSessions = childBookings.filter((b) => b.status === 'COMPLETED')
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Child Profile</h1>
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <h1 className="text-xl sm:text-2xl font-semibold">Child Profile</h1>
       {child ? (
         <div className="border p-4">
           <div className="font-medium">{child.name}</div>
@@ -35,7 +35,7 @@ const ParentChildDetails: React.FC = () => {
       )}
 
       <div>
-        <h2 className="text-xl font-semibold mb-3">Past Sessions</h2>
+        <h2 className="text-lg sm:text-xl font-semibold mb-3">Past Sessions</h2>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

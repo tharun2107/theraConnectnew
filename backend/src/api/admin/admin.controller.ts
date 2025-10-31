@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import * as adminService from './admin.service';
-import type { Request, Response } from 'express';
 
 export const getAllTherapistsHandler = async (req: Request, res: Response) => {
     try {

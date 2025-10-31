@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlatformSettings = exports.getPlatformSettings = exports.updateProfile = exports.getProfile = exports.getAllBookings = exports.getChildSessions = exports.getAllChildren = exports.getTherapistSessions = exports.updateTherapistStatus = exports.getAllTherapists = void 0;
+exports.rejectLeaveRequest = exports.approveLeaveRequest = exports.listLeaveRequests = exports.updatePlatformSettings = exports.getPlatformSettings = exports.updateProfile = exports.getProfile = exports.getAllBookings = exports.getChildSessions = exports.getAllChildren = exports.getTherapistSessions = exports.updateTherapistStatus = exports.getAllTherapists = void 0;
 const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
@@ -150,3 +150,70 @@ const updatePlatformSettings = (data) => __awaiter(void 0, void 0, void 0, funct
     return data;
 });
 exports.updatePlatformSettings = updatePlatformSettings;
+const listLeaveRequests = () => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma_1.default.therapistLeave.findMany({
+        where: {},
+        include: { therapist: { include: { user: true } } },
+        orderBy: { createdAt: 'desc' },
+    });
+});
+exports.listLeaveRequests = listLeaveRequests;
+const approveLeaveRequest = (leaveId) => __awaiter(void 0, void 0, void 0, function* () {
+    const leave = yield prisma_1.default.therapistLeave.findUnique({ where: { id: leaveId } });
+    if (!leave)
+        throw new Error('Leave not found');
+    if (leave.isApproved)
+        return leave;
+    const startOfDay = leave.date;
+    const endOfDay = new Date(new Date(startOfDay).setUTCHours(23, 59, 59, 999));
+    const affectedBookings = yield prisma_1.default.booking.findMany({
+        where: {
+            therapistId: leave.therapistId,
+            status: 'SCHEDULED',
+            timeSlot: { startTime: { gte: startOfDay, lte: endOfDay } },
+        },
+        include: { parent: { include: { user: true } }, timeSlot: true },
+    });
+    yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        yield tx.therapistLeave.update({ where: { id: leaveId }, data: { isApproved: true } });
+        yield tx.therapistProfile.update({ where: { id: leave.therapistId }, data: { leavesRemainingThisMonth: { decrement: 1 } } });
+        for (const booking of affectedBookings) {
+            yield tx.booking.update({ where: { id: booking.id }, data: { status: client_1.BookingStatus.CANCELLED_BY_THERAPIST } });
+            yield tx.timeSlot.update({ where: { id: booking.timeSlotId }, data: { isBooked: false } });
+        }
+    }));
+    for (const booking of affectedBookings) {
+        yield (0, notification_service_1.sendNotificationBookingCancelled)({
+            userId: booking.parent.userId,
+            message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
+            sendAt: new Date(),
+        });
+    }
+    // Acknowledge therapist
+    const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: leave.therapistId } });
+    if (therapist) {
+        yield (0, notification_service_1.sendNotification)({
+            userId: therapist.userId,
+            message: `Your leave request for ${startOfDay.toDateString()} has been approved.`,
+            sendAt: new Date(),
+        });
+    }
+    return { message: 'Leave approved' };
+});
+exports.approveLeaveRequest = approveLeaveRequest;
+const rejectLeaveRequest = (leaveId, reason) => __awaiter(void 0, void 0, void 0, function* () {
+    const leave = yield prisma_1.default.therapistLeave.findUnique({ where: { id: leaveId } });
+    if (!leave)
+        throw new Error('Leave not found');
+    yield prisma_1.default.therapistLeave.update({ where: { id: leaveId }, data: { isApproved: false, reason: reason || leave.reason } });
+    const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: leave.therapistId } });
+    if (therapist) {
+        yield (0, notification_service_1.sendNotification)({
+            userId: therapist.userId,
+            message: `Your leave request for ${leave.date.toDateString()} was rejected${reason ? `: ${reason}` : ''}.`,
+            sendAt: new Date(),
+        });
+    }
+    return { message: 'Leave rejected' };
+});
+exports.rejectLeaveRequest = rejectLeaveRequest;

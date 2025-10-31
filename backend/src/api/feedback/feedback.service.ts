@@ -213,7 +213,19 @@ export const getSessionDetails = async (bookingId: string) => {
     throw new Error('Booking not found')
   }
 
-  return booking
+  // Transform the response to ensure consistent field naming
+  // Map SessionFeedback to sessionFeedback for frontend compatibility
+  const transformedBooking = {
+    ...booking,
+    sessionFeedback: booking.SessionFeedback || null,
+    consentRequest: booking.ConsentRequest || null,
+  }
+
+  // Remove the capitalized versions to avoid confusion
+  delete (transformedBooking as any).SessionFeedback
+  delete (transformedBooking as any).ConsentRequest
+
+  return transformedBooking
 }
 
 const updateTherapistRating = async (therapistId: string) => {

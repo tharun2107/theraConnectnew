@@ -1,8 +1,6 @@
-import { PrismaClient, TherapistStatus, type TherapistStatus as TherapistStatusType } from '@prisma/client';
-import { sendNotification, therapistAccountApproved } from '../../services/notification.service';
+import { PrismaClient, TherapistStatus, type TherapistStatus as TherapistStatusType, BookingStatus } from '@prisma/client';
+import { sendNotification, therapistAccountApproved, sendNotificationBookingCancelled } from '../../services/notification.service';
 import prisma from '../../utils/prisma';
-import { BookingStatus } from '@prisma/client';
-import { sendNotification, sendNotificationBookingCancelled } from '../../services/notification.service';
 
 export const getAllTherapists = async () => {
   // Auto-activate legacy pending therapists since admin-created profiles shouldn't require approval

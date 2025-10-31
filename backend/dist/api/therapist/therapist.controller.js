@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMySlotsForDateHandler = exports.requestLeaveHandler = exports.createTimeSlotsHandler = exports.getMyProfileHandler = void 0;
+exports.setAvailableSlotTimesHandler = exports.checkHasActiveSlotsHandler = exports.getMySlotsForDateHandler = exports.requestLeaveHandler = exports.createTimeSlotsHandler = exports.getMyProfileHandler = void 0;
 const therapistService = __importStar(require("./therapist.service"));
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 const getTherapistId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -103,3 +103,28 @@ const getMySlotsForDateHandler = (req, res) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.getMySlotsForDateHandler = getMySlotsForDateHandler;
+const checkHasActiveSlotsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const therapistId = yield getTherapistId(req.user.userId);
+        const hasActive = yield therapistService.hasActiveSlots(therapistId);
+        res.status(200).json({ hasActiveSlots: hasActive });
+    }
+    catch (error) {
+        console.error('[checkHasActiveSlots][ERROR]', error);
+        res.status(400).json({ message: error.message });
+    }
+});
+exports.checkHasActiveSlotsHandler = checkHasActiveSlotsHandler;
+const setAvailableSlotTimesHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const therapistId = yield getTherapistId(req.user.userId);
+        const { slotTimes } = req.body;
+        const result = yield therapistService.setAvailableSlotTimes(therapistId, slotTimes);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        console.error('[setAvailableSlotTimes][ERROR]', error);
+        res.status(400).json({ message: error.message });
+    }
+});
+exports.setAvailableSlotTimesHandler = setAvailableSlotTimesHandler;

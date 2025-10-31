@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useQuery } from 'react-query'
-import { therapistAPI, slotsAPI } from '../lib/api'
+import { therapistAPI, bookingAPI } from '../lib/api'
 import BookSessionModal from '../components/BookSessionModal'
 import { Star, Briefcase, DollarSign, User, Stethoscope } from 'lucide-react'
 
@@ -8,7 +8,7 @@ const FindTherapists: React.FC = () => {
   const [query, setQuery] = useState('')
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0,10))
   const [timeFilter, setTimeFilter] = useState<string>('') // HH:MM optional
-  const [onlyWithAvailability, setOnlyWithAvailability] = useState<boolean>(false)
+  const [filterByAvailability, setFilterByAvailability] = useState<boolean>(false)
 
   const { data: therapists = [], isLoading } = useQuery(
     'therapistsList',
@@ -19,15 +19,16 @@ const FindTherapists: React.FC = () => {
   const [showBookModal, setShowBookModal] = useState(false)
   const [selectedTherapist, setSelectedTherapist] = useState<any | null>(null)
 
-  // Availability lookups (naive N calls; acceptable for small lists)
-  const { data: availabilityMap } = useQuery(
-    ['therapistAvailability', date, therapists?.length, onlyWithAvailability],
+  // Fetch availability for all therapists when filtering is enabled or time filter is set
+  const shouldFetchAvailability = filterByAvailability || !!timeFilter
+  const { data: availabilityMap, isLoading: isLoadingAvailability } = useQuery(
+    ['therapistAvailability', date, therapists?.length, filterByAvailability, timeFilter],
     async () => {
-      if (!onlyWithAvailability || !Array.isArray(therapists)) return {}
+      if (!shouldFetchAvailability || !Array.isArray(therapists)) return {}
       const entries = await Promise.all(
         therapists.map(async (t: any) => {
           try {
-            const res = await slotsAPI.getAvailableSlots(t.id, date)
+            const res = await bookingAPI.getAvailableSlots(t.id, date)
             return [t.id, res.data as any[]]
           } catch {
             return [t.id, []]
@@ -36,67 +37,168 @@ const FindTherapists: React.FC = () => {
       )
       return Object.fromEntries(entries)
     },
-    { enabled: onlyWithAvailability && therapists.length > 0 }
+    { enabled: shouldFetchAvailability && therapists.length > 0 }
   )
 
   const filtered = useMemo(() => {
     let list = therapists.filter((t: any) =>
       [t.name, t.specialization].join(' ').toLowerCase().includes(query.toLowerCase())
     )
-    if (onlyWithAvailability) {
+    
+    // Filter by availability and/or time slot
+    if (shouldFetchAvailability && availabilityMap) {
       list = list.filter((t: any) => {
         const slots = (availabilityMap as any)?.[t.id] || []
-        if (!timeFilter) return slots.length > 0
-        // Filter by approximate time match (same hour and minute)
-        const [hh, mm] = timeFilter.split(':').map((v) => parseInt(v || '0', 10))
-        return slots.some((s: any) => {
-          const d = new Date(s.startTime)
-          return d.getHours() === hh && d.getMinutes() === mm
-        })
+        
+        // If filterByAvailability is enabled, therapist must have available slots
+        if (filterByAvailability && slots.length === 0) {
+          return false
+        }
+        
+        // If time filter is set, check if any slot matches the time
+        if (timeFilter) {
+          // Parse the time filter (HH:MM format from time input)
+          const [filterHour, filterMinute] = timeFilter.split(':').map((v) => parseInt(v || '0', 10))
+          
+          // Check if any slot matches the time filter
+          // Slots are stored in UTC with literal hours/minutes
+          const hasMatchingSlot = slots.some((s: any) => {
+            const slotDate = new Date(s.startTime)
+            // Extract UTC hours/minutes (these represent the literal display time)
+            const slotUTCHours = slotDate.getUTCHours()
+            const slotUTCMinutes = slotDate.getUTCMinutes()
+            
+            // Match the time filter to the slot's UTC hours/minutes
+            return slotUTCHours === filterHour && slotUTCMinutes === filterMinute
+          })
+          
+          return hasMatchingSlot
+        }
+        
+        // If only filterByAvailability is enabled without time filter, just check if slots exist
+        return slots.length > 0
       })
     }
+    
     return list
-  }, [therapists, query, onlyWithAvailability, availabilityMap, timeFilter])
+  }, [therapists, query, filterByAvailability, availabilityMap, timeFilter, shouldFetchAvailability])
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Find Therapists</h1>
-      <div className="grid gap-3 md:grid-cols-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name, specialization..."
-          className="input w-full"
-        />
-        <div className="flex items-center gap-2">
+    <div className="p-4 sm:p-6 space-y-4">
+      <h1 className="text-xl sm:text-2xl font-semibold">Find Therapists</h1>
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div>
           <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="input w-full"
-          />
-          <input
-            type="time"
-            value={timeFilter}
-            onChange={(e) => setTimeFilter(e.target.value)}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, specialization..."
             className="input w-full"
           />
         </div>
-        <label className="inline-flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={onlyWithAvailability}
-            onChange={(e) => setOnlyWithAvailability(e.target.checked)}
-          />
-          <span>Only show with available slots</span>
-        </label>
+
+        {/* Filters Row */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 items-end">
+          {/* Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Select Date
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="input w-full"
+            />
+          </div>
+
+          {/* Time Slot Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Filter by Time Slot
+            </label>
+            <input
+              type="time"
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+              className="input w-full"
+              placeholder="Select time (optional)"
+            />
+            {timeFilter && (
+              <button
+                onClick={() => setTimeFilter('')}
+                className="text-xs text-blue-600 dark:text-blue-400 mt-1 hover:underline"
+              >
+                Clear time filter
+              </button>
+            )}
+          </div>
+
+          {/* Availability Filter */}
+          <div className="flex items-center">
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filterByAvailability}
+                onChange={(e) => setFilterByAvailability(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Only show with available slots
+              </span>
+            </label>
+          </div>
+
+          {/* Clear All Filters */}
+          {(query || timeFilter || filterByAvailability) && (
+            <div>
+              <button
+                onClick={() => {
+                  setQuery('')
+                  setTimeFilter('')
+                  setFilterByAvailability(false)
+                }}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Filter Status */}
+        {(timeFilter || filterByAvailability) && (
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            {isLoadingAvailability ? (
+              <span>Loading availability...</span>
+            ) : (
+              <span>
+                Showing {filtered.length} therapist{filtered.length !== 1 ? 's' : ''} 
+                {timeFilter && (() => {
+                  // Convert 24-hour format (HH:MM) to 12-hour format (AM/PM)
+                  const [hours, minutes] = timeFilter.split(':').map(Number)
+                  const displayDate = new Date(2000, 0, 1, hours, minutes)
+                  const time12h = displayDate.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  })
+                  return ` with slots at ${time12h}`
+                })()}
+                {filterByAvailability && ' with available slots'}
+                {date && ` on ${new Date(date).toLocaleDateString()}`}
+              </span>
+            )}
+          </div>
+        )}
       </div>
       {isLoading ? (
         <div className="text-gray-600 dark:text-gray-300">Loading therapists...</div>
       ) : filtered.length === 0 ? (
         <div className="text-gray-600 dark:text-gray-300">No therapists found.</div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filtered.map((t: any) => (
             <div
               key={t.id}
@@ -147,10 +249,22 @@ const FindTherapists: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Available Slots Count (if filtering by availability) */}
+                {shouldFetchAvailability && availabilityMap && (
+                  <div className="pb-4 border-b border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Available slots on {new Date(date).toLocaleDateString()}:</span>
+                      <span className="font-medium text-blue-600 dark:text-blue-400">
+                        {(availabilityMap as any)?.[t.id]?.length || 0} slot{((availabilityMap as any)?.[t.id]?.length || 0) !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Actions */}
                 <button
                   onClick={() => { setSelectedTherapist(t); setShowBookModal(true); }}
-                  className="w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full items-center justify-center rounded-xl bg-black hover:bg-[#1A1A1A] px-4 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 >
                   Book Now
                 </button>

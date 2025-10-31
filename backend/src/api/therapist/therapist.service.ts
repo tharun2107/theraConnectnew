@@ -144,3 +144,40 @@ export const getMySlotsForDate = async (therapistId: string, input: GetSlotsInpu
     orderBy: { startTime: 'asc' },
   });
 };
+
+export const hasActiveSlots = async (therapistId: string) => {
+  const therapist = await prisma.therapistProfile.findUnique({
+    where: { id: therapistId },
+    select: { availableSlotTimes: true },
+  });
+  return therapist && Array.isArray(therapist.availableSlotTimes) && therapist.availableSlotTimes.length > 0;
+};
+
+export const setAvailableSlotTimes = async (therapistId: string, slotTimes: string[]) => {
+  const therapist = await prisma.therapistProfile.findUnique({ where: { id: therapistId } });
+  if (!therapist) throw new Error('Therapist not found');
+  
+  const maxSlotsPerDay = therapist.maxSlotsPerDay ?? 8;
+  if (slotTimes.length > maxSlotsPerDay) {
+    throw new Error(`You can set at most ${maxSlotsPerDay} available time slots.`);
+  }
+  
+  if (slotTimes.length === 0) {
+    throw new Error('You must select at least one time slot.');
+  }
+  
+  // Validate time format (HH:MM)
+  const timeRegex = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+  for (const time of slotTimes) {
+    if (!timeRegex.test(time)) {
+      throw new Error(`Invalid time format: ${time}. Expected format: HH:MM`);
+    }
+  }
+  
+  await prisma.therapistProfile.update({
+    where: { id: therapistId },
+    data: { availableSlotTimes: slotTimes },
+  });
+  
+  return { message: 'Available time slots updated successfully' };
+};
