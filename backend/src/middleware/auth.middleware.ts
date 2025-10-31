@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import { PrismaClient, type Role } from '@prisma/client';
+import { type Role } from '@prisma/client';
 import { verifyJwt, type JwtPayload } from '../utils/jwt';
-
-const prisma = new PrismaClient();
+import prisma from '../utils/prisma';
 
 declare global {
   namespace Express {

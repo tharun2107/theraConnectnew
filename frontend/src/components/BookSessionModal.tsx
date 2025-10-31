@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useQuery, useMutation } from 'react-query'
+import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { parentAPI, bookingAPI } from '../lib/api'
 import { X, Calendar, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -38,6 +38,7 @@ interface BookingFormData {
 }
 
 const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess, therapistId }) => {
+  const queryClient = useQueryClient()
   const [selectedTherapist, setSelectedTherapist] = useState<string>(therapistId || '')
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([])
@@ -48,7 +49,13 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm<BookingFormData>()
+    reset,
+    setValue,
+  } = useForm<BookingFormData>({
+    defaultValues: {
+      therapistId: therapistId || '',
+    },
+  })
   const selectedTimeSlotId = watch('timeSlotId')
 
   const { data: children = [] } = useQuery(
@@ -76,7 +83,18 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
     
     setLoadingSlots(true)
     try {
-      const ymd = date.slice(0, 10)
+      // Ensure date is in YYYY-MM-DD format
+      let ymd = date
+      if (date.length > 10) {
+        ymd = date.slice(0, 10)
+      }
+      
+      // Validate date format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+      if (!dateRegex.test(ymd)) {
+        throw new Error(`Invalid date format: ${ymd}. Expected YYYY-MM-DD`)
+      }
+      
       console.log('[BookSessionModal] fetching slots', { therapistId, date: ymd })
       const response = await bookingAPI.getAvailableSlots(therapistId, ymd)
       console.log('[BookSessionModal] slots response', response.data)
@@ -93,6 +111,7 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
 
   const handleTherapistChange = (therapistId: string) => {
     setSelectedTherapist(therapistId)
+    setValue('therapistId', therapistId, { shouldValidate: true })
     setAvailableSlots([])
     if (selectedDate) {
       fetchAvailableSlots(therapistId, selectedDate)
@@ -100,24 +119,60 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
   }
 
   const handleDateChange = (date: string) => {
+    if (!date) {
+      setSelectedDate('')
+      setValue('date', '')
+      setAvailableSlots([])
+      return
+    }
+    
     // Normalize to strict YYYY-MM-DD without timezone conversion
-    let normalized = date
+    let normalized = date.trim()
+    
+    // If date is longer than 10 characters, take first 10
+    if (normalized.length > 10) {
+      normalized = normalized.slice(0, 10)
+    }
+    
+    // Set the date in both state and react-hook-form
+    setSelectedDate(normalized)
+    setValue('date', normalized, { shouldValidate: true })
+    
+    // Just set the date - let the browser's date input handle validation
+    // Only validate when we have a complete, valid-looking date
     const isoYMD = /^\d{4}-\d{2}-\d{2}$/
-    if (!isoYMD.test(normalized)) {
-      if (date.includes('/')) {
-        // Try dd/mm/yyyy -> yyyy-mm-dd
-        const [a, b, c] = date.split('/')
-        if (a && b && c) {
-          // If first is >12 treat as DD/MM/YYYY
-          if (parseInt(a, 10) > 12) normalized = `${c}-${b.padStart(2,'0')}-${a.padStart(2,'0')}`
-          else normalized = `${c}-${a.padStart(2,'0')}-${b.padStart(2,'0')}`
+    
+    if (isoYMD.test(normalized)) {
+      // We have a complete date format, validate it
+      const parts = normalized.split('-')
+      const year = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10)
+      const day = parseInt(parts[2], 10)
+      
+      // Only validate if all parts are valid numbers
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+        // Validate year range only for complete 4-digit years
+        if (year >= 2000 && year <= 2100) {
+          // Validate the date is valid (checks for invalid dates like Feb 30)
+          const testDate = new Date(`${normalized}T00:00:00.000Z`)
+          if (!isNaN(testDate.getTime())) {
+            // Double-check that the date parses correctly (using local time)
+            const parsedYear = testDate.getFullYear()
+            const parsedMonth = testDate.getMonth() + 1
+            const parsedDay = testDate.getDate()
+            
+            // Verify the date didn't get adjusted
+            if (parsedYear === year && parsedMonth === month && parsedDay === day) {
+              // Date is valid, fetch slots
+              console.log('[BookSessionModal] Setting date to:', normalized)
+              if (selectedTherapist) {
+                fetchAvailableSlots(selectedTherapist, normalized)
+              }
+              return
+            }
+          }
         }
       }
-    }
-    const ymd = normalized.slice(0, 10)
-    setSelectedDate(ymd)
-    if (selectedTherapist) {
-      fetchAvailableSlots(selectedTherapist, ymd)
     }
   }
 
@@ -126,20 +181,57 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
       bookingAPI.createBooking({ timeSlotId, childId }),
     {
       onSuccess: () => {
+        console.log('[BookSessionModal] Booking successful!')
         toast.success('Session booked successfully!')
+        
+        // Invalidate and refetch bookings for both parent and therapist
+        queryClient.invalidateQueries('parentBookings')
+        queryClient.invalidateQueries('therapistBookings')
+        queryClient.invalidateQueries('childBookings')
+        
+        // Close modal first
+        onClose()
+        // Reset form state after a brief delay to ensure modal closes
+        setTimeout(() => {
+          setSelectedDate('')
+          setSelectedTherapist(therapistId || '')
+          setAvailableSlots([])
+          reset({
+            childId: '',
+            therapistId: therapistId || '',
+            date: '',
+            timeSlotId: '',
+          })
+        }, 100)
+        // Notify parent component to refresh data
         onSuccess()
       },
       onError: (error: any) => {
-        toast.error(error.response?.data?.message || 'Failed to book session')
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to book session'
+        console.error('[BookSessionModal] Booking error:', error, error.response?.data)
+        toast.error(errorMessage)
       },
     }
   )
 
   const onSubmit = (data: BookingFormData) => {
+    console.log('[BookSessionModal] Submitting booking:', { 
+      timeSlotId: data.timeSlotId, 
+      childId: data.childId,
+      therapistId: data.therapistId,
+      date: data.date
+    })
+    
     if (!data.timeSlotId) {
       toast.error('Please select a time slot before booking')
       return
     }
+    
+    if (!data.childId) {
+      toast.error('Please select a child before booking')
+      return
+    }
+    
     bookSlotMutation.mutate({
       timeSlotId: data.timeSlotId,
       childId: data.childId,
@@ -149,24 +241,24 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
   const selectedTherapistData = therapists.find((t: Therapist) => t.id === selectedTherapist)
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <Calendar className="h-5 w-5 text-primary-600" />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+            <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg flex-shrink-0">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">Book Therapy Session</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate">Book Therapy Session</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0 ml-2"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Select Child */}
           <div>
             <label htmlFor="childId" className="block text-sm font-medium text-gray-700 mb-1">
@@ -221,10 +313,23 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
               Select Date *
             </label>
             <input
-              {...register('date', { required: 'Please select a date' })}
               type="date"
               min={new Date().toISOString().split('T')[0]}
-              onChange={(e) => handleDateChange(e.target.value)}
+              value={selectedDate}
+              {...register('date', { 
+                required: 'Please select a date',
+              })}
+              onChange={(e) => {
+                const value = e.target.value
+                console.log('[BookSessionModal] Date input changed:', value)
+                if (value) {
+                  handleDateChange(value)
+                } else {
+                  setSelectedDate('')
+                  setValue('date', '')
+                  setAvailableSlots([])
+                }
+              }}
               className="input"
             />
             {errors.date && (
@@ -250,27 +355,41 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
-                  {availableSlots.map((slot) => (
-                    <label key={slot.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <input
-                        {...register('timeSlotId', { required: 'Please select a time slot' })}
-                        type="radio"
-                        value={slot.id}
-                        className="text-primary-600"
-                      />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">
-                          {new Date(slot.startTime).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
+                  {availableSlots.map((slot) => {
+                    // Extract UTC time and display as local time
+                    // Slots are stored in UTC with literal hours/minutes (e.g., 12:00 UTC means display as 12:00 locally)
+                    const slotDate = new Date(slot.startTime)
+                    const utcHours = slotDate.getUTCHours()
+                    const utcMinutes = slotDate.getUTCMinutes()
+                    
+                    // Create a date with UTC hours/minutes to display in local time
+                    // This ensures 12:00 UTC displays as 12:00 in any timezone
+                    const displayDate = new Date(2000, 0, 1, utcHours, utcMinutes)
+                    const displayTime = displayDate.toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: true
+                    })
+                    
+                    return (
+                      <label key={slot.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                          {...register('timeSlotId', { required: 'Please select a time slot' })}
+                          type="radio"
+                          value={slot.id}
+                          className="text-primary-600"
+                        />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">
+                            {displayTime}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Duration: 1 hour
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          Duration: {Math.round((new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) / 60000)} min
-                        </div>
-                      </div>
-                    </label>
-                  ))}
+                      </label>
+                    )
+                  })}
                 </div>
               )}
               {errors.timeSlotId && (
@@ -314,3 +433,4 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
 }
 
 export default BookSessionModal
+

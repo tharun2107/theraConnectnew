@@ -43,13 +43,13 @@ export const SessionCard: React.FC<SessionCardProps> = ({
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'scheduled':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-accent-green/20 text-[#1A1A1A] border-accent-green/30'
       case 'completed':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-[#F9F9F9] text-[#1A1A1A] border-gray-border'
       case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-[#F9F9F9] text-[#1A1A1A] border-gray-border'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-[#F9F9F9] text-[#1A1A1A] border-gray-border'
     }
   }
 
@@ -63,28 +63,28 @@ export const SessionCard: React.FC<SessionCardProps> = ({
         transition: { duration: 0.2 }
       }}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl",
-        isToday && "ring-2 ring-blue-500 ring-opacity-50",
+        "group relative overflow-hidden rounded-2xl border border-gray-border bg-white p-4 sm:p-6 shadow-gentle transition-all duration-300 hover:shadow-calm",
+        isToday && "ring-2 ring-gray-border ring-opacity-50",
         className
       )}
     >
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#F9F9F9] via-white to-[#F9F9F9] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600">
+            <Avatar className="h-12 w-12 bg-black">
               <AvatarFallback className="text-white font-bold">
                 {childName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-gray-900 text-lg">{childName}</h3>
-              <p className="text-sm text-gray-600">with {therapistName}</p>
+              <h3 className="font-semibold text-[#1A1A1A] text-lg">{childName}</h3>
+              <p className="text-sm text-[#4D4D4D]">with {therapistName}</p>
               {specialization && (
-                <p className="text-xs text-blue-600 font-medium">{specialization}</p>
+                <p className="text-xs text-[#1A1A1A] font-medium">{specialization}</p>
               )}
             </div>
           </div>
@@ -96,12 +96,12 @@ export const SessionCard: React.FC<SessionCardProps> = ({
 
         {/* Session Details */}
         <div className="space-y-3 mb-4">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-[#4D4D4D]">
             <Calendar className="h-4 w-4" />
             <span>{startDate.toLocaleDateString()}</span>
           </div>
           
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-[#4D4D4D]">
             <Clock className="h-4 w-4" />
             <span>
               {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
@@ -109,7 +109,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
             </span>
           </div>
           
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-[#4D4D4D]">
             <User className="h-4 w-4" />
             <span>Parent: {parentName}</span>
           </div>
@@ -122,7 +122,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
               <Button
                 onClick={onStart}
                 size="sm"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-6"
+                className="bg-black hover:bg-[#1A1A1A] text-white rounded-full px-6"
               >
                 <Play className="h-4 w-4 mr-2" />
                 Start Session
@@ -131,7 +131,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
               <Button
                 onClick={onJoin}
                 size="sm"
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-full px-6"
+                className="bg-black hover:bg-[#1A1A1A] text-white rounded-full px-6"
               >
                 <Video className="h-4 w-4 mr-2" />
                 Join Session
@@ -142,7 +142,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
       </div>
 
       {/* Hover effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#F9F9F9]/50 to-[#F9F9F9]/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </motion.div>
   )
 }

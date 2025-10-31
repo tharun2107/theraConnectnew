@@ -51,3 +51,26 @@ export const getMySlotsForDateHandler = async (req: Request, res: Response) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+export const checkHasActiveSlotsHandler = async (req: Request, res: Response) => {
+  try {
+    const therapistId = await getTherapistId(req.user!.userId);
+    const hasActive = await therapistService.hasActiveSlots(therapistId);
+    res.status(200).json({ hasActiveSlots: hasActive });
+  } catch (error: any) {
+    console.error('[checkHasActiveSlots][ERROR]', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const setAvailableSlotTimesHandler = async (req: Request, res: Response) => {
+  try {
+    const therapistId = await getTherapistId(req.user!.userId);
+    const { slotTimes } = req.body;
+    const result = await therapistService.setAvailableSlotTimes(therapistId, slotTimes);
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.error('[setAvailableSlotTimes][ERROR]', error);
+    res.status(400).json({ message: error.message });
+  }
+};

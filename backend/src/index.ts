@@ -1,7 +1,6 @@
 import express from 'express';
 import cors, { CorsOptions } from "cors";
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
 
 // Import all routes
 import authRoutes from './api/auth/auth.routes.js';
@@ -11,10 +10,10 @@ import therapistRoutes from './api/therapist/therapist.routes.js';
 import bookingRoutes from './api/booking/booking.routes.js';
 import slotRoutes from './api/slots/slots.routes.js';
 import feedbackRoutes from './api/feedback/feedback.routes.js';
+import prisma from './utils/prisma.js';
+
 // Load environment variables
 dotenv.config();
-
-const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const allowedOrigins: string[] = [
@@ -66,13 +65,28 @@ app.get('/api/v1/health', (_req, res) => {
 
 const startServer = async () => {
   try {
-    await prisma.$connect();
-    console.log('Connected to database');
+    // Connect to database with retry logic
+    let retries = 5;
+    while (retries > 0) {
+      try {
+        await prisma.$connect();
+        console.log('✓ Connected to database');
+        break;
+      } catch (error: any) {
+        retries--;
+        if (retries === 0) {
+          throw error;
+        }
+        console.warn(`Database connection failed, retrying... (${5 - retries}/5)`);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+      }
+    }
+    
     app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+      console.log(`✓ Server is running on http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('Failed to connect to the database', error);
+    console.error('✗ Failed to start server:', error);
     process.exit(1);
   }
 };

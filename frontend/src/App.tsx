@@ -23,7 +23,6 @@ import AdminSettings from './pages/AdminSettings'
 import VideoCallPage from './pages/VideoCallPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import ErrorBoundary from './components/ErrorBoundary'
-import ChangePassword from './pages/ChangePassword'
 import ParentBookings from './pages/ParentBookings'
 import ParentAnalytics from './pages/ParentAnalytics'
 import ParentProfile from './pages/ParentProfile'
@@ -46,7 +45,6 @@ function AppRoutes() {
         <Route path="/old-landing" element={<LandingPage />} />
         <Route path="/login" element={<UnifiedLogin />} />
         {/* Manual registration disabled; OAuth only */}
-        <Route path="/change-password" element={<ChangePassword />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     )

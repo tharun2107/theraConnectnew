@@ -54,28 +54,123 @@ export const markSessionCompleted = async (bookingId: string) => {
 }
 
 export const getAvailableSlots = async (therapistId: string, date: string) => {
+    const therapist = await prisma.therapistProfile.findUnique({
+        where: { id: therapistId, status: TherapistStatus.ACTIVE },
+        select: { availableSlotTimes: true, slotDurationInMinutes: true },
+    });
+    
+    if (!therapist) {
+        throw new Error('Therapist not found or not active');
+    }
+    
+    if (!therapist.availableSlotTimes || therapist.availableSlotTimes.length === 0) {
+        return [];
+    }
+    
+    // Validate and normalize date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+        throw new Error(`Invalid date format: ${date}. Expected format: YYYY-MM-DD`);
+    }
+    
+    // Validate that the date is valid
+    const testDate = new Date(`${date}T00:00:00.000Z`);
+    if (isNaN(testDate.getTime())) {
+        throw new Error(`Invalid date: ${date}`);
+    }
+    
+    // Ensure year is reasonable (2000-2099)
+    const year = parseInt(date.substring(0, 4), 10);
+    if (year < 2000 || year > 2099) {
+        throw new Error(`Invalid year: ${year}. Year must be between 2000 and 2099`);
+    }
+    
     const startOfDay = new Date(`${date}T00:00:00.000Z`);
     const endOfDay = new Date(`${date}T23:59:59.999Z`);
-    console.log('[booking.service.getAvailableSlots] window', { startOfDay: startOfDay.toISOString(), endOfDay: endOfDay.toISOString(), therapistId });
+    
+    // Check if therapist has leave on this date
+    const hasLeave = await prisma.therapistLeave.findFirst({
+        where: { therapistId, date: startOfDay },
+    });
+    if (hasLeave) {
+        return [];
+    }
+    
+    const slotDurationInMinutes = 60; // Fixed to 1 hour per session
+    
+    // Delete any existing slots for this date that don't match availableSlotTimes
+    // This ensures we don't have old slots from previous systems
+    await prisma.timeSlot.deleteMany({
+        where: {
+            therapistId,
+            startTime: { gte: startOfDay, lte: endOfDay },
+            isBooked: false, // Only delete unbooked slots
+        },
+    });
+    
+    // Generate slots for the requested date from availableSlotTimes
+    // Treat availableSlotTimes as literal hours/minutes to display (not tied to server timezone)
+    // Store as UTC to ensure consistent display across all clients
+    const slotsToCreate = [];
+    for (const timeStr of therapist.availableSlotTimes) {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        // Parse the date string to get year, month, day
+        const dateParts = date.split('-');
+        const year = parseInt(dateParts[0], 10);
+        const month = parseInt(dateParts[1], 10) - 1; // Month is 0-indexed
+        const day = parseInt(dateParts[2], 10);
+        
+        // Create date in UTC with the exact hours/minutes from availableSlotTimes
+        // This ensures the stored time represents the literal time (e.g., 12:00 means 12:00)
+        const slotStart = new Date(Date.UTC(year, month, day, hours, minutes, 0, 0));
+        const slotEnd = new Date(slotStart.getTime() + slotDurationInMinutes * 60000);
+        
+        slotsToCreate.push({
+            therapistId,
+            startTime: slotStart,
+            endTime: slotEnd,
+            isActive: true,
+            isBooked: false,
+        });
+    }
+    
+    if (slotsToCreate.length > 0) {
+        await prisma.timeSlot.createMany({ data: slotsToCreate });
+    }
+    
+    // Return available slots for the date (only those matching availableSlotTimes)
     const slots = await prisma.timeSlot.findMany({
         where: {
             therapistId,
             isBooked: false,
             isActive: true,
             startTime: { gte: startOfDay, lte: endOfDay },
-            therapist: { status: TherapistStatus.ACTIVE },
         },
-        // where: {
-        //     therapistId,
-        //     isBooked: false,
-        //     ...( { isActive: true } as any ),
-        //     startTime: { gte: startOfDay, lte: endOfDay },
-        //     therapist: { status: TherapistStatus.ACTIVE },
-        //   },
         orderBy: { startTime: 'asc' },
     });
-    console.log('[booking.service.getAvailableSlots] found', slots.length);
-    return slots;
+    
+    // Filter to ensure only slots from availableSlotTimes are returned
+    // Compare using UTC hours/minutes since slots are stored in UTC
+    const validSlotTimes = new Set(therapist.availableSlotTimes);
+    const filteredSlots = slots.filter((slot: any) => {
+        const slotDate = new Date(slot.startTime);
+        const slotHours = slotDate.getUTCHours();
+        const slotMinutes = slotDate.getUTCMinutes();
+        const slotTimeStr = `${slotHours.toString().padStart(2, '0')}:${slotMinutes.toString().padStart(2, '0')}`;
+        return validSlotTimes.has(slotTimeStr);
+    });
+    
+    console.log('[booking.service.getAvailableSlots] therapist availableSlotTimes:', therapist.availableSlotTimes);
+    console.log('[booking.service.getAvailableSlots] created', slotsToCreate.length, 'new slots');
+    console.log('[booking.service.getAvailableSlots] found', filteredSlots.length, 'valid slots out of', slots.length, 'total');
+    filteredSlots.forEach((slot: any) => {
+        const slotDate = new Date(slot.startTime);
+        const slotHours = slotDate.getUTCHours();
+        const slotMinutes = slotDate.getUTCMinutes();
+        const slotTimeStr = `${slotHours.toString().padStart(2, '0')}:${slotMinutes.toString().padStart(2, '0')}`;
+        console.log('[booking.service.getAvailableSlots] slot:', slotTimeStr, 'startTime:', slot.startTime.toISOString(), 'local:', slotDate.toLocaleString());
+    });
+    return filteredSlots;
 };
 
 export const createBooking = async (parentId: string, input: CreateBookingInput) => {

@@ -12,8 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMySlotsForDate = exports.requestLeave = exports.createTimeSlots = exports.getTherapistProfile = void 0;
-const client_1 = require("@prisma/client");
+exports.setAvailableSlotTimes = exports.hasActiveSlots = exports.getMySlotsForDate = exports.requestLeave = exports.createTimeSlots = exports.getTherapistProfile = void 0;
 const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 const getTherapistProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -21,6 +20,7 @@ const getTherapistProfile = (userId) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.getTherapistProfile = getTherapistProfile;
 const createTimeSlots = (therapistId, input) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { date, slots, generate, activateSlotIds } = input;
     console.log('[service.createTimeSlots] input=', { date, hasSlots: Array.isArray(slots) && slots.length, generate, activateCount: Array.isArray(activateSlotIds) ? activateSlotIds.length : 0 });
     const dayStart = new Date(`${date}T00:00:00.000Z`);
@@ -57,10 +57,12 @@ const createTimeSlots = (therapistId, input) => __awaiter(void 0, void 0, void 0
         yield prisma_1.default.timeSlot.createMany({ data: toCreate });
         console.log('[service.createTimeSlots] generated=', toCreate.length);
     }
-    // Activation step: mark up to 10 slots active
+    // Activation step: mark up to therapist.maxSlotsPerDay (default 8) slots active
     if (Array.isArray(activateSlotIds) && activateSlotIds.length > 0) {
-        if (activateSlotIds.length > 10) {
-            throw new Error('You can activate at most 10 slots for a day.');
+        const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: therapistId } });
+        const maxSlotsPerDay = (_a = therapist === null || therapist === void 0 ? void 0 : therapist.maxSlotsPerDay) !== null && _a !== void 0 ? _a : 8;
+        if (activateSlotIds.length > maxSlotsPerDay) {
+            throw new Error(`You can activate at most ${maxSlotsPerDay} slots for a day.`);
         }
         // Verify all belong to therapist and date
         const slotsToActivate = yield prisma_1.default.timeSlot.findMany({
@@ -101,38 +103,31 @@ const createTimeSlots = (therapistId, input) => __awaiter(void 0, void 0, void 0
 });
 exports.createTimeSlots = createTimeSlots;
 const requestLeave = (therapistId, input) => __awaiter(void 0, void 0, void 0, function* () {
-    const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: therapistId } });
+    const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: therapistId }, include: { user: true } });
     if (!therapist)
         throw new Error('Therapist not found.');
     if (therapist.leavesRemainingThisMonth <= 0)
         throw new Error('No leaves remaining.');
     const leaveDate = new Date(input.date);
     const startOfDay = new Date(leaveDate.setUTCHours(0, 0, 0, 0));
-    const endOfDay = new Date(leaveDate.setUTCHours(23, 59, 59, 999));
-    const affectedBookings = yield prisma_1.default.booking.findMany({
-        where: {
-            therapistId,
-            status: 'SCHEDULED',
-            timeSlot: { startTime: { gte: startOfDay, lte: endOfDay } },
-        },
-        include: { parent: { include: { user: true } }, timeSlot: true },
-    });
+    // Create a pending leave request; admin will approve/reject later
     yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        yield tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason } });
-        yield tx.therapistProfile.update({ where: { id: therapistId }, data: { leavesRemainingThisMonth: { decrement: 1 } } });
-        for (const booking of affectedBookings) {
-            yield tx.booking.update({ where: { id: booking.id }, data: { status: client_1.BookingStatus.CANCELLED_BY_THERAPIST } });
-            yield tx.timeSlot.update({ where: { id: booking.timeSlotId }, data: { isBooked: false } });
-        }
+        yield tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason, isApproved: false } });
     }));
-    for (const booking of affectedBookings) {
-        yield (0, notification_service_1.sendNotificationBookingCancelled)({
-            userId: booking.parent.userId,
-            message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
-            sendAt: new Date()
-        });
-    }
-    return { message: 'Leave approved and affected bookings have been cancelled.' };
+    // Notify all admins via notification/email
+    const admins = yield prisma_1.default.user.findMany({ where: { role: 'ADMIN' } });
+    yield Promise.all(admins.map((admin) => (0, notification_service_1.sendNotification)({
+        userId: admin.id,
+        message: `Leave request pending approval: ${therapist.name} on ${startOfDay.toDateString()} (${input.type}).`,
+        sendAt: new Date()
+    })));
+    // Acknowledge therapist
+    yield (0, notification_service_1.sendNotification)({
+        userId: therapist.userId,
+        message: `Your leave request for ${startOfDay.toDateString()} has been submitted for admin approval.`,
+        sendAt: new Date()
+    });
+    return { message: 'Leave request submitted for approval.' };
 });
 exports.requestLeave = requestLeave;
 const getMySlotsForDate = (therapistId, input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -150,3 +145,37 @@ const getMySlotsForDate = (therapistId, input) => __awaiter(void 0, void 0, void
     });
 });
 exports.getMySlotsForDate = getMySlotsForDate;
+const hasActiveSlots = (therapistId) => __awaiter(void 0, void 0, void 0, function* () {
+    const therapist = yield prisma_1.default.therapistProfile.findUnique({
+        where: { id: therapistId },
+        select: { availableSlotTimes: true },
+    });
+    return therapist && Array.isArray(therapist.availableSlotTimes) && therapist.availableSlotTimes.length > 0;
+});
+exports.hasActiveSlots = hasActiveSlots;
+const setAvailableSlotTimes = (therapistId, slotTimes) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: therapistId } });
+    if (!therapist)
+        throw new Error('Therapist not found');
+    const maxSlotsPerDay = (_a = therapist.maxSlotsPerDay) !== null && _a !== void 0 ? _a : 8;
+    if (slotTimes.length > maxSlotsPerDay) {
+        throw new Error(`You can set at most ${maxSlotsPerDay} available time slots.`);
+    }
+    if (slotTimes.length === 0) {
+        throw new Error('You must select at least one time slot.');
+    }
+    // Validate time format (HH:MM)
+    const timeRegex = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+    for (const time of slotTimes) {
+        if (!timeRegex.test(time)) {
+            throw new Error(`Invalid time format: ${time}. Expected format: HH:MM`);
+        }
+    }
+    yield prisma_1.default.therapistProfile.update({
+        where: { id: therapistId },
+        data: { availableSlotTimes: slotTimes },
+    });
+    return { message: 'Available time slots updated successfully' };
+});
+exports.setAvailableSlotTimes = setAvailableSlotTimes;

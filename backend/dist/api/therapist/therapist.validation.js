@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.publicSlotsSchema = exports.getSlotsForDateSchema = exports.requestLeaveSchema = exports.createTimeSlotsSchema = void 0;
+exports.setAvailableSlotTimesSchema = exports.publicSlotsSchema = exports.getSlotsForDateSchema = exports.requestLeaveSchema = exports.createTimeSlotsSchema = void 0;
 const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
 const dateYMD = zod_1.z.string()
@@ -43,4 +43,9 @@ exports.getSlotsForDateSchema = zod_1.z.object({
 exports.publicSlotsSchema = zod_1.z.object({
     params: zod_1.z.object({ therapistId: zod_1.z.string().cuid() }),
     query: zod_1.z.object({ date: zod_1.z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+});
+exports.setAvailableSlotTimesSchema = zod_1.z.object({
+    body: zod_1.z.object({
+        slotTimes: zod_1.z.array(zod_1.z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)).min(1).max(8),
+    }),
 });

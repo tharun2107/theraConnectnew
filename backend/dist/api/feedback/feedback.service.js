@@ -202,7 +202,13 @@ const getSessionDetails = (bookingId) => __awaiter(void 0, void 0, void 0, funct
     if (!booking) {
         throw new Error('Booking not found');
     }
-    return booking;
+    // Transform the response to ensure consistent field naming
+    // Map SessionFeedback to sessionFeedback for frontend compatibility
+    const transformedBooking = Object.assign(Object.assign({}, booking), { sessionFeedback: booking.SessionFeedback || null, consentRequest: booking.ConsentRequest || null });
+    // Remove the capitalized versions to avoid confusion
+    delete transformedBooking.SessionFeedback;
+    delete transformedBooking.ConsentRequest;
+    return transformedBooking;
 });
 exports.getSessionDetails = getSessionDetails;
 const updateTherapistRating = (therapistId) => __awaiter(void 0, void 0, void 0, function* () {

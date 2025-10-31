@@ -104,23 +104,23 @@ const AdminChildrenView: React.FC = () => {
 
   if (selectedChild) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 flex-1 min-w-0">
             <Button
               variant="ghost"
               onClick={handleBackToChildren}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 w-full sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Children</span>
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
                 {selectedChild.name}'s Sessions
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
                 View all sessions and progress for this child
               </p>
             </div>
@@ -129,8 +129,8 @@ const AdminChildrenView: React.FC = () => {
 
         {/* Child Info Card */}
         <Card className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-700">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
               <Avatar className="h-16 w-16">
                 <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white text-xl font-semibold">
                   {selectedChild.name.charAt(0).toUpperCase()}
@@ -170,13 +170,13 @@ const AdminChildrenView: React.FC = () => {
 
         {/* Sessions List */}
         <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-              <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600 dark:text-green-400" />
               All Sessions ({childSessions.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {sessionsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -212,19 +212,19 @@ const AdminChildrenView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Users className="h-6 w-6 mr-2 text-green-600" />
-            All Children
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            View and manage all children in your platform
-          </p>
-        </div>
-        <div className="flex items-center space-x-4 text-sm">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+              <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-green-600" />
+              All Children
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+              View and manage all children in your platform
+            </p>
+          </div>
+          <div className="flex items-center space-x-3 sm:space-x-4 text-sm flex-wrap gap-2">
           <div className="flex items-center text-green-600">
             <Heart className="h-4 w-4 mr-1" />
             {children.length} Total
@@ -237,7 +237,7 @@ const AdminChildrenView: React.FC = () => {
       </div>
 
       {/* Children Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {children.map((child: Child) => (
           <motion.div
             key={child.id}

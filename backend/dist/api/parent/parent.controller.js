@@ -41,13 +41,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getActiveTherapistsHandler = exports.deleteChildHandler = exports.updateChildHandler = exports.addChildHandler = exports.getMyChildrenHandler = exports.updateMyProfileHandler = exports.getMyProfileHandler = void 0;
 const parentService = __importStar(require("./parent.service"));
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = __importDefault(require("../../utils/prisma"));
 const getParentId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const parentProfile = yield prisma.parentProfile.findUnique({ where: { userId }, select: { id: true } });
+    const parentProfile = yield prisma_1.default.parentProfile.findUnique({ where: { userId }, select: { id: true } });
     if (!parentProfile)
         throw new Error('Parent profile not found');
     return parentProfile.id;

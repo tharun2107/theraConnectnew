@@ -1,4 +1,4 @@
-import { PrismaClient, Role, Prisma, TherapistStatus } from '@prisma/client';
+import { Role, Prisma, TherapistStatus } from '@prisma/client';
 import { z } from 'zod';
 import { hashPassword, comparePassword } from '../../utils/password';
 import { signJwt } from '../../utils/jwt';
@@ -12,7 +12,7 @@ import type {
 } from './auth.validation';
 import type { googleOAuthSchema } from './auth.validation';
 
-const prisma = new PrismaClient();
+import prisma from '../../utils/prisma';
 const googleClient = new OAuth2Client(config.google.clientId);
 
 type RegisterParentInput = z.infer<typeof registerParentSchema>['body'];

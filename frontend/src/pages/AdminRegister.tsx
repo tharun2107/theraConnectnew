@@ -65,10 +65,10 @@ const AdminRegister: React.FC = () => {
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 mb-6 animate-float">
               <Shield className="h-8 w-8 text-purple-600 dark:text-purple-400" />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
               Admin Registration
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-6">
               Create an administrative account for TheraConnect
             </p>
             <div className="flex justify-center space-x-4 text-sm">

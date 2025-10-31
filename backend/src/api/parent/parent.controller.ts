@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as parentService from './parent.service';
-import { Prisma, PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { Prisma } from '@prisma/client';
+import prisma from '../../utils/prisma';
 
 const getParentId = async (userId: string) => {
     const parentProfile = await prisma.parentProfile.findUnique({ where: { userId }, select: { id: true } });

@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const client_1 = require("@prisma/client");
 // Import all routes
 const auth_routes_js_1 = __importDefault(require("./api/auth/auth.routes.js"));
 const admin_routes_js_1 = __importDefault(require("./api/admin/admin.routes.js"));
@@ -24,9 +23,9 @@ const therapist_routes_js_1 = __importDefault(require("./api/therapist/therapist
 const booking_routes_js_1 = __importDefault(require("./api/booking/booking.routes.js"));
 const slots_routes_js_1 = __importDefault(require("./api/slots/slots.routes.js"));
 const feedback_routes_js_1 = __importDefault(require("./api/feedback/feedback.routes.js"));
+const prisma_js_1 = __importDefault(require("./utils/prisma.js"));
 // Load environment variables
 dotenv_1.default.config();
-const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 const allowedOrigins = [
@@ -73,14 +72,29 @@ app.get('/api/v1/health', (_req, res) => {
 });
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield prisma.$connect();
-        console.log('Connected to database');
+        // Connect to database with retry logic
+        let retries = 5;
+        while (retries > 0) {
+            try {
+                yield prisma_js_1.default.$connect();
+                console.log('✓ Connected to database');
+                break;
+            }
+            catch (error) {
+                retries--;
+                if (retries === 0) {
+                    throw error;
+                }
+                console.warn(`Database connection failed, retrying... (${5 - retries}/5)`);
+                yield new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+            }
+        }
         app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
+            console.log(`✓ Server is running on http://localhost:${PORT}`);
         });
     }
     catch (error) {
-        console.error('Failed to connect to the database', error);
+        console.error('✗ Failed to start server:', error);
         process.exit(1);
     }
 });

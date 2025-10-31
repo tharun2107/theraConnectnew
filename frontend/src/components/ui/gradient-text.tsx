@@ -11,7 +11,7 @@ interface GradientTextProps {
 export const GradientText: React.FC<GradientTextProps> = ({
   children,
   className = '',
-  gradient = 'from-blue-600 to-purple-600'
+  gradient = 'from-[#1A1A1A] to-[#1A1A1A]'
 }) => {
   return (
     <motion.span

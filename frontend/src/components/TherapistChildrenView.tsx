@@ -98,19 +98,19 @@ const TherapistChildrenView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Users className="h-6 w-6 mr-2 text-blue-600" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+            <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-blue-600" />
             My Children
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
             Children you've worked with and their consent status
           </p>
         </div>
-        <div className="flex items-center space-x-4 text-sm">
+        <div className="flex items-center space-x-3 sm:space-x-4 text-sm flex-wrap gap-2">
           <div className="flex items-center text-green-600">
             <CheckCircle className="h-4 w-4 mr-1" />
             {childrenWithAccess.length} with access
@@ -125,11 +125,11 @@ const TherapistChildrenView: React.FC = () => {
       {/* Children with Full Access */}
       {childrenWithAccess.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
             <Shield className="h-5 w-5 mr-2 text-green-600" />
             Full Access ({childrenWithAccess.length})
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {childrenWithAccess.map((child) => (
               <motion.div
                 key={child.id}
@@ -138,7 +138,7 @@ const TherapistChildrenView: React.FC = () => {
                 transition={{ duration: 0.3 }}
               >
                 <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-green-800 dark:text-green-300">
                         {child.name}
@@ -149,7 +149,7 @@ const TherapistChildrenView: React.FC = () => {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3 px-4 sm:px-6 pb-4 sm:pb-6">
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="font-medium text-green-700 dark:text-green-400">Age:</span>
@@ -208,11 +208,11 @@ const TherapistChildrenView: React.FC = () => {
       {/* Children with Limited Access */}
       {childrenWithoutAccess.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
             <ShieldOff className="h-5 w-5 mr-2 text-orange-600" />
             Limited Access ({childrenWithoutAccess.length})
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {childrenWithoutAccess.map((child) => (
               <motion.div
                 key={child.id}
@@ -221,7 +221,7 @@ const TherapistChildrenView: React.FC = () => {
                 transition={{ duration: 0.3 }}
               >
                 <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700">
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-orange-800 dark:text-orange-300">
                         {child.name}
@@ -232,7 +232,7 @@ const TherapistChildrenView: React.FC = () => {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3 px-4 sm:px-6 pb-4 sm:pb-6">
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="font-medium text-orange-700 dark:text-orange-400">Age:</span>

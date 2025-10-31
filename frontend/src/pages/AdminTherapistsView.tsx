@@ -116,7 +116,7 @@ const AdminTherapistsView: React.FC = () => {
 
   if (selectedTherapist) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -141,7 +141,7 @@ const AdminTherapistsView: React.FC = () => {
 
         {/* Therapist Info Card */}
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xl font-semibold">
@@ -176,13 +176,13 @@ const AdminTherapistsView: React.FC = () => {
 
         {/* Sessions List */}
         <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-              <Calendar className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600 dark:text-blue-400" />
               All Sessions ({therapistSessions.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {sessionsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -218,19 +218,19 @@ const AdminTherapistsView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Users className="h-6 w-6 mr-2 text-blue-600" />
-            All Therapists
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage and view all therapists in your platform
-          </p>
-        </div>
-        <div className="flex items-center space-x-4 text-sm">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+              <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-blue-600" />
+              All Therapists
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+              Manage and view all therapists in your platform
+            </p>
+          </div>
+          <div className="flex items-center space-x-3 sm:space-x-4 text-sm flex-wrap gap-2">
           <div className="flex items-center text-green-600">
             <UserCheck className="h-4 w-4 mr-1" />
             {therapists.filter((t: Therapist) => t.status === 'ACTIVE').length} Active
@@ -243,7 +243,7 @@ const AdminTherapistsView: React.FC = () => {
       </div>
 
       {/* Therapists Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {therapists.map((therapist: Therapist) => (
           <motion.div
             key={therapist.id}

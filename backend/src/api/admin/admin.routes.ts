@@ -12,7 +12,10 @@ import {
   getProfileHandler,
   updateProfileHandler,
   getPlatformSettingsHandler,
-  updatePlatformSettingsHandler
+  updatePlatformSettingsHandler,
+  listLeaveRequestsHandler,
+  approveLeaveRequestHandler,
+  rejectLeaveRequestHandler
 } from './admin.controller';
 import { updateTherapistStatusSchema } from './admin.validation';
 
@@ -40,5 +43,10 @@ router.put('/profile', updateProfileHandler);
 // Platform settings
 router.get('/settings', getPlatformSettingsHandler);
 router.put('/settings', updatePlatformSettingsHandler);
+
+// Leave requests management
+router.get('/leaves', listLeaveRequestsHandler);
+router.post('/leaves/:leaveId/approve', approveLeaveRequestHandler);
+router.post('/leaves/:leaveId/reject', rejectLeaveRequestHandler);
 
 export default router;

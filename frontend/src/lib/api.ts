@@ -124,9 +124,13 @@ export const therapistAPI = {
   getProfile: () => api.get('/therapists/me/profile'),
   getPublicList: () => api.get('/therapists/public'),
   getMySlots: (date: string) => api.get(`/therapists/me/slots`, { params: { date } }),
+  checkHasActiveSlots: () => api.get('/therapists/me/slots/check'),
+  setAvailableSlotTimes: (slotTimes: string[]) => api.put('/therapists/me/slots/available-times', { slotTimes }),
   createTimeSlots: (data: {
     date: string
-    slots: { startTime: string; endTime: string }[]
+    slots?: { startTime: string; endTime: string }[]
+    generate?: boolean
+    activateSlotIds?: string[]
   }) => api.post('/therapists/me/slots', data),
   requestLeave: (data: {
     date: string

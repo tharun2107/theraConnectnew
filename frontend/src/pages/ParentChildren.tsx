@@ -11,8 +11,8 @@ const ParentChildren: React.FC = () => {
   if (isLoading) return <div className="p-6">Loading...</div>
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">My Children</h1>
+    <div className="p-4 sm:p-6 space-y-4">
+      <h1 className="text-xl sm:text-2xl font-semibold">My Children</h1>
       {children.length === 0 ? (
         <p className="text-gray-600 dark:text-gray-300">No children yet.</p>
       ) : (

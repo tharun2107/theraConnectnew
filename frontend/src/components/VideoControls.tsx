@@ -16,10 +16,10 @@ const VideoControls: React.FC<VideoControlsProps> = ({
   participants
 }) => {
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-10">
-      <div className="flex items-center justify-between max-w-4xl mx-auto">
+    <div className="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-2 sm:p-4 z-10">
+      <div className="flex items-center justify-between max-w-4xl mx-auto gap-2">
         {/* Participant Count */}
-        <div className="flex items-center space-x-2 text-sm text-gray-300">
+        <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-300">
           <span>{participants} participants</span>
         </div>
 
@@ -28,10 +28,10 @@ const VideoControls: React.FC<VideoControlsProps> = ({
           variant="destructive"
           size="lg"
           onClick={onEndCall}
-          className="h-14 w-14 rounded-full bg-red-600 hover:bg-red-700"
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-red-600 hover:bg-red-700 flex-shrink-0"
           title="End call and provide feedback"
         >
-          <PhoneOff className="h-7 w-7" />
+          <PhoneOff className="h-5 w-5 sm:h-7 sm:w-7" />
         </Button>
       </div>
     </div>

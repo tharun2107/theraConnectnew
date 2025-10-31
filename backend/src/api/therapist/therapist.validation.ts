@@ -44,3 +44,9 @@ export const publicSlotsSchema = z.object({
   params: z.object({ therapistId: z.string().cuid() }),
   query: z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
 });
+
+export const setAvailableSlotTimesSchema = z.object({
+  body: z.object({
+    slotTimes: z.array(z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)).min(1).max(8),
+  }),
+});
