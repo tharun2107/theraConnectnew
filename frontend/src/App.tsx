@@ -20,6 +20,8 @@ import AdminChildrenView from './pages/AdminChildrenView'
 import AdminAnalytics from './pages/AdminAnalytics'
 import AdminProfile from './pages/AdminProfile'
 import AdminSettings from './pages/AdminSettings'
+import AdminDemoManagement from './pages/AdminDemoManagement'
+import AdminDemoHistory from './pages/AdminDemoHistory'
 import VideoCallPage from './pages/VideoCallPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -81,6 +83,8 @@ function AppRoutes() {
             <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/create-therapist" element={<AdminOnlyTherapistRegister />} />
+            <Route path="/admin/demo-slots" element={<AdminDemoManagement />} />
+            <Route path="/admin/demo-history" element={<AdminDemoHistory />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

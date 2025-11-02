@@ -331,3 +331,52 @@ enum ConsentStatus {
   GRANTED
   DENIED
 }
+
+model DemoSlot {
+  id          String        @id @default(cuid())
+  date        DateTime      @db.Date
+  hour        Int           // 0-23 hour in admin's timezone
+  timeString  String        // e.g., "09:00", "14:00"
+  isActive    Boolean       @default(true)
+  month       Int           // 1-12
+  year        Int           // e.g., 2024
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  demoBookings DemoBooking[]
+
+  @@unique([date, hour])
+  @@index([year, month])
+  @@index([date, isActive])
+}
+
+model DemoBooking {
+  id              String        @id @default(cuid())
+  name            String
+  mobile          String
+  email           String
+  reason          String        // textarea
+  slotDate        DateTime      @db.Date
+  slotHour        Int
+  slotTimeString  String
+  demoSlotId      String?
+  zoomLink        String?
+  meetingId       String?
+  meetingPassword String?
+  status          DemoBookingStatus @default(SCHEDULED)
+  userQuery       String?       // Admin notes: user query
+  converted       Boolean       @default(false) // Converted yes/no
+  additionalNotes String?       // Other additional notes
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  demoSlot        DemoSlot?     @relation(fields: [demoSlotId], references: [id])
+
+  @@index([email])
+  @@index([slotDate, slotHour])
+  @@index([status])
+}
+
+enum DemoBookingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}

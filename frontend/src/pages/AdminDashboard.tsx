@@ -10,7 +10,9 @@ import {
   Stethoscope,
   Star,
   Plus,
-  Settings
+  Settings,
+  Calendar,
+  History
 } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -154,6 +156,21 @@ const AdminDashboard: React.FC = () => {
                 <Button className="bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300">
                   <Stethoscope className="h-4 w-4 mr-2" />
                   Create Therapist
+                </Button>
+              </Link>
+              <Link to="/admin/demo-slots">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Manage Demo Slots
+                </Button>
+              </Link>
+              <Link to="/admin/demo-history">
+                <Button
+                  variant="outline"
+                  className="border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9]"
+                >
+                  <History className="h-4 w-4 mr-2" />
+                  Demo History
                 </Button>
               </Link>
               <Link to="/admin/settings">

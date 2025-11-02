@@ -25,12 +25,12 @@ const transporter = nodemailer_1.default.createTransport({
         pass: process.env.EMAIL_APP_PASSWORD
     }
 });
-const sendemail = (email, message, html) => __awaiter(void 0, void 0, void 0, function* () {
+const sendemail = (email, message, html, subject) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "Welcome to TheraConnect - Start Your Wellness Journey",
+            subject: subject || "Welcome to TheraConnect - Start Your Wellness Journey",
             text: message
         };
         // Add HTML if provided
@@ -41,7 +41,7 @@ const sendemail = (email, message, html) => __awaiter(void 0, void 0, void 0, fu
         return { success: true };
     }
     catch (error) {
-        console.error("Error sending welcome email:", error);
+        console.error("Error sending email:", error);
         return { success: false, error };
     }
 });

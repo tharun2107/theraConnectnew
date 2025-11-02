@@ -88,8 +88,8 @@ const VideoCallPage: React.FC = () => {
               isResizable: false,
               viewSizes: {
                 default: {
-                  width: 900,    // Set your desired width in px
-                  height: 600    // Set your desired height in px
+                  width: 1000,    // Set your desired width in px
+                  height: 800    // Set your desired height in px
                 }
               }
             }

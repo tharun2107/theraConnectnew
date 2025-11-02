@@ -13,12 +13,12 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-export const sendemail = async (email: string, message: string, html?: string) => {
+export const sendemail = async (email: string, message: string, html?: string, subject?: string) => {
   try {
     const mailOptions: any = {
       from: process.env.EMAIL_USER,
       to: email,   
-      subject: "Welcome to TheraConnect - Start Your Wellness Journey",
+      subject: subject || "Welcome to TheraConnect - Start Your Wellness Journey",
       text: message
     };
 
@@ -30,7 +30,7 @@ export const sendemail = async (email: string, message: string, html?: string) =
     await transporter.sendMail(mailOptions);
     return { success: true };  
   } catch (error) {
-    console.error("Error sending welcome email:", error);
+    console.error("Error sending email:", error);
     return { success: false, error };
   }
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Users, Stethoscope, Menu, X } from 'lucide-react'
+import { Users, Stethoscope, Menu, X, Calendar } from 'lucide-react'
 import HeroSection from '../LandingPagecomponents/components/HeroSection'
 import VisionSection from '../LandingPagecomponents/components/VisionSection'
 import FeaturesSection from '../LandingPagecomponents/components/FeaturesSection'
@@ -9,9 +9,11 @@ import TestimonialsSection from '../LandingPagecomponents/components/Testimonial
 import PricingSection from '../LandingPagecomponents/components/PricingSection'
 import CTASection from '../LandingPagecomponents/components/CTASection'
 import Footer from '../LandingPagecomponents/components/Footer'
+import BookDemoModal from '../components/BookDemoModal'
 
 const NewLandingPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showDemoModal, setShowDemoModal] = useState(false)
 
   return (
     <div className="min-h-screen">
@@ -39,6 +41,13 @@ const NewLandingPage: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="hidden md:flex items-center space-x-4">
+              <button
+                onClick={() => setShowDemoModal(true)}
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Book Demo
+              </button>
               <Link
                 to="/login"
                 className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
@@ -50,6 +59,13 @@ const NewLandingPage: React.FC = () => {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-2">
+              <button
+                onClick={() => setShowDemoModal(true)}
+                className="flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all text-sm mr-2"
+              >
+                <Calendar className="h-3 w-3 mr-1" />
+                Demo
+              </button>
               <Link
                 to="/login"
                 className="text-gray-600 hover:text-blue-600 transition-colors font-medium text-sm mr-2"
@@ -102,11 +118,24 @@ const NewLandingPage: React.FC = () => {
                 >
                   Pricing
                 </a>
+                <button
+                  onClick={() => {
+                    setShowDemoModal(true)
+                    setMobileMenuOpen(false)
+                  }}
+                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors mt-2"
+                >
+                  <Calendar className="h-4 w-4 inline mr-2" />
+                  Book Demo
+                </button>
               </div>
             </div>
           )}
         </div>
       </nav>
+
+      {/* Book Demo Modal */}
+      <BookDemoModal isOpen={showDemoModal} onClose={() => setShowDemoModal(false)} />
 
       {/* Main Content */}
       <div className="pt-16">

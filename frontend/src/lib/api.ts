@@ -206,3 +206,40 @@ export const feedbackAPI = {
   getSessionDetails: (bookingId: string) =>
     api.get(`/feedback/session/${bookingId}`),
 }
+
+// Demo API
+export const demoAPI = {
+  getAvailableSlots: (timezone?: string) =>
+    api.get('/demo/slots', { params: { timezone } }),
+  createBooking: (data: {
+    name: string
+    mobile: string
+    email: string
+    reason: string
+    slotDate: string
+    slotHour: number
+    slotTimeString: string
+  }) => api.post('/demo/bookings', data),
+}
+
+// Admin Demo API
+export const adminDemoAPI = {
+  getSlots: (month?: number, year?: number) =>
+    api.get('/demo/admin/slots', { params: { month, year } }),
+  createSlots: (data: {
+    month: number
+    year: number
+    slotTimes: string[]
+  }) => api.post('/demo/admin/slots', data),
+  updateSlots: (month: number, year: number, slotTimes: string[]) =>
+    api.put(`/demo/admin/slots/${month}/${year}`, { slotTimes }),
+  getBookings: () => api.get('/demo/admin/bookings'),
+  getBookingHistory: () => api.get('/demo/admin/bookings/history'),
+  createZoomMeeting: (bookingId: string) =>
+    api.post(`/demo/admin/bookings/${bookingId}/zoom`),
+  updateNotes: (bookingId: string, data: {
+    userQuery?: string
+    converted?: boolean
+    additionalNotes?: string
+  }) => api.put(`/demo/admin/bookings/${bookingId}/notes`, data),
+}
