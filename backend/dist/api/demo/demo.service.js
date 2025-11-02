@@ -51,32 +51,40 @@ function getAvailableDemoSlots(userTimezone, selectedDate) {
         const dateFilter = {
             gte: today, // Only today and future dates
         };
+        // Determine which month/year to query based on selected date or current date
+        let targetMonth = currentMonth;
+        let targetYear = currentYear;
         // If specific date requested, filter by that date (must be today or future)
         if (selectedDate) {
-            const targetDate = new Date(selectedDate);
+            // Parse YYYY-MM-DD string as local date components
+            const [year, month, day] = selectedDate.split('-').map(Number);
+            const targetDate = new Date(year, month - 1, day);
             targetDate.setHours(0, 0, 0, 0);
             // Only allow dates that are today or in the future
             if (targetDate >= today) {
-                const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+                const startOfDay = new Date(year, month - 1, day);
                 const endOfDay = new Date(startOfDay);
                 endOfDay.setDate(endOfDay.getDate() + 1);
                 dateFilter.gte = startOfDay;
                 dateFilter.lt = endOfDay;
+                // Use the selected date's month/year for query
+                targetMonth = month;
+                targetYear = year;
             }
             else {
                 // If past date requested, return empty
                 return [];
             }
         }
-        // Get all active slots for current month (and next month if near end)
+        // Get all active slots for the target month/year
         let slotsWhere = {
-            year: currentYear,
-            month: currentMonth,
+            year: targetYear,
+            month: targetMonth,
             isActive: true,
             date: dateFilter,
         };
-        // Include next month if we're past day 20
-        if (now.getDate() > 20) {
+        // Include next month if we're past day 20 and no specific date selected
+        if (!selectedDate && now.getDate() > 20) {
             const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
             const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
             slotsWhere = {
@@ -110,22 +118,39 @@ function getAvailableDemoSlots(userTimezone, selectedDate) {
         });
         // Get all bookings for these slots in one query for better performance
         // Only include SCHEDULED bookings (not COMPLETED or CANCELLED)
-        const slotDateStrings = Array.from(new Set(weekdaySlots.map((s) => {
-            const slotDate = new Date(s.date);
-            slotDate.setHours(0, 0, 0, 0);
-            return slotDate.toISOString().split('T')[0];
-        }))).sort();
+        // Normalize slot dates to YYYY-MM-DD for consistent comparison
+        const slotDateMap = new Map(); // date -> hours array
+        for (const slot of weekdaySlots) {
+            const slotDate = new Date(slot.date);
+            // Extract date components in local timezone to avoid UTC conversion issues
+            const year = slotDate.getFullYear();
+            const month = slotDate.getMonth() + 1;
+            const day = slotDate.getDate();
+            const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            if (!slotDateMap.has(dateKey)) {
+                slotDateMap.set(dateKey, []);
+            }
+            slotDateMap.get(dateKey).push(slot.hour.toString());
+        }
+        const slotDateStrings = Array.from(slotDateMap.keys()).sort();
         // Create a set of booked slots for quick lookup
         let bookedSlots = new Set();
         if (slotDateStrings.length > 0) {
             // Get all SCHEDULED bookings for these dates
-            // Use date range query instead of 'in' for better Prisma compatibility
+            // Parse dates in local timezone to avoid UTC issues
+            const startDateStr = slotDateStrings[0];
+            const endDateStr = slotDateStrings[slotDateStrings.length - 1];
+            const [startYear, startMonth, startDay] = startDateStr.split('-').map(Number);
+            const [endYear, endMonth, endDay] = endDateStr.split('-').map(Number);
+            const startDate = new Date(startYear, startMonth - 1, startDay);
+            const endDate = new Date(endYear, endMonth - 1, endDay);
+            endDate.setHours(23, 59, 59, 999);
             const bookings = yield prisma_1.default.demoBooking.findMany({
                 where: {
                     status: DemoBookingStatus.SCHEDULED, // Only block SCHEDULED bookings
                     slotDate: {
-                        gte: new Date(slotDateStrings[0] + 'T00:00:00.000Z'),
-                        lte: new Date(slotDateStrings[slotDateStrings.length - 1] + 'T23:59:59.999Z'),
+                        gte: startDate,
+                        lte: endDate,
                     },
                 },
                 select: {
@@ -133,30 +158,44 @@ function getAvailableDemoSlots(userTimezone, selectedDate) {
                     slotHour: true,
                 },
             });
-            // Filter bookings to only include dates in our slotDateStrings set
+            // Filter bookings and normalize dates to YYYY-MM-DD format for accurate comparison
             const validBookings = bookings.filter((b) => {
                 const bookingDate = new Date(b.slotDate);
-                bookingDate.setHours(0, 0, 0, 0);
-                const bookingDateStr = bookingDate.toISOString().split('T')[0];
-                return slotDateStrings.includes(bookingDateStr);
+                const year = bookingDate.getFullYear();
+                const month = bookingDate.getMonth() + 1;
+                const day = bookingDate.getDate();
+                const bookingDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                // Check if this date exists in our slot dates
+                if (!slotDateStrings.includes(bookingDateStr)) {
+                    return false;
+                }
+                // Create the booked slot key
+                const slotKey = `${bookingDateStr}-${b.slotHour}`;
+                return true;
             });
-            // Normalize dates to YYYY-MM-DD format for accurate comparison
+            // Create booked slots set with normalized dates
             bookedSlots = new Set(validBookings.map((b) => {
                 const bookingDate = new Date(b.slotDate);
-                bookingDate.setHours(0, 0, 0, 0);
-                return `${bookingDate.toISOString().split('T')[0]}-${b.slotHour}`;
+                const year = bookingDate.getFullYear();
+                const month = bookingDate.getMonth() + 1;
+                const day = bookingDate.getDate();
+                const bookingDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                return `${bookingDateStr}-${b.slotHour}`;
             }));
         }
         // Group by date and convert timezone if needed
         const groupedSlots = {};
         for (const slot of weekdaySlots) {
+            // Normalize date to YYYY-MM-DD in local timezone (not UTC)
             const slotDate = new Date(slot.date);
-            slotDate.setHours(0, 0, 0, 0); // Normalize to midnight for accurate date comparison
-            const dateKey = slotDate.toISOString().split('T')[0];
+            const year = slotDate.getFullYear();
+            const month = slotDate.getMonth() + 1;
+            const day = slotDate.getDate();
+            const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const slotKey = `${dateKey}-${slot.hour}`;
             // Skip if already booked (check with normalized date)
             if (bookedSlots.has(slotKey)) {
-                continue; // This slot is booked, skip it
+                continue; // This slot is booked, skip it - do not display it
             }
             // Convert timezone if user timezone is provided
             let displayTime = slot.timeString;
@@ -164,8 +203,7 @@ function getAvailableDemoSlots(userTimezone, selectedDate) {
                 try {
                     // Parse admin's time (e.g., "13:00" for 1pm in India)
                     const [adminHours, adminMinutes] = slot.timeString.split(':').map(Number);
-                    const dateStr = slotDate.toISOString().split('T')[0];
-                    const [year, month, day] = dateStr.split('-').map(Number);
+                    // Use already normalized date components (year, month, day from above - they're already extracted)
                     // Simple and reliable timezone conversion:
                     // 1. Find UTC timestamp where admin timezone shows the desired time
                     // 2. Convert that UTC to user's timezone

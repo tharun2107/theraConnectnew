@@ -107,24 +107,46 @@ export async function getAvailableDemoSlots(userTimezone?: string, selectedDate?
 
   // Get all bookings for these slots in one query for better performance
   // Only include SCHEDULED bookings (not COMPLETED or CANCELLED)
-  const slotDateStrings = Array.from(new Set(weekdaySlots.map((s: any) => {
-    const slotDate = new Date(s.date)
-    slotDate.setHours(0, 0, 0, 0)
-    return slotDate.toISOString().split('T')[0]
-  }))).sort()
+  // Normalize slot dates to YYYY-MM-DD for consistent comparison
+  const slotDateMap = new Map<string, string[]>() // date -> hours array
+  
+  for (const slot of weekdaySlots) {
+    const slotDate = new Date(slot.date)
+    // Extract date components in local timezone to avoid UTC conversion issues
+    const year = slotDate.getFullYear()
+    const month = slotDate.getMonth() + 1
+    const day = slotDate.getDate()
+    const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    
+    if (!slotDateMap.has(dateKey)) {
+      slotDateMap.set(dateKey, [])
+    }
+    slotDateMap.get(dateKey)!.push(slot.hour.toString())
+  }
+  
+  const slotDateStrings = Array.from(slotDateMap.keys()).sort()
   
   // Create a set of booked slots for quick lookup
   let bookedSlots = new Set<string>()
   
   if (slotDateStrings.length > 0) {
     // Get all SCHEDULED bookings for these dates
-    // Use date range query instead of 'in' for better Prisma compatibility
+    // Parse dates in local timezone to avoid UTC issues
+    const startDateStr = slotDateStrings[0]
+    const endDateStr = slotDateStrings[slotDateStrings.length - 1]
+    const [startYear, startMonth, startDay] = startDateStr.split('-').map(Number)
+    const [endYear, endMonth, endDay] = endDateStr.split('-').map(Number)
+    
+    const startDate = new Date(startYear, startMonth - 1, startDay)
+    const endDate = new Date(endYear, endMonth - 1, endDay)
+    endDate.setHours(23, 59, 59, 999)
+    
     const bookings = await prisma.demoBooking.findMany({
       where: {
         status: DemoBookingStatus.SCHEDULED, // Only block SCHEDULED bookings
         slotDate: {
-          gte: new Date(slotDateStrings[0] + 'T00:00:00.000Z'),
-          lte: new Date(slotDateStrings[slotDateStrings.length - 1] + 'T23:59:59.999Z'),
+          gte: startDate,
+          lte: endDate,
         },
       },
       select: {
@@ -133,20 +155,33 @@ export async function getAvailableDemoSlots(userTimezone?: string, selectedDate?
       },
     })
     
-    // Filter bookings to only include dates in our slotDateStrings set
+    // Filter bookings and normalize dates to YYYY-MM-DD format for accurate comparison
     const validBookings = bookings.filter((b: any) => {
       const bookingDate = new Date(b.slotDate)
-      bookingDate.setHours(0, 0, 0, 0)
-      const bookingDateStr = bookingDate.toISOString().split('T')[0]
-      return slotDateStrings.includes(bookingDateStr)
+      const year = bookingDate.getFullYear()
+      const month = bookingDate.getMonth() + 1
+      const day = bookingDate.getDate()
+      const bookingDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      
+      // Check if this date exists in our slot dates
+      if (!slotDateStrings.includes(bookingDateStr)) {
+        return false
+      }
+      
+      // Create the booked slot key
+      const slotKey = `${bookingDateStr}-${b.slotHour}`
+      return true
     })
 
-    // Normalize dates to YYYY-MM-DD format for accurate comparison
+    // Create booked slots set with normalized dates
     bookedSlots = new Set(
       validBookings.map((b: any) => {
         const bookingDate = new Date(b.slotDate)
-        bookingDate.setHours(0, 0, 0, 0)
-        return `${bookingDate.toISOString().split('T')[0]}-${b.slotHour}`
+        const year = bookingDate.getFullYear()
+        const month = bookingDate.getMonth() + 1
+        const day = bookingDate.getDate()
+        const bookingDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+        return `${bookingDateStr}-${b.slotHour}`
       })
     )
   }
@@ -155,14 +190,17 @@ export async function getAvailableDemoSlots(userTimezone?: string, selectedDate?
   const groupedSlots: Record<string, any[]> = {}
 
   for (const slot of weekdaySlots) {
+    // Normalize date to YYYY-MM-DD in local timezone (not UTC)
     const slotDate = new Date(slot.date)
-    slotDate.setHours(0, 0, 0, 0) // Normalize to midnight for accurate date comparison
-    const dateKey = slotDate.toISOString().split('T')[0]
+    const year = slotDate.getFullYear()
+    const month = slotDate.getMonth() + 1
+    const day = slotDate.getDate()
+    const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     const slotKey = `${dateKey}-${slot.hour}`
 
     // Skip if already booked (check with normalized date)
     if (bookedSlots.has(slotKey)) {
-      continue // This slot is booked, skip it
+      continue // This slot is booked, skip it - do not display it
     }
 
     // Convert timezone if user timezone is provided
@@ -172,8 +210,7 @@ export async function getAvailableDemoSlots(userTimezone?: string, selectedDate?
       try {
         // Parse admin's time (e.g., "13:00" for 1pm in India)
         const [adminHours, adminMinutes] = slot.timeString.split(':').map(Number)
-        const dateStr = slotDate.toISOString().split('T')[0]
-        const [year, month, day] = dateStr.split('-').map(Number)
+        // Use already normalized date components (year, month, day from above - they're already extracted)
         
         // Simple and reliable timezone conversion:
         // 1. Find UTC timestamp where admin timezone shows the desired time
