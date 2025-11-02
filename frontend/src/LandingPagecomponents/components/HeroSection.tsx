@@ -1,10 +1,16 @@
+import React from "react";
 import { Button } from "./ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import heroImage from "../../assets/hero-therapy-session.jpg";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  darkMode?: boolean
+}
+
+const HeroSection: React.FC<HeroSectionProps> = ({ darkMode = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -20,7 +26,11 @@ const HeroSection = () => {
   return (
     <motion.section 
       ref={containerRef}
-      className="relative min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center overflow-hidden"
+      className={`relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-300 ${
+        darkMode 
+          ? 'bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900' 
+          : 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900'
+      }`}
       style={{ y, opacity, scale, rotateX }}
     >
       {/* Enhanced 3D Floating Background Elements */}
@@ -225,56 +235,27 @@ const HeroSection = () => {
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <Link to="/register/parent">
+              <Link to="/login">
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold relative overflow-hidden group shadow-2xl border-0"
+                  className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold relative overflow-hidden group shadow-2xl border-0"
                   style={{
                     boxShadow: '0 10px 30px rgba(34, 211, 238, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
                   }}
                 >
                   <motion.span
-                    className="relative z-10"
+                    className="relative z-10 flex items-center"
                     initial={{ opacity: 1 }}
                     whileHover={{ opacity: 0.9 }}
                   >
-                    Get Started
+                    Sign In
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                   </motion.span>
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                     initial={{ x: "-100%" }}
                     whileHover={{ x: "100%" }}
                     transition={{ duration: 0.6 }}
-                  />
-                </Button>
-              </Link>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Link to="/register/therapist">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="text-lg px-8 py-6 border-2 border-cyan-400 text-cyan-300 hover:bg-cyan-400 hover:text-gray-900 transition-all duration-300 font-bold group relative overflow-hidden bg-transparent backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 8px 25px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                  }}
-                >
-                  <motion.span
-                    className="relative z-10"
-                    initial={{ opacity: 1 }}
-                    whileHover={{ opacity: 0.9 }}
-                  >
-                    For Therapists
-                  </motion.span>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500"
-                    initial={{ scaleX: 0, originX: 0 }}
-                    whileHover={{ scaleX: 1, originX: 0 }}
-                    transition={{ duration: 0.3 }}
                   />
                 </Button>
               </Link>

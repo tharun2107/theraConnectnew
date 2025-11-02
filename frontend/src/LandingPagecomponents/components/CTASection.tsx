@@ -1,10 +1,15 @@
+import React from "react";
 import { Button } from "./ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 
-const CTASection = () => {
+interface CTASectionProps {
+  darkMode?: boolean
+}
+
+const CTASection: React.FC<CTASectionProps> = ({ darkMode = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -18,11 +23,15 @@ const CTASection = () => {
   return (
     <motion.section 
       ref={containerRef}
-      className="py-20 relative overflow-hidden"
+      className="py-16 sm:py-20 relative overflow-hidden"
       style={{ y, opacity, scale }}
     >
       {/* Enhanced Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
+      <div className={`absolute inset-0 transition-colors duration-300 ${
+        darkMode 
+          ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900' 
+          : 'bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600'
+      }`}>
         {/* Top Transition Wave */}
         <div className="absolute top-0 left-0 w-full overflow-hidden">
           <motion.svg
@@ -171,7 +180,7 @@ const CTASection = () => {
         ))}
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div 
           className="text-center max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 50 }}
@@ -180,7 +189,7 @@ const CTASection = () => {
         >
           {/* Enhanced Sparkle Icon */}
           <motion.div 
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mb-8 shadow-2xl relative overflow-hidden"
+            className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mb-6 sm:mb-8 shadow-2xl relative overflow-hidden"
             animate={{
               rotate: [0, 360],
               scale: [1, 1.1, 1]
@@ -203,17 +212,17 @@ const CTASection = () => {
                 ease: "easeInOut"
               }}
             />
-            <Sparkles className="w-10 h-10 text-white relative z-10" />
+            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white relative z-10" />
           </motion.div>
 
           {/* Enhanced Headline */}
           <motion.h2 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 text-white px-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Start Your Journey with{" "}
+            Ready to experience the{" "}
             <motion.span 
               className="text-gradient bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 bg-clip-text text-transparent"
               animate={{
@@ -228,14 +237,14 @@ const CTASection = () => {
                 backgroundSize: "200% 200%"
               }}
             >
-              TheraConnect
-            </motion.span>{" "}
-            Today
+              future of therapy
+            </motion.span>
+            ?
           </motion.h2>
 
           {/* Enhanced Subtext */}
           <motion.p 
-            className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed max-w-3xl mx-auto"
+            className="text-base sm:text-xl md:text-2xl text-white/90 mb-6 sm:mb-8 leading-relaxed max-w-3xl mx-auto px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -246,7 +255,7 @@ const CTASection = () => {
 
           {/* Enhanced CTA Buttons */}
           <motion.div 
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12"
+            className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-8 sm:mb-12 px-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
@@ -256,23 +265,23 @@ const CTASection = () => {
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <Link to="/register/parent">
+              <Link to="/login">
                 <Button 
                   size="lg" 
-                  className="text-xl px-10 py-6 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-semibold group relative overflow-hidden shadow-2xl"
+                  className="text-base sm:text-xl px-8 sm:px-10 py-4 sm:py-6 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-semibold group relative overflow-hidden shadow-2xl w-full sm:w-auto"
                 >
                   <motion.span
-                    className="relative z-10 flex items-center"
+                    className="relative z-10 flex items-center justify-center"
                     initial={{ opacity: 1 }}
                     whileHover={{ opacity: 0.9 }}
                   >
-                    Join Now
+                    Sign In
                     <motion.div
                       className="ml-2"
                       whileHover={{ x: 5 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                     </motion.div>
                   </motion.span>
                   <motion.div
@@ -284,38 +293,11 @@ const CTASection = () => {
                 </Button>
               </Link>
             </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05, y: -3 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Link to="/register/therapist">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="text-xl px-10 py-6 border-2 border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold bg-white/10 backdrop-blur-sm group relative overflow-hidden"
-                >
-                  <motion.span
-                    className="relative z-10"
-                    initial={{ opacity: 1 }}
-                    whileHover={{ opacity: 0.9 }}
-                  >
-                    For Therapists
-                  </motion.span>
-                  <motion.div
-                    className="absolute inset-0 bg-white"
-                    initial={{ scaleX: 0, originX: 0 }}
-                    whileHover={{ scaleX: 1, originX: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </Button>
-              </Link>
-            </motion.div>
           </motion.div>
 
           {/* Trust Indicators */}
           <motion.div 
-            className="grid md:grid-cols-3 gap-8 max-w-2xl mx-auto"
+            className="grid grid-cols-3 gap-4 sm:gap-8 max-w-2xl mx-auto px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.0 }}
@@ -325,24 +307,24 @@ const CTASection = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-3xl font-bold text-white mb-2">Free</div>
-              <div className="text-white/80">Trial</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">24/7</div>
+              <div className="text-sm sm:text-base text-white/80">Support</div>
             </motion.div>
             <motion.div 
               className="text-center"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-3xl font-bold text-white mb-2">24/7</div>
-              <div className="text-white/80">Support</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">HIPAA</div>
+              <div className="text-sm sm:text-base text-white/80">Compliant</div>
             </motion.div>
             <motion.div 
               className="text-center"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-3xl font-bold text-white mb-2">100%</div>
-              <div className="text-white/80">Secure</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">100%</div>
+              <div className="text-sm sm:text-base text-white/80">Secure</div>
             </motion.div>
           </motion.div>
 
