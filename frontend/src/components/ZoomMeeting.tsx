@@ -44,7 +44,23 @@ const ZoomMeeting: React.FC<Props> = ({ bookingId }) => {
         const ZoomMtgEmbedded = await ensureZoomModule()
         const client = ZoomMtgEmbedded.createClient()
         console.log('[ZoomMeeting] initializing client')
-        await client.init({ zoomAppRoot: containerRef.current!, language: 'en-US' })
+       // await client.init({ zoomAppRoot: containerRef.current!, language: 'en-US' })
+       await client.init({
+        zoomAppRoot: containerRef.current,
+        language: 'en-US',
+        customize: {
+          video: {
+            isResizable: false,
+            viewSizes: {
+              default: {
+                width: 900,    // Set your desired width in px
+                height: 600    // Set your desired height in px
+              }
+            }
+          }
+        }
+      })
+      
         console.log('[ZoomMeeting] joining meeting', data.meetingNumber)
         await client.join({
           signature: data.signature,
