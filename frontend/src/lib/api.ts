@@ -209,8 +209,8 @@ export const feedbackAPI = {
 
 // Demo API
 export const demoAPI = {
-  getAvailableSlots: (timezone?: string) =>
-    api.get('/demo/slots', { params: { timezone } }),
+  getAvailableSlots: (timezone?: string, date?: string) =>
+    api.get('/demo/slots', { params: { timezone, date } }),
   createBooking: (data: {
     name: string
     mobile: string
@@ -219,6 +219,7 @@ export const demoAPI = {
     slotDate: string
     slotHour: number
     slotTimeString: string
+    userTimezone?: string
   }) => api.post('/demo/bookings', data),
 }
 

@@ -38,6 +38,14 @@ interface DemoBooking {
   createdAt: string
 }
 
+// Helper function to convert 24-hour to 12-hour with AM/PM
+const formatTime12Hour = (time24: string): string => {
+  const [hours, minutes] = time24.split(':').map(Number)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const hours12 = hours % 12 || 12
+  return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`
+}
+
 const AdminDemoHistory: React.FC = () => {
   const queryClient = useQueryClient()
   const [selectedBooking, setSelectedBooking] = useState<DemoBooking | null>(null)
@@ -184,7 +192,7 @@ const AdminDemoHistory: React.FC = () => {
                       </div>
                       <div className="flex items-center">
                         <Clock className="h-4 w-4 mr-2" />
-                        {booking.slotTimeString}
+                        {formatTime12Hour(booking.slotTimeString)}
                       </div>
                     </div>
                   </div>

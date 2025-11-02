@@ -2,22 +2,89 @@ import type { Request, Response } from 'express'
 import * as demoService from './demo.service'
 import { sendemail } from '../../services/email.services'
 import { createRealMeeting } from '../../services/zoom.service'
+import prisma from '../../utils/prisma'
 
 // Get available demo slots (public)
 export const getAvailableDemoSlotsHandler = async (req: Request, res: Response) => {
   try {
-    const { timezone } = req.query // User's timezone
-    const slots = await demoService.getAvailableDemoSlots(timezone as string)
+    const { timezone, date } = req.query // User's timezone and optional date filter
+    const slots = await demoService.getAvailableDemoSlots(
+      timezone as string,
+      date as string | undefined
+    )
     res.status(200).json(slots)
   } catch (error: any) {
     res.status(500).json({ message: error.message || 'Failed to retrieve demo slots' })
   }
 }
 
+// Helper function to convert 24-hour time to 12-hour with AM/PM
+function formatTime12Hour(time24: string): string {
+  const [hours, minutes] = time24.split(':').map(Number)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const hours12 = hours % 12 || 12
+  return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`
+}
+
+// Helper function to convert admin time to user timezone with AM/PM
+function convertTimeToUserTimezone(
+  adminTime: string,
+  slotDate: string,
+  userTimezone?: string
+): string {
+  if (!userTimezone) {
+    return formatTime12Hour(adminTime)
+  }
+
+  const adminTimezone = process.env.ADMIN_TIMEZONE || 'Asia/Kolkata'
+  
+  try {
+    const [adminHours, adminMinutes] = adminTime.split(':').map(Number)
+    const [year, month, day] = slotDate.split('-').map(Number)
+
+    // Calculate timezone offset
+    const testUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0))
+    
+    const adminNoonStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: adminTimezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(testUTC)
+    
+    const [adminNoonH, adminNoonM] = adminNoonStr.split(':').map(Number)
+    const adminNoonMinutes = adminNoonH * 60 + adminNoonM
+    const utcNoonMinutes = 12 * 60
+    const adminOffsetMinutes = adminNoonMinutes - utcNoonMinutes
+    
+    const userNoonStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: userTimezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(testUTC)
+    
+    const [userNoonH, userNoonM] = userNoonStr.split(':').map(Number)
+    const userNoonMinutes = userNoonH * 60 + userNoonM
+    const userOffsetMinutes = userNoonMinutes - utcNoonMinutes
+    
+    const offsetDiff = userOffsetMinutes - adminOffsetMinutes
+    const adminTimeMinutes = adminHours * 60 + adminMinutes
+    const userTimeMinutes = (adminTimeMinutes + offsetDiff + 1440) % 1440
+    const userHours = Math.floor(userTimeMinutes / 60)
+    const userMinutes = userTimeMinutes % 60
+    
+    const userTime24 = `${String(userHours).padStart(2, '0')}:${String(userMinutes).padStart(2, '0')}`
+    return formatTime12Hour(userTime24)
+  } catch (e) {
+    return formatTime12Hour(adminTime)
+  }
+}
+
 // Create demo booking (public)
 export const createDemoBookingHandler = async (req: Request, res: Response) => {
   try {
-    const { name, mobile, email, reason, slotDate, slotHour, slotTimeString } = req.body
+    const { name, mobile, email, reason, slotDate, slotHour, slotTimeString, userTimezone } = req.body
 
     // Validate required fields
     if (!name || !mobile || !email || !reason || !slotDate || slotHour === undefined || !slotTimeString) {
@@ -34,6 +101,9 @@ export const createDemoBookingHandler = async (req: Request, res: Response) => {
       slotTimeString,
     })
 
+    // Convert time to user's timezone for email
+    const userTime = convertTimeToUserTimezone(booking.slotTimeString, slotDate, userTimezone)
+
     // Send confirmation email to user
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -43,7 +113,7 @@ export const createDemoBookingHandler = async (req: Request, res: Response) => {
         <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0;">Your Demo Session Details:</h3>
           <p><strong>Date:</strong> ${new Date(slotDate).toLocaleDateString()}</p>
-          <p><strong>Time:</strong> ${slotTimeString}</p>
+          <p><strong>Time:</strong> ${userTime} ${userTimezone ? `(${userTimezone})` : ''}</p>
           <p><strong>Reason:</strong> ${reason}</p>
         </div>
         <p>We will send you a Zoom link closer to your scheduled time.</p>
@@ -67,7 +137,7 @@ export const createDemoBookingHandler = async (req: Request, res: Response) => {
             <p><strong>Email:</strong> ${email}</p>
             <p><strong>Mobile:</strong> ${mobile}</p>
             <p><strong>Date:</strong> ${new Date(slotDate).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> ${slotTimeString}</p>
+            <p><strong>Time:</strong> ${formatTime12Hour(slotTimeString)}</p>
             <p><strong>Reason:</strong> ${reason}</p>
           </div>
           <p>Please log in to the admin dashboard to manage this booking.</p>
@@ -100,13 +170,47 @@ export const createDemoZoomMeetingHandler = async (req: Request, res: Response) 
       })
     }
 
-    // Create Zoom meeting
-    const slotDateTime = new Date(booking.slotDate)
-    slotDateTime.setHours(booking.slotHour, 0, 0, 0)
+    // Create Zoom meeting in admin's timezone
+    const adminTimezone = process.env.ADMIN_TIMEZONE || 'Asia/Kolkata'
+    const slotDate = new Date(booking.slotDate)
+    
+    // Get the original slot time from demoSlot
+    const demoSlot = await prisma.demoSlot.findUnique({
+      where: { id: booking.demoSlotId || '' },
+    })
+    
+    if (!demoSlot) {
+      return res.status(404).json({ message: 'Demo slot not found' })
+    }
+    
+    // Parse admin's time string (e.g., "13:00" for 1pm)
+    const [adminHours, adminMinutes] = demoSlot.timeString.split(':').map(Number)
+    
+    // Create date-time in admin's timezone
+    const slotDateTime = new Date(
+      Date.UTC(
+        slotDate.getFullYear(),
+        slotDate.getMonth(),
+        slotDate.getDate(),
+        adminHours,
+        adminMinutes,
+        0
+      )
+    )
+    
+    // Adjust to admin's timezone
+    const adminLocal = new Date(
+      slotDateTime.toLocaleString('en-US', { timeZone: adminTimezone })
+    )
+    const utcDate = new Date(
+      slotDateTime.toLocaleString('en-US', { timeZone: 'UTC' })
+    )
+    const offset = adminLocal.getTime() - utcDate.getTime()
+    const finalDateTime = new Date(slotDateTime.getTime() - offset)
 
     const meeting = await createRealMeeting({
       topic: `TheraConnect Demo Session - ${booking.name}`,
-      startTimeIso: slotDateTime.toISOString(),
+      startTimeIso: finalDateTime.toISOString(),
       durationMinutes: 60, // 1 hour demo
     })
 
@@ -117,6 +221,12 @@ export const createDemoZoomMeetingHandler = async (req: Request, res: Response) 
       zoomLink: meeting.joinUrl,
     })
 
+    // Convert time to user's timezone for email (we'll try to detect from booking or use admin time)
+    // Since we don't store user timezone, we'll convert admin time to common timezones or use admin time
+    // For now, we'll show admin time with AM/PM - ideally we'd store user timezone in booking
+    const userTime = formatTime12Hour(booking.slotTimeString)
+    const slotDateStr = booking.slotDate.toISOString().split('T')[0]
+
     // Send Zoom link email to user
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -126,7 +236,7 @@ export const createDemoZoomMeetingHandler = async (req: Request, res: Response) 
         <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0;">Session Details:</h3>
           <p><strong>Date:</strong> ${new Date(booking.slotDate).toLocaleDateString()}</p>
-          <p><strong>Time:</strong> ${booking.slotTimeString}</p>
+          <p><strong>Time:</strong> ${userTime}</p>
           <p><strong>Meeting ID:</strong> ${meeting.meetingId}</p>
           <p><strong>Password:</strong> ${meeting.password}</p>
         </div>

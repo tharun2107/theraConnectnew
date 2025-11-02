@@ -1,22 +1,98 @@
 import prisma from '../../utils/prisma'
-import { DemoBookingStatus } from '@prisma/client'
+
+// Temporary enum until Prisma generates
+enum DemoBookingStatus {
+  SCHEDULED = 'SCHEDULED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+// Convert 24-hour time to 12-hour with AM/PM
+function formatTime12Hour(time24: string): string {
+  const [hours, minutes] = time24.split(':').map(Number)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const hours12 = hours % 12 || 12
+  return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`
+}
 
 // Get available demo slots with timezone conversion
-export async function getAvailableDemoSlots(userTimezone?: string) {
+export async function getAvailableDemoSlots(userTimezone?: string, selectedDate?: string) {
   const now = new Date()
   const currentMonth = now.getMonth() + 1
   const currentYear = now.getFullYear()
+  
+  // Admin timezone (default to Asia/Kolkata for India)
+  const adminTimezone = process.env.ADMIN_TIMEZONE || 'Asia/Kolkata'
 
-  // Get all active slots for current month
+  // Build date filter - include today and future dates only
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  today.setHours(0, 0, 0, 0)
+  
+  const dateFilter: any = {
+    gte: today, // Only today and future dates
+  }
+  
+  // Determine which month/year to query based on selected date or current date
+  let targetMonth = currentMonth
+  let targetYear = currentYear
+
+  // If specific date requested, filter by that date (must be today or future)
+  if (selectedDate) {
+    // Parse YYYY-MM-DD string as local date components
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    const targetDate = new Date(year, month - 1, day)
+    targetDate.setHours(0, 0, 0, 0)
+    
+    // Only allow dates that are today or in the future
+    if (targetDate >= today) {
+      const startOfDay = new Date(year, month - 1, day)
+      const endOfDay = new Date(startOfDay)
+      endOfDay.setDate(endOfDay.getDate() + 1)
+      dateFilter.gte = startOfDay
+      dateFilter.lt = endOfDay
+      
+      // Use the selected date's month/year for query
+      targetMonth = month
+      targetYear = year
+    } else {
+      // If past date requested, return empty
+      return []
+    }
+  }
+
+  // Get all active slots for the target month/year
+  let slotsWhere: any = {
+    year: targetYear,
+    month: targetMonth,
+    isActive: true,
+    date: dateFilter,
+  }
+  
+  // Include next month if we're past day 20 and no specific date selected
+  if (!selectedDate && now.getDate() > 20) {
+    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1
+    const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear
+    
+    slotsWhere = {
+      OR: [
+        {
+          year: currentYear,
+          month: currentMonth,
+          isActive: true,
+          date: dateFilter,
+        },
+        {
+          year: nextYear,
+          month: nextMonth,
+          isActive: true,
+          date: dateFilter,
+        },
+      ],
+    }
+  }
+  
   const slots = await prisma.demoSlot.findMany({
-    where: {
-      year: currentYear,
-      month: currentMonth,
-      isActive: true,
-      date: {
-        gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()), // Only future dates
-      },
-    },
+    where: slotsWhere,
     orderBy: {
       date: 'asc',
     },
@@ -29,73 +105,149 @@ export async function getAvailableDemoSlots(userTimezone?: string) {
     return dayOfWeek !== 0 && dayOfWeek !== 6 // Not Sunday or Saturday
   })
 
+  // Get all bookings for these slots in one query for better performance
+  // Only include SCHEDULED bookings (not COMPLETED or CANCELLED)
+  const slotDateStrings = Array.from(new Set(weekdaySlots.map((s: any) => {
+    const slotDate = new Date(s.date)
+    slotDate.setHours(0, 0, 0, 0)
+    return slotDate.toISOString().split('T')[0]
+  }))).sort()
+  
+  // Create a set of booked slots for quick lookup
+  let bookedSlots = new Set<string>()
+  
+  if (slotDateStrings.length > 0) {
+    // Get all SCHEDULED bookings for these dates
+    // Use date range query instead of 'in' for better Prisma compatibility
+    const bookings = await prisma.demoBooking.findMany({
+      where: {
+        status: DemoBookingStatus.SCHEDULED, // Only block SCHEDULED bookings
+        slotDate: {
+          gte: new Date(slotDateStrings[0] + 'T00:00:00.000Z'),
+          lte: new Date(slotDateStrings[slotDateStrings.length - 1] + 'T23:59:59.999Z'),
+        },
+      },
+      select: {
+        slotDate: true,
+        slotHour: true,
+      },
+    })
+    
+    // Filter bookings to only include dates in our slotDateStrings set
+    const validBookings = bookings.filter((b: any) => {
+      const bookingDate = new Date(b.slotDate)
+      bookingDate.setHours(0, 0, 0, 0)
+      const bookingDateStr = bookingDate.toISOString().split('T')[0]
+      return slotDateStrings.includes(bookingDateStr)
+    })
+
+    // Normalize dates to YYYY-MM-DD format for accurate comparison
+    bookedSlots = new Set(
+      validBookings.map((b: any) => {
+        const bookingDate = new Date(b.slotDate)
+        bookingDate.setHours(0, 0, 0, 0)
+        return `${bookingDate.toISOString().split('T')[0]}-${b.slotHour}`
+      })
+    )
+  }
+
   // Group by date and convert timezone if needed
   const groupedSlots: Record<string, any[]> = {}
 
   for (const slot of weekdaySlots) {
     const slotDate = new Date(slot.date)
+    slotDate.setHours(0, 0, 0, 0) // Normalize to midnight for accurate date comparison
     const dateKey = slotDate.toISOString().split('T')[0]
+    const slotKey = `${dateKey}-${slot.hour}`
 
-    // Check if slot is not already booked
-    const bookingCount = await prisma.demoBooking.count({
-      where: {
-        slotDate: slotDate,
-        slotHour: slot.hour,
-        status: {
-          not: DemoBookingStatus.CANCELLED,
-        },
-      },
-    })
-
-    if (bookingCount === 0) {
-      // Convert timezone if user timezone is provided
-      let displayTime = slot.timeString
-      if (userTimezone) {
-        // Admin timezone (default to server timezone or UTC)
-        const adminTimezone = process.env.ADMIN_TIMEZONE || 'UTC'
-        
-        // Create date objects for conversion
-        const adminDate = new Date(`${dateKey}T${slot.timeString}:00`)
-        
-        // Simple timezone conversion (you might want to use a library like date-fns-tz)
-        try {
-          const userDate = new Date(adminDate.toLocaleString('en-US', { timeZone: adminTimezone }))
-          const convertedDate = new Date(adminDate.toLocaleString('en-US', { timeZone: userTimezone }))
-          
-          // Calculate offset
-          const offset = convertedDate.getTime() - userDate.getTime()
-          const adjustedDate = new Date(adminDate.getTime() + offset)
-          
-          displayTime = adjustedDate.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          })
-        } catch (e) {
-          // If timezone conversion fails, use original time
-          displayTime = slot.timeString
-        }
-      }
-
-      if (!groupedSlots[dateKey]) {
-        groupedSlots[dateKey] = []
-      }
-
-      groupedSlots[dateKey].push({
-        id: slot.id,
-        date: dateKey,
-        hour: slot.hour,
-        timeString: displayTime,
-        originalTimeString: slot.timeString,
-      })
+    // Skip if already booked (check with normalized date)
+    if (bookedSlots.has(slotKey)) {
+      continue // This slot is booked, skip it
     }
+
+    // Convert timezone if user timezone is provided
+    let displayTime = slot.timeString
+    
+    if (userTimezone && adminTimezone) {
+      try {
+        // Parse admin's time (e.g., "13:00" for 1pm in India)
+        const [adminHours, adminMinutes] = slot.timeString.split(':').map(Number)
+        const dateStr = slotDate.toISOString().split('T')[0]
+        const [year, month, day] = dateStr.split('-').map(Number)
+        
+        // Simple and reliable timezone conversion:
+        // 1. Find UTC timestamp where admin timezone shows the desired time
+        // 2. Convert that UTC to user's timezone
+        
+        // Method: Calculate timezone offset and apply it
+        // Create a test date at noon UTC to calculate offset
+        const testUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0))
+        
+        // Get what 12:00 UTC shows in admin timezone
+        const adminNoonStr = new Intl.DateTimeFormat('en-US', {
+          timeZone: adminTimezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).format(testUTC)
+        
+        const [adminNoonH, adminNoonM] = adminNoonStr.split(':').map(Number)
+        const adminNoonMinutes = adminNoonH * 60 + adminNoonM
+        const utcNoonMinutes = 12 * 60 // 12:00 = 720 minutes
+        const adminOffsetMinutes = adminNoonMinutes - utcNoonMinutes
+        
+        // Get what 12:00 UTC shows in user timezone
+        const userNoonStr = new Intl.DateTimeFormat('en-US', {
+          timeZone: userTimezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).format(testUTC)
+        
+        const [userNoonH, userNoonM] = userNoonStr.split(':').map(Number)
+        const userNoonMinutes = userNoonH * 60 + userNoonM
+        const userOffsetMinutes = userNoonMinutes - utcNoonMinutes
+        
+        // Calculate timezone difference
+        const offsetDiff = userOffsetMinutes - adminOffsetMinutes
+        
+        // Apply offset to admin's time
+        const adminTimeMinutes = adminHours * 60 + adminMinutes
+        const userTimeMinutes = (adminTimeMinutes + offsetDiff + 1440) % 1440 // Add 1440 to handle negatives, mod 24h
+        const userHours = Math.floor(userTimeMinutes / 60)
+        const userMinutes = userTimeMinutes % 60
+        
+        displayTime = `${String(userHours).padStart(2, '0')}:${String(userMinutes).padStart(2, '0')}`
+      } catch (e) {
+        console.error('Timezone conversion error:', e)
+        displayTime = slot.timeString
+      }
+    }
+
+    // Format time with AM/PM
+    const displayTime12Hour = formatTime12Hour(displayTime)
+
+    if (!groupedSlots[dateKey]) {
+      groupedSlots[dateKey] = []
+    }
+
+    groupedSlots[dateKey].push({
+      id: slot.id,
+      date: dateKey,
+      hour: slot.hour, // Keep original admin hour for booking
+      timeString: displayTime12Hour, // Display time in user's timezone with AM/PM
+      originalTimeString: slot.timeString, // Admin's original time
+      originalHour: slot.hour, // Original admin hour
+    })
   }
 
-  // Convert to array format
-  return Object.entries(groupedSlots).map(([date, slots]) => ({
+  // Convert to array format and sort by date
+  const result = Object.entries(groupedSlots).map(([date, slots]) => ({
     date,
-    slots: slots.sort((a, b) => a.hour - b.hour),
+    slots: slots.sort((a, b) => a.originalHour - b.originalHour), // Sort by admin's original hour
   }))
+
+  return result
 }
 
 // Create demo booking
@@ -105,13 +257,29 @@ export async function createDemoBooking(data: {
   email: string
   reason: string
   slotDate: string
-  slotHour: number
-  slotTimeString: string
+  slotHour: number // This is the admin's original hour from the slot
+  slotTimeString: string // This is the admin's original time string
+  userTimezone?: string // User's timezone for email conversion
 }) {
+  // slotHour and slotTimeString should be the admin's original values, not user's converted time
+  const slotDate = new Date(data.slotDate)
+  
+  // Find the demo slot by date and admin's original hour
+  let demoSlot = await prisma.demoSlot.findFirst({
+    where: {
+      date: slotDate,
+      hour: data.slotHour,
+    },
+  })
+
+  if (!demoSlot) {
+    throw new Error('Selected slot not found. Please select a valid time slot.')
+  }
+
   // Check if slot is already booked
   const existingBooking = await prisma.demoBooking.findFirst({
     where: {
-      slotDate: new Date(data.slotDate),
+      slotDate: slotDate,
       slotHour: data.slotHour,
       status: {
         not: DemoBookingStatus.CANCELLED,
@@ -123,30 +291,7 @@ export async function createDemoBooking(data: {
     throw new Error('This time slot is already booked')
   }
 
-  // Find or create demo slot
-  const slotDate = new Date(data.slotDate)
-  let demoSlot = await prisma.demoSlot.findFirst({
-    where: {
-      date: slotDate,
-      hour: data.slotHour,
-    },
-  })
-
-  if (!demoSlot) {
-    // Create slot if it doesn't exist
-    demoSlot = await prisma.demoSlot.create({
-      data: {
-        date: slotDate,
-        hour: data.slotHour,
-        timeString: data.slotTimeString,
-        month: slotDate.getMonth() + 1,
-        year: slotDate.getFullYear(),
-        isActive: true,
-      },
-    })
-  }
-
-  // Create booking
+  // Create booking with admin's original time
   const booking = await prisma.demoBooking.create({
     data: {
       name: data.name,
@@ -154,8 +299,8 @@ export async function createDemoBooking(data: {
       email: data.email,
       reason: data.reason,
       slotDate: slotDate,
-      slotHour: data.slotHour,
-      slotTimeString: data.slotTimeString,
+      slotHour: data.slotHour, // Admin's original hour
+      slotTimeString: demoSlot.timeString, // Admin's original time string
       demoSlotId: demoSlot.id,
       status: DemoBookingStatus.SCHEDULED,
     },
