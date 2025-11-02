@@ -284,9 +284,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ darkMode = fa
               whileHover={{ scale: 1.1 }}
             >
               <motion.div 
-                className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 ${
-                  darkMode ? 'text-white' : 'text-gray-800'
-                }`}
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 bg-clip-text text-transparent"
                 animate={{
                   backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
                 }}
@@ -299,7 +297,6 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ darkMode = fa
                   backgroundSize: "200% 200%",
                   backgroundImage: "linear-gradient(to right, #6366f1, #a855f7, #6366f1)"
                 }}
-                className="bg-clip-text text-transparent"
               >
                 {stat.value}
               </motion.div>
