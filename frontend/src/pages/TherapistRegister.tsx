@@ -96,7 +96,7 @@ const TherapistRegister: React.FC = () => {
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 mb-6 animate-float">
               <Stethoscope className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
               Create Therapist
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">

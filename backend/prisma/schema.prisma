@@ -55,6 +55,7 @@ model TherapistProfile {
   maxSlotsPerDay           Int                    @default(8)
   scheduleStartTime        String                 @default("10:00")
   slotDurationInMinutes    Int                    @default(45)
+  availableSlotTimes        String[]               @default([]) // Array of time strings like ["09:00", "10:00", ...]
   bookings                 Booking[]
   ConsentRequest           ConsentRequest[]
   dataAccess               DataAccessPermission[]

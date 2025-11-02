@@ -114,15 +114,48 @@ const AdminAnalytics: React.FC = () => {
     ? therapistStats.reduce((sum, therapist) => sum + therapist.averageRating, 0) / therapistStats.length 
     : 0
 
-  // Chart data preparation
-  const sessionTrendData = [
-    { month: 'Jan', sessions: 45, revenue: 2250 },
-    { month: 'Feb', sessions: 52, revenue: 2600 },
-    { month: 'Mar', sessions: 48, revenue: 2400 },
-    { month: 'Apr', sessions: 61, revenue: 3050 },
-    { month: 'May', sessions: 55, revenue: 2750 },
-    { month: 'Jun', sessions: 67, revenue: 3350 },
-  ]
+  // Generate real-time monthly session data from bookings
+  const sessionTrendData = React.useMemo(() => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthlySessions: { [key: string]: number } = {}
+    const monthlyRevenue: { [key: string]: number } = {}
+    
+    // Initialize all months with 0
+    const now = new Date()
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`
+      monthlySessions[monthKey] = 0
+      monthlyRevenue[monthKey] = 0
+    }
+    
+    // Count sessions and calculate revenue per month from real bookings
+    bookings.forEach((booking: any) => {
+      const bookingDate = new Date(booking.createdAt)
+      const monthKey = `${bookingDate.getFullYear()}-${bookingDate.getMonth()}`
+      if (monthlySessions.hasOwnProperty(monthKey)) {
+        monthlySessions[monthKey]++
+        // Calculate revenue for completed sessions only
+        if (booking.status === 'COMPLETED' && booking.therapist?.baseCostPerSession) {
+          monthlyRevenue[monthKey] += booking.therapist.baseCostPerSession
+        }
+      }
+    })
+    
+    // Convert to chart format (last 6 months)
+    const chartData = []
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`
+      chartData.push({
+        month: monthNames[date.getMonth()],
+        sessions: monthlySessions[monthKey] || 0,
+        revenue: monthlyRevenue[monthKey] || 0
+      })
+    }
+    
+    return chartData
+  }, [bookings])
 
   const therapistPerformanceData = therapistStats.slice(0, 6).map(therapist => ({
     name: therapist.name.split(' ')[0], // First name only for chart
@@ -154,7 +187,7 @@ const AdminAnalytics: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -162,20 +195,20 @@ const AdminAnalytics: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-purple-600/20 rounded-2xl" />
-        <div className="relative p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Platform <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Analytics</span>
+        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="relative p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
+                Platform <span className="text-[#1A1A1A]">Analytics</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
+              <p className="text-[#4D4D4D] text-base sm:text-lg">
                 Comprehensive insights into your therapy platform performance
               </p>
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-[#1A1A1A]">
                   {totalSessions}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -203,7 +236,7 @@ const AdminAnalytics: React.FC = () => {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Sessions</p>
@@ -215,7 +248,7 @@ const AdminAnalytics: React.FC = () => {
         </Card>
 
         <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-600 dark:text-green-400">Completed</p>
@@ -227,7 +260,7 @@ const AdminAnalytics: React.FC = () => {
         </Card>
 
         <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-700">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Avg Rating</p>
@@ -241,7 +274,7 @@ const AdminAnalytics: React.FC = () => {
         </Card>
 
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Revenue</p>
@@ -263,14 +296,14 @@ const AdminAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-lg font-semibold text-[#1A1A1A] flex items-center">
                 <Award className="h-5 w-5 mr-2 text-yellow-600 dark:text-yellow-400" />
                 Top Rated Therapists
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
                 {topRatedTherapists.map((therapist, index) => (
                   <div key={therapist.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -279,13 +312,13 @@ const AdminAnalytics: React.FC = () => {
                         {index + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{therapist.name}</p>
+                        <p className="font-medium text-[#1A1A1A]">{therapist.name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{therapist.specialization}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="font-semibold text-gray-900 dark:text-white">
+                      <span className="font-semibold text-[#1A1A1A]">
                         {therapist.averageRating.toFixed(1)}
                       </span>
                     </div>
@@ -302,14 +335,14 @@ const AdminAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-lg font-semibold text-[#1A1A1A] flex items-center">
                 <Activity className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                 Most Active Therapists
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
                 {mostActiveTherapists.map((therapist, index) => (
                   <div key={therapist.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -318,12 +351,12 @@ const AdminAnalytics: React.FC = () => {
                         {index + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{therapist.name}</p>
+                        <p className="font-medium text-[#1A1A1A]">{therapist.name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{therapist.specialization}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                      <p className="font-semibold text-[#1A1A1A]">
                         {therapist.totalSessions}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">sessions</p>
@@ -341,14 +374,14 @@ const AdminAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-lg font-semibold text-[#1A1A1A] flex items-center">
                 <DollarSign className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
                 Top Earning Therapists
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
                 {topEarningTherapists.map((therapist, index) => (
                   <div key={therapist.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -357,12 +390,12 @@ const AdminAnalytics: React.FC = () => {
                         {index + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{therapist.name}</p>
+                        <p className="font-medium text-[#1A1A1A]">{therapist.name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{therapist.specialization}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                      <p className="font-semibold text-[#1A1A1A]">
                         ${therapist.totalEarnings.toLocaleString()}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">earned</p>
@@ -383,14 +416,14 @@ const AdminAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                 Session Trends
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={sessionTrendData}>
                   <defs>
@@ -422,14 +455,14 @@ const AdminAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
                 Therapist Performance
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={therapistPerformanceData}>
                   <XAxis dataKey="name" />
@@ -449,14 +482,14 @@ const AdminAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.9 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
                 <Target className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
                 Session Status
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -485,14 +518,14 @@ const AdminAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.0 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
                 <Users className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
                 Specialization Distribution
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={specializationChartData} layout="horizontal">
                   <XAxis type="number" />
@@ -513,35 +546,35 @@ const AdminAnalytics: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.1 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+        <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+            <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
               <BarChart3 className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
               Platform Overview
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                   {therapists.length}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Total Therapists</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                   {Math.round((completedSessions / totalSessions) * 100) || 0}%
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Completion Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                   {therapistStats.length > 0 ? Math.round(therapistStats.reduce((sum, t) => sum + t.activeDays, 0) / therapistStats.length) : 0}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Avg Active Days</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
                   ${Math.round(totalEarnings / therapistStats.length) || 0}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Avg Revenue per Therapist</div>

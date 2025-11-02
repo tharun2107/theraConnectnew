@@ -24,4 +24,8 @@ router.put('/profile', admin_controller_1.updateProfileHandler);
 // Platform settings
 router.get('/settings', admin_controller_1.getPlatformSettingsHandler);
 router.put('/settings', admin_controller_1.updatePlatformSettingsHandler);
+// Leave requests management
+router.get('/leaves', admin_controller_1.listLeaveRequestsHandler);
+router.post('/leaves/:leaveId/approve', admin_controller_1.approveLeaveRequestHandler);
+router.post('/leaves/:leaveId/reject', admin_controller_1.rejectLeaveRequestHandler);
 exports.default = router;

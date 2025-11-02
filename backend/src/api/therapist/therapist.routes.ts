@@ -2,16 +2,17 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { Role } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
 import {
   getMyProfileHandler,
   createTimeSlotsHandler,
   requestLeaveHandler,
   getMySlotsForDateHandler,
+  checkHasActiveSlotsHandler,
+  setAvailableSlotTimesHandler,
 } from './therapist.controller';
-import { createTimeSlotsSchema, requestLeaveSchema, getSlotsForDateSchema } from './therapist.validation';
+import { createTimeSlotsSchema, requestLeaveSchema, getSlotsForDateSchema, setAvailableSlotTimesSchema } from './therapist.validation';
 
-const prisma = new PrismaClient();
+import prisma from '../../utils/prisma';
 
 const router = Router();
 
@@ -47,6 +48,12 @@ router.get('/test', (req, res) => {
 router.use(authenticate, authorize([Role.THERAPIST]));
 
 router.get('/me/profile', getMyProfileHandler);
+router.get('/me/slots/check', checkHasActiveSlotsHandler);
+router.put(
+  '/me/slots/available-times',
+  validate({ body: setAvailableSlotTimesSchema.shape.body }),
+  setAvailableSlotTimesHandler
+);
 router.post(
   '/me/slots',
   validate({ body: createTimeSlotsSchema.shape.body }), // <-- just the schema

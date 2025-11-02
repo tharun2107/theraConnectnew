@@ -80,25 +80,25 @@ const AdminDashboard: React.FC = () => {
       title: 'Total Therapists',
       value: totalTherapists,
       icon: Users,
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      textColor: 'text-blue-600 dark:text-blue-400'
+      color: 'from-[#1A1A1A] to-[#1A1A1A]',
+      bgColor: 'bg-[#F9F9F9]',
+      textColor: 'text-[#1A1A1A]'
     },
     {
       title: 'Active Therapists',
       value: activeTherapists,
       icon: UserCheck,
-      color: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      textColor: 'text-green-600 dark:text-green-400'
+      color: 'from-accent-green to-accent-green',
+      bgColor: 'bg-accent-green/20',
+      textColor: 'text-[#1A1A1A]'
     },
     {
       title: 'Pending Verification',
       value: pendingTherapists,
       icon: Shield,
-      color: 'from-orange-500 to-orange-600',
-      bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-      textColor: 'text-orange-600 dark:text-orange-400'
+      color: 'from-[#4D4D4D] to-[#4D4D4D]',
+      bgColor: 'bg-[#F9F9F9]',
+      textColor: 'text-[#4D4D4D]'
     },
     {
       title: 'Average Rating',
@@ -130,7 +130,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -138,20 +138,20 @@ const AdminDashboard: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-purple-600/20 rounded-2xl" />
-        <div className="relative p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Welcome back, <GradientText>Admin</GradientText>!
+        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="relative p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
+                Welcome back, <span className="text-[#1A1A1A]">Admin</span>!
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
+              <p className="text-[#4D4D4D] text-base sm:text-lg">
                 Manage your therapy platform and support your team.
               </p>
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <Link to="/admin/create-therapist">
-                <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                <Button className="bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300">
                   <Stethoscope className="h-4 w-4 mr-2" />
                   Create Therapist
                 </Button>
@@ -159,7 +159,7 @@ const AdminDashboard: React.FC = () => {
               <Link to="/admin/settings">
                 <Button
                   variant="outline"
-                  className="border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                  className="border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9]"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Settings

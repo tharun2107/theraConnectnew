@@ -38,13 +38,13 @@ const LandingPage: React.FC = () => {
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6">
             Connect with the Best
             <span className="text-primary-600 dark:text-primary-400 block">
               Therapy Services
             </span>
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
             TheraConnect bridges the gap between families seeking quality therapy and professional therapists, making mental health support accessible and convenient.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -72,14 +72,14 @@ const LandingPage: React.FC = () => {
       {/* Features Section */}
       <section id="features" className="relative py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Why Choose TheraConnect?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
             A comprehensive platform that makes therapy accessible, convenient, and effective.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             <div className="p-6 rounded-xl bg-gray-100 dark:bg-gray-800/50 hover:shadow-lg transition-all">
               <div className="bg-primary-100 dark:bg-primary-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Users className="h-8 w-8 text-primary-600 dark:text-primary-400" />
@@ -116,11 +116,11 @@ const LandingPage: React.FC = () => {
       {/* How It Works Section */}
       <section id="how-it-works" className="relative py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
             Getting started with TheraConnect is simple and straightforward
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {['Sign Up', 'Connect', 'Thrive'].map((step, i) => (
               <div key={i} className="text-center bg-gray-100 dark:bg-gray-800/40 p-6 rounded-xl">
                 <div className="bg-primary-600 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-xl font-bold">
@@ -140,7 +140,7 @@ const LandingPage: React.FC = () => {
 
       {/* Stats Section */}
       <section className="relative py-20 text-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 relative z-10">
           <div>
             <div className="text-4xl font-bold mb-2">500+</div>
             <div className="text-gray-600 dark:text-gray-300">Active Therapists</div>
@@ -163,11 +163,11 @@ const LandingPage: React.FC = () => {
       {/* Testimonials Section */}
       <section id="testimonials" className="relative py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
             Real stories from families and therapists who trust TheraConnect
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {[
               { name: 'Sarah Johnson', role: 'Parent', text: 'TheraConnect made it so easy to find the right therapist for my daughter.' },
               { name: 'Dr. Michael Chen', role: 'Child Psychologist', text: 'As a therapist, TheraConnect has helped me grow my practice significantly.' },
@@ -189,7 +189,7 @@ const LandingPage: React.FC = () => {
       {/* CTA Section */}
       <section className="relative py-20 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
             Join thousands of families who trust TheraConnect for their therapy needs
           </p>
@@ -205,7 +205,7 @@ const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="relative py-16 z-10 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">

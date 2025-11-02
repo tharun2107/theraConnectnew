@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../contexts/ThemeContext'
 import { 
@@ -8,6 +8,7 @@ import {
   Moon, 
   Sun, 
   Menu,
+  X,
   User,
   Home,
   Users,
@@ -29,6 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   if (!user) {
     return <div>{children}</div>
@@ -75,32 +77,45 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'PARENT': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-      case 'THERAPIST': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      case 'ADMIN': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+      case 'PARENT': return 'bg-accent-blue/20 text-[#1A1A1A] border border-accent-blue/30'
+      case 'THERAPIST': return 'bg-accent-green/20 text-[#1A1A1A] border border-accent-green/30'
+      case 'ADMIN': return 'bg-[#F9F9F9] text-[#1A1A1A] border border-gray-border'
+      default: return 'bg-[#F9F9F9] text-[#1A1A1A] border border-gray-border'
     }
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className="min-h-screen transition-colors duration-200">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60">
-        <div className="flex h-16 items-center justify-between px-6">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/95">
+        <div className="flex h-16 items-center justify-between px-4 sm:px-6">
           {/* Logo and Brand */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">TC</span>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">TheraConnect</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Professional Therapy</p>
+              <div className="hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-bold text-[#1A1A1A]">TheraConnect</h1>
+                <p className="text-xs text-[#4D4D4D]">Professional Therapy</p>
               </div>
             </div>
           </div>
 
-          {/* Navigation Items */}
+          {/* Desktop Navigation Items */}
           <nav className="hidden md:flex items-center space-x-1">
             {navigationItems.map((item) => {
               const Icon = item.icon
@@ -110,7 +125,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-[#4D4D4D] hover:text-[#1A1A1A] hover:bg-[#F9F9F9] rounded-lg transition-colors"
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
@@ -120,13 +135,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </nav>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Theme Toggle */}
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              className="p-2 text-[#B3B3B3] hover:text-[#1A1A1A]"
             >
               {theme === 'dark' ? (
                 <Sun className="h-4 w-4" />
@@ -139,10 +154,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 relative"
+              className="p-2 text-[#B3B3B3] hover:text-[#1A1A1A] relative"
             >
               <Bell className="h-4 w-4" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-black text-white">
                 0
               </Badge>
             </Button>
@@ -150,22 +165,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-3 p-2">
+                <Button variant="ghost" className="flex items-center space-x-2 sm:space-x-3 p-1.5 sm:p-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white text-sm font-medium">
+                    <AvatarFallback className="bg-black text-white text-sm font-medium">
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name || 'User'}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{user.email || 'user@example.com'}</p>
+                  <div className="hidden lg:block text-left">
+                    <p className="text-sm font-medium text-[#1A1A1A]">{user.name || 'User'}</p>
+                    <p className="text-xs text-[#4D4D4D]">{user.email || 'user@example.com'}</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name || 'User'}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{user.email || 'user@example.com'}</p>
+                  <p className="text-sm font-medium text-[#1A1A1A]">{user.name || 'User'}</p>
+                  <p className="text-xs text-[#4D4D4D]">{user.email || 'user@example.com'}</p>
                   <Badge className={`mt-1 text-xs ${getRoleColor(user.role || 'USER')}`}>
                     {user.role || 'USER'}
                   </Badge>
@@ -180,7 +195,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
+                <DropdownMenuItem onClick={handleLogout} className="text-[#1A1A1A] hover:bg-[#F9F9F9]">
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </DropdownMenuItem>
@@ -188,11 +203,36 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </DropdownMenu>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-border bg-white">
+            <nav className="px-4 py-3 space-y-1">
+              {navigationItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Button
+                    key={item.id}
+                    variant="ghost"
+                    onClick={() => {
+                      navigate(item.path)
+                      setMobileMenuOpen(false)
+                    }}
+                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-base font-medium text-[#4D4D4D] hover:text-[#1A1A1A] hover:bg-[#F9F9F9] rounded-lg transition-colors justify-start"
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Button>
+                )
+              })}
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
-      <main className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+      <main className="min-h-screen bg-[#F9F9F9] transition-colors duration-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
           {children}
         </div>
       </main>

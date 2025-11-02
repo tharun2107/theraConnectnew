@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery } from 'react-query'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -69,11 +69,56 @@ const ParentDashboard: React.FC = () => {
     { select: (response) => response.data }
   )
 
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery(
+  const { data: bookings = [], isLoading: bookingsLoading, refetch: refetchBookings } = useQuery(
     'parentBookings',
     bookingAPI.getMyBookings,
-    { select: (response) => response.data }
+    { 
+      select: (response) => {
+        console.log('[ParentDashboard] Bookings response:', response)
+        return response.data || []
+      },
+      // Auto-refetch every 10 seconds when there are active sessions
+      refetchInterval: (data) => {
+        const bookings = (data as Booking[] | undefined) || []
+        if (!bookings || bookings.length === 0) return false
+        
+        // Check if there are any scheduled sessions that might be active soon
+        const hasActiveSessions = bookings.some((booking: Booking) => {
+          if (booking.status !== 'SCHEDULED' || !booking.timeSlot?.startTime) return false
+          const startTime = new Date(booking.timeSlot.startTime)
+          const now = new Date()
+          const timeDiff = (startTime.getTime() - now.getTime()) / 60000 // minutes
+          // Refetch if session is within 30 minutes before or during the session
+          return timeDiff <= 30 && timeDiff >= -60
+        })
+        return hasActiveSessions ? 10000 : false // Refetch every 10 seconds if active sessions
+      }
+    }
   )
+  
+  // Debug bookings
+  useEffect(() => {
+    console.log('[ParentDashboard] Bookings loaded:', bookings?.length || 0, 'bookings')
+    if (bookings && bookings.length > 0) {
+      console.log('[ParentDashboard] Sample booking:', bookings[0])
+      bookings.forEach((booking: any) => {
+        if (booking.status === 'SCHEDULED' && booking.timeSlot) {
+          const startTime = new Date(booking.timeSlot.startTime)
+          const now = new Date()
+          const timeDiff = (startTime.getTime() - now.getTime()) / 60000 // minutes
+          console.log('[ParentDashboard] Scheduled booking:', {
+            bookingId: booking.id?.slice(-8),
+            startTime: startTime.toISOString(),
+            startTimeLocal: startTime.toLocaleString(),
+            now: now.toISOString(),
+            nowLocal: now.toLocaleString(),
+            timeDiffMinutes: Math.round(timeDiff),
+            isInWindow: timeDiff >= -15 && timeDiff <= 60 // within 15 min before to 1 hour after
+          })
+        }
+      })
+    }
+  }, [bookings])
 
   // Calculate stats
   const totalChildren = children.length
@@ -91,8 +136,8 @@ const ParentDashboard: React.FC = () => {
   const handleJoinSession = async (bookingId: string) => {
     console.log('[ParentDashboard] Join clicked', { bookingId })
     try {
-      // Get signature for the booking
-      console.log('[ParentDashboard] Probing signature (attempt) 1')
+      // Get signature for the booking (verify meeting exists)
+      console.log('[ParentDashboard] Getting signature for booking', bookingId)
       const signatureResponse = await bookingAPI.getSignature(bookingId)
       console.log('[ParentDashboard] signature response', signatureResponse.data)
       
@@ -100,8 +145,10 @@ const ParentDashboard: React.FC = () => {
       console.log('[ParentDashboard] Navigating to video call')
       setJoiningId(bookingId)
       navigate(`/video-call/${bookingId}`)
-    } catch (error) {
-      console.error('Error joining session:', error)
+    } catch (error: any) {
+      console.error('[ParentDashboard] Error joining session:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to join session. Please try again.'
+      alert(errorMessage)
     }
   }
 
@@ -145,7 +192,7 @@ const ParentDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -153,28 +200,28 @@ const ParentDashboard: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-blue-600/10 dark:from-blue-600/20 dark:via-purple-600/20 dark:to-blue-600/20 rounded-2xl" />
-        <div className="relative p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Welcome back, <GradientText>{profile?.name || 'Parent'}</GradientText>!
+        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="relative p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
+                Welcome back, <span className="text-[#1A1A1A]">{profile?.name || 'Parent'}</span>!
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
+              <p className="text-[#4D4D4D] text-base sm:text-lg">
                 Your children's therapy journey continues today.
               </p>
             </div>
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="flex sm:hidden md:flex items-center space-x-4 w-full sm:w-auto">
               <Button
                 onClick={() => setShowAddChildModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Add Child
               </Button>
               <Button
                 onClick={() => setShowBookSessionModal(true)}
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300"
               >
                 <Calendar className="h-4 w-4 mr-2" />
                 Book Session
@@ -214,20 +261,66 @@ const ParentDashboard: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <CurrentSessions 
-              bookings={bookings} 
-              onJoinSession={handleJoinSession}
-              userRole="PARENT"
-            />
+            {bookingsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-gray-600">Loading sessions...</span>
+              </div>
+            ) : (
+              <CurrentSessions 
+                bookings={bookings || []} 
+                onJoinSession={handleJoinSession}
+                userRole="PARENT"
+                onRefresh={refetchBookings}
+              />
+            )}
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Upcoming Sessions */}
+      {bookings.filter((booking: Booking) => 
+        new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
+      ).length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
+                Upcoming Sessions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {bookings
+                  .filter((booking: Booking) => 
+                    new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
+                  )
+                  .sort((a: Booking, b: Booking) => 
+                    new Date(a.timeSlot.startTime).getTime() - new Date(b.timeSlot.startTime).getTime()
+                  )
+                  .map((booking: Booking) => (
+                    <SessionDetails
+                      key={booking.id}
+                      booking={booking}
+                      userRole="PARENT"
+                    />
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* My Children */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
+        transition={{ duration: 0.6, delay: 0.6 }}
       >
         <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -383,7 +476,7 @@ const ParentDashboard: React.FC = () => {
           onClose={() => setShowBookSessionModal(false)}
           onSuccess={() => {
             setShowBookSessionModal(false)
-            // Refetch bookings data
+            // Bookings will be refetched automatically via query invalidation
           }}
         />
       )}

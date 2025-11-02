@@ -334,20 +334,20 @@ const VideoCallPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header - Minimal for better video focus */}
-      <div className="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>TC</AvatarFallback>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 p-2 sm:p-3 bg-gray-800 border-b border-gray-700">
+        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+          <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
+            <AvatarFallback className="text-xs sm:text-sm">TC</AvatarFallback>
           </Avatar>
-          <div>
-            <h1 className="font-semibold text-sm">TheraConnect Session</h1>
-            <p className="text-xs text-gray-400">
+          <div className="min-w-0 flex-1">
+            <h1 className="font-semibold text-xs sm:text-sm truncate">TheraConnect Session</h1>
+            <p className="text-xs text-gray-400 truncate">
               {meetingStarted ? 'Session Active' : 'Connecting...'}
             </p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap gap-2">
           <Badge variant={meetingStarted ? "default" : "secondary"} className="text-xs">
             {participants} participants
           </Badge>
@@ -387,14 +387,15 @@ const VideoCallPage: React.FC = () => {
 
         {/* Side-by-side Gallery Overlay (when meeting is active) */}
         {meetingStarted && (
-          <div className="absolute top-4 right-4 z-20">
+          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20">
             <Button
               variant="secondary"
               size="sm"
-              className="bg-black bg-opacity-50 text-white border-gray-600"
+              className="bg-black bg-opacity-50 text-white border-gray-600 text-xs sm:text-sm"
             >
-              <Grid3X3 className="h-4 w-4 mr-2" />
-              Gallery View
+              <Grid3X3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Gallery View</span>
+              <span className="sm:hidden">Gallery</span>
             </Button>
           </div>
         )}
@@ -407,18 +408,18 @@ const VideoCallPage: React.FC = () => {
       />
 
       {/* Participant Info */}
-      {meetingStarted && (
-        <div className="absolute top-4 left-4 z-20">
-          <Card className="bg-black bg-opacity-50 border-gray-600">
-            <CardContent className="p-3">
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-green-400" />
-                <span className="text-sm">2 participants</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        {meetingStarted && (
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20">
+            <Card className="bg-black bg-opacity-50 border-gray-600">
+              <CardContent className="p-2 sm:p-3">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
+                  <span className="text-xs sm:text-sm">2 participants</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
     </div>
   )
 }
