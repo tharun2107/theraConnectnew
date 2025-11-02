@@ -19,6 +19,9 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loginWithGoogle = exports.login = exports.changePassword = exports.registerAdmin = exports.registerTherapist = exports.registerParent = void 0;
 const client_1 = require("@prisma/client");
@@ -26,16 +29,16 @@ const password_1 = require("../../utils/password");
 const jwt_1 = require("../../utils/jwt");
 const google_auth_library_1 = require("google-auth-library");
 const config_1 = require("../../utils/config");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = __importDefault(require("../../utils/prisma"));
 const googleClient = new google_auth_library_1.OAuth2Client(config_1.config.google.clientId);
 const registerParent = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name, phone } = input;
     console.log('[AUTH][REGISTER_PARENT] Attempt:', { email });
-    const existingUser = yield prisma.user.findUnique({ where: { email } });
+    const existingUser = yield prisma_1.default.user.findUnique({ where: { email } });
     if (existingUser)
         throw new Error('User with this email already exists');
     const hashedPassword = yield (0, password_1.hashPassword)(password);
-    return prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         const user = yield tx.user.create({
             data: { email, password: hashedPassword, role: client_1.Role.PARENT },
         });
@@ -49,8 +52,8 @@ const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function*
     console.log('[AUTH][REGISTER_THERAPIST] Attempt:', { email, phone });
     // Pre-checks to surface conflicts as 409
     const [existingUser, existingPhone] = yield Promise.all([
-        prisma.user.findUnique({ where: { email } }),
-        prisma.therapistProfile.findUnique({ where: { phone } }).catch(() => null),
+        prisma_1.default.user.findUnique({ where: { email } }),
+        prisma_1.default.therapistProfile.findUnique({ where: { phone } }).catch(() => null),
     ]);
     if (existingUser)
         throw new Error('User with this email already exists');
@@ -58,7 +61,7 @@ const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function*
         throw new Error('Therapist with this phone already exists');
     const hashedPassword = yield (0, password_1.hashPassword)(password);
     try {
-        return yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        return yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
             const user = yield tx.user.create({
                 data: { email, password: hashedPassword, role: client_1.Role.THERAPIST },
             });
@@ -80,11 +83,11 @@ exports.registerTherapist = registerTherapist;
 const registerAdmin = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name } = input;
     console.log('[AUTH][REGISTER_ADMIN] Attempt:', { email });
-    const existingUser = yield prisma.user.findUnique({ where: { email } });
+    const existingUser = yield prisma_1.default.user.findUnique({ where: { email } });
     if (existingUser)
         throw new Error('User with this email already exists');
     const hashedPassword = yield (0, password_1.hashPassword)(password);
-    return prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         const user = yield tx.user.create({
             data: { email, password: hashedPassword, role: client_1.Role.ADMIN },
         });
@@ -94,20 +97,20 @@ const registerAdmin = (input) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.registerAdmin = registerAdmin;
 const changePassword = (_a) => __awaiter(void 0, [_a], void 0, function* ({ email, currentPassword, newPassword }) {
-    const user = yield prisma.user.findUnique({ where: { email } });
+    const user = yield prisma_1.default.user.findUnique({ where: { email } });
     if (!user)
         throw new Error('No account found with this email');
     const isValid = yield (0, password_1.comparePassword)(currentPassword, user.password);
     if (!isValid)
         throw new Error('Current password is incorrect');
     const hashed = yield (0, password_1.hashPassword)(newPassword);
-    yield prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
+    yield prisma_1.default.user.update({ where: { id: user.id }, data: { password: hashed } });
     return { message: 'Password updated successfully' };
 });
 exports.changePassword = changePassword;
 const login = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = input;
-    const user = yield prisma.user.findUnique({ where: { email } });
+    const user = yield prisma_1.default.user.findUnique({ where: { email } });
     if (!user)
         throw new Error('Invalid email or password');
     const isPasswordValid = yield (0, password_1.comparePassword)(password, user.password);
@@ -140,12 +143,12 @@ const loginWithGoogle = (input) => __awaiter(void 0, void 0, void 0, function* (
     const email = payload.email;
     const nameFromGoogle = payload.name || email.split('@')[0];
     // Find existing user
-    let user = yield prisma.user.findUnique({ where: { email } });
+    let user = yield prisma_1.default.user.findUnique({ where: { email } });
     console.log('[AUTH][GOOGLE] Lookup user by email:', email);
     if (!user) {
         // Assume first-time parent sign-in → create PARENT user with minimal profile
         console.log('[AUTH][GOOGLE] Creating new PARENT for', email);
-        user = yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        user = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
             const created = yield tx.user.create({
                 data: {
                     email,
@@ -165,7 +168,7 @@ const loginWithGoogle = (input) => __awaiter(void 0, void 0, void 0, function* (
     // Indicate whether profile completion may be needed for parents (no phone)
     let needsProfileCompletion = false;
     if (user.role === client_1.Role.PARENT) {
-        const parent = yield prisma.parentProfile.findUnique({ where: { userId: user.id } });
+        const parent = yield prisma_1.default.parentProfile.findUnique({ where: { userId: user.id } });
         needsProfileCompletion = !(parent === null || parent === void 0 ? void 0 : parent.phone);
         console.log('[AUTH][GOOGLE] needsProfileCompletion:', needsProfileCompletion);
     }

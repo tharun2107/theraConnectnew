@@ -8,7 +8,7 @@ const router = Router();
 router.use(authenticate);
 
 // Public route for anyone logged in (e.g., parents) to see slots
-router.get('/', validate({body:getAvailableSlotsSchema.shape.body}), getAvailableSlotsHandler);
+router.post('/', validate({body:getAvailableSlotsSchema.shape.body}), getAvailableSlotsHandler);
 
 // Parent-only route to book a slot
 router.post('/book', authorize([Role.PARENT]), validate({body:bookSlotSchema.shape.body}), bookSlotHandler);

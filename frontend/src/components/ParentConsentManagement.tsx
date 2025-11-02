@@ -146,19 +146,19 @@ const ParentConsentManagement: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Settings className="h-6 w-6 mr-2 text-blue-600" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+            <Settings className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-blue-600" />
             Consent Management
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
             Manage which therapists can access your children's detailed information
           </p>
         </div>
-        <div className="flex items-center space-x-4 text-sm">
+        <div className="flex items-center space-x-3 sm:space-x-4 text-sm flex-wrap gap-2">
           <div className="flex items-center text-green-600">
             <CheckCircle className="h-4 w-4 mr-1" />
             {childrenWithConsent.filter(c => c.hasConsent).length} with access
@@ -171,7 +171,7 @@ const ParentConsentManagement: React.FC = () => {
       </div>
 
       {/* Children List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {childrenWithConsent.map((child) => (
           <motion.div
             key={child.id}
@@ -184,7 +184,7 @@ const ParentConsentManagement: React.FC = () => {
                 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700' 
                 : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
             }`}>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className={`text-lg ${
                     child.hasConsent 
@@ -213,7 +213,7 @@ const ParentConsentManagement: React.FC = () => {
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
                 {/* Child Info */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>

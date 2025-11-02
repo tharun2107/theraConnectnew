@@ -74,7 +74,7 @@ const ParentSettings: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -83,17 +83,17 @@ const ParentSettings: React.FC = () => {
         className="relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-purple-600/20 rounded-2xl" />
-        <div className="relative p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="relative p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Settings</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
+              <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
                 Customize your experience and manage your preferences
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
               <Button
                 onClick={handleResetSettings}
                 variant="outline"
@@ -122,7 +122,7 @@ const ParentSettings: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Bell className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
               Notification Preferences
@@ -131,7 +131,7 @@ const ParentSettings: React.FC = () => {
               Choose how you want to be notified about your therapy sessions
             </p>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -219,7 +219,7 @@ const ParentSettings: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.4 }}
       >
         <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Shield className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
               Privacy & Data
@@ -228,7 +228,7 @@ const ParentSettings: React.FC = () => {
               Control how your data is used and shared
             </p>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -271,7 +271,7 @@ const ParentSettings: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.6 }}
       >
         <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Settings className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
               Account Management
@@ -280,7 +280,7 @@ const ParentSettings: React.FC = () => {
               Manage your account and data
             </p>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div>
@@ -319,12 +319,12 @@ const ParentSettings: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.8 }}
       >
         <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
               Current Settings Summary
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(settings).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">

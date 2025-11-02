@@ -119,7 +119,27 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
       console.log('🔍 Loading session details for booking:', booking.id, 'Data:', booking)
       const response = await feedbackAPI.getSessionDetails(booking.id)
       console.log('📋 Session details loaded:', response.data)
-      setSessionData(response.data.sessionDetails)
+      console.log('📋 Session details - sessionDetails:', response.data.sessionDetails)
+      console.log('📋 Session details - sessionFeedback:', response.data.sessionDetails?.sessionFeedback)
+      console.log('📋 Session details - SessionFeedback (capital):', response.data.sessionDetails?.SessionFeedback)
+      console.log('📋 Session details - sessionReport:', response.data.sessionDetails?.sessionReport)
+      
+      // Extract session details and ensure proper field mapping
+      const sessionDetailsData = response.data.sessionDetails || response.data
+      
+      // Handle both SessionFeedback (from Prisma) and sessionFeedback (transformed)
+      const sessionFeedback = sessionDetailsData.sessionFeedback || sessionDetailsData.SessionFeedback || null
+      const sessionReport = sessionDetailsData.sessionReport || null
+      const consentRequest = sessionDetailsData.consentRequest || sessionDetailsData.ConsentRequest || null
+      
+      const mappedData: SessionData = {
+        sessionFeedback: sessionFeedback,
+        sessionReport: sessionReport,
+        consentRequest: consentRequest,
+      }
+      
+      console.log('📋 Mapped session data:', mappedData)
+      setSessionData(mappedData)
       setHasLoaded(true)
     } catch (error) {
       console.error('❌ Failed to load session details:', error)
@@ -145,9 +165,19 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
   }
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], { 
+    // Extract UTC time and display as local time
+    // Slots are stored in UTC with literal hours/minutes (e.g., 12:00 UTC means display as 12:00 locally)
+    const slotDate = new Date(dateString)
+    const utcHours = slotDate.getUTCHours()
+    const utcMinutes = slotDate.getUTCMinutes()
+    
+    // Create a date with UTC hours/minutes to display in local time
+    // This ensures 12:00 UTC displays as 12:00 in any timezone
+    const displayDate = new Date(2000, 0, 1, utcHours, utcMinutes)
+    return displayDate.toLocaleTimeString([], { 
       hour: '2-digit', 
-      minute: '2-digit' 
+      minute: '2-digit',
+      hour12: true
     })
   }
 
@@ -174,10 +204,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
       transition={{ duration: 0.3 }}
     >
       <Card className="border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center">
-              <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+        <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
               {formatDate(booking.timeSlot.startTime)}
             </CardTitle>
             <div className="flex items-center space-x-2">
@@ -200,9 +230,9 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
           {/* Basic Session Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="flex items-center space-x-2">
               <Clock className="h-4 w-4 text-gray-500" />
               <span className="text-sm text-gray-600">
@@ -324,106 +354,227 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                     </div>
                   )}
 
-                  {/* Session Report (for Therapists and Admins) */}
-                  {(userRole === 'THERAPIST' || userRole === 'ADMIN') && sessionData?.sessionReport && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                        <h4 className="font-semibold text-blue-800 dark:text-blue-200">
-                          {userRole === 'ADMIN' ? 'Session Report' : 'Your Session Report'}
-                        </h4>
-                      </div>
-                      <div className="space-y-3">
-                        <div>
-                          <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
-                            Session Experience
-                          </h5>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
-                            {sessionData.sessionReport.sessionExperience}
+                  {/* For ADMIN: Display both Session Report and Parent Feedback side by side */}
+                  {userRole === 'ADMIN' ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Session Report */}
+                      {sessionData?.sessionReport ? (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                          <div className="flex items-center mb-3">
+                            <FileText className="h-5 w-5 text-blue-600 mr-2" />
+                            <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+                              Session Report
+                            </h4>
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                Session Experience
+                              </h5>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                {sessionData.sessionReport.sessionExperience}
+                              </p>
+                            </div>
+                            
+                            {sessionData.sessionReport.childPerformance && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Child's Performance
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.childPerformance}
+                                </p>
+                              </div>
+                            )}
+
+                            {sessionData.sessionReport.improvements && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Improvements
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.improvements}
+                                </p>
+                              </div>
+                            )}
+
+                            {sessionData.sessionReport.recommendations && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Recommendations
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.recommendations}
+                                </p>
+                              </div>
+                            )}
+
+                            {sessionData.sessionReport.nextSteps && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Next Steps
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.nextSteps}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="text-xs text-blue-600 dark:text-blue-400">
+                              Report created on {formatDate(sessionData.sessionReport.createdAt)}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex items-center justify-center">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            No session report available
                           </p>
                         </div>
-                        
-                        {sessionData.sessionReport.childPerformance && (
-                          <div>
-                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
-                              Child's Performance
-                            </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
-                              {sessionData.sessionReport.childPerformance}
-                            </p>
-                          </div>
-                        )}
+                      )}
 
-                        {sessionData.sessionReport.improvements && (
-                          <div>
-                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
-                              Improvements
-                            </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
-                              {sessionData.sessionReport.improvements}
-                            </p>
+                      {/* Parent Feedback */}
+                      {sessionData?.sessionFeedback ? (
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                          <div className="flex items-center mb-3">
+                            <Star className="h-5 w-5 text-green-600 mr-2" />
+                            <h4 className="font-semibold text-green-800 dark:text-green-200">
+                              Parent Feedback
+                            </h4>
                           </div>
-                        )}
-
-                        {sessionData.sessionReport.recommendations && (
-                          <div>
-                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
-                              Recommendations
-                            </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
-                              {sessionData.sessionReport.recommendations}
-                            </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex space-x-1">
+                                {renderStars(sessionData.sessionFeedback.rating)}
+                              </div>
+                              <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                                {getRatingText(sessionData.sessionFeedback.rating)}
+                              </span>
+                            </div>
+                            {sessionData.sessionFeedback.comment && (
+                              <div className="bg-white dark:bg-gray-800 rounded p-3 border border-green-200 dark:border-green-700">
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                  {sessionData.sessionFeedback.comment}
+                                </p>
+                              </div>
+                            )}
+                            <div className="text-xs text-green-600 dark:text-green-400">
+                              Submitted on {formatDate(sessionData.sessionFeedback.createdAt)}
+                            </div>
                           </div>
-                        )}
-
-                        {sessionData.sessionReport.nextSteps && (
-                          <div>
-                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
-                              Next Steps
-                            </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
-                              {sessionData.sessionReport.nextSteps}
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="text-xs text-blue-600 dark:text-blue-400">
-                          Report created on {formatDate(sessionData.sessionReport.createdAt)}
                         </div>
-                      </div>
+                      ) : (
+                        <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex items-center justify-center">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            No parent feedback available
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ) : (
+                    <>
+                      {/* Session Report (for Therapists only) */}
+                      {userRole === 'THERAPIST' && sessionData?.sessionReport && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                          <div className="flex items-center mb-3">
+                            <FileText className="h-5 w-5 text-blue-600 mr-2" />
+                            <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+                              Your Session Report
+                            </h4>
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                Session Experience
+                              </h5>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                {sessionData.sessionReport.sessionExperience}
+                              </p>
+                            </div>
+                            
+                            {sessionData.sessionReport.childPerformance && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Child's Performance
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.childPerformance}
+                                </p>
+                              </div>
+                            )}
 
-                  {/* Parent Feedback (for Therapists and Admins) */}
-                  {(userRole === 'THERAPIST' || userRole === 'ADMIN') && sessionData?.sessionFeedback && (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <Star className="h-5 w-5 text-green-600 mr-2" />
-                        <h4 className="font-semibold text-green-800 dark:text-green-200">
-                          {userRole === 'ADMIN' ? 'Parent Feedback' : 'Parent\'s Feedback'}
-                        </h4>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex space-x-1">
-                            {renderStars(sessionData.sessionFeedback.rating)}
+                            {sessionData.sessionReport.improvements && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Improvements
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.improvements}
+                                </p>
+                              </div>
+                            )}
+
+                            {sessionData.sessionReport.recommendations && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Recommendations
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.recommendations}
+                                </p>
+                              </div>
+                            )}
+
+                            {sessionData.sessionReport.nextSteps && (
+                              <div>
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Next Steps
+                                </h5>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                  {sessionData.sessionReport.nextSteps}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="text-xs text-blue-600 dark:text-blue-400">
+                              Report created on {formatDate(sessionData.sessionReport.createdAt)}
+                            </div>
                           </div>
-                          <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                            {getRatingText(sessionData.sessionFeedback.rating)}
-                          </span>
                         </div>
-                        {sessionData.sessionFeedback.comment && (
-                          <div className="bg-white dark:bg-gray-800 rounded p-3 border border-green-200 dark:border-green-700">
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              {sessionData.sessionFeedback.comment}
-                            </p>
+                      )}
+
+                      {/* Parent Feedback (for Therapists only) */}
+                      {userRole === 'THERAPIST' && sessionData?.sessionFeedback && (
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                          <div className="flex items-center mb-3">
+                            <Star className="h-5 w-5 text-green-600 mr-2" />
+                            <h4 className="font-semibold text-green-800 dark:text-green-200">
+                              Parent's Feedback
+                            </h4>
                           </div>
-                        )}
-                        <div className="text-xs text-green-600 dark:text-green-400">
-                          Submitted on {formatDate(sessionData.sessionFeedback.createdAt)}
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex space-x-1">
+                                {renderStars(sessionData.sessionFeedback.rating)}
+                              </div>
+                              <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                                {getRatingText(sessionData.sessionFeedback.rating)}
+                              </span>
+                            </div>
+                            {sessionData.sessionFeedback.comment && (
+                              <div className="bg-white dark:bg-gray-800 rounded p-3 border border-green-200 dark:border-green-700">
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                  {sessionData.sessionFeedback.comment}
+                                </p>
+                              </div>
+                            )}
+                            <div className="text-xs text-green-600 dark:text-green-400">
+                              Submitted on {formatDate(sessionData.sessionFeedback.createdAt)}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   )}
 
                   {/* Consent Status */}

@@ -42,7 +42,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTherapistStatusHandler = exports.updatePlatformSettingsHandler = exports.getPlatformSettingsHandler = exports.updateProfileHandler = exports.getProfileHandler = exports.getAllBookingsHandler = exports.getChildSessionsHandler = exports.getAllChildrenHandler = exports.getTherapistSessionsHandler = exports.getAllTherapistsHandler = void 0;
+exports.rejectLeaveRequestHandler = exports.approveLeaveRequestHandler = exports.listLeaveRequestsHandler = exports.updateTherapistStatusHandler = exports.updatePlatformSettingsHandler = exports.getPlatformSettingsHandler = exports.updateProfileHandler = exports.getProfileHandler = exports.getAllBookingsHandler = exports.getChildSessionsHandler = exports.getAllChildrenHandler = exports.getTherapistSessionsHandler = exports.getAllTherapistsHandler = void 0;
 const adminService = __importStar(require("./admin.service"));
 const getAllTherapistsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -158,3 +158,36 @@ const updateTherapistStatusHandler = (req, res) => __awaiter(void 0, void 0, voi
     }
 });
 exports.updateTherapistStatusHandler = updateTherapistStatusHandler;
+const listLeaveRequestsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const leaves = yield adminService.listLeaveRequests();
+        res.status(200).json(leaves);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve leave requests' });
+    }
+});
+exports.listLeaveRequestsHandler = listLeaveRequestsHandler;
+const approveLeaveRequestHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { leaveId } = req.params;
+        const result = yield adminService.approveLeaveRequest(leaveId);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to approve leave request' });
+    }
+});
+exports.approveLeaveRequestHandler = approveLeaveRequestHandler;
+const rejectLeaveRequestHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { leaveId } = req.params;
+        const { reason } = req.body;
+        const result = yield adminService.rejectLeaveRequest(leaveId, reason);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to reject leave request' });
+    }
+});
+exports.rejectLeaveRequestHandler = rejectLeaveRequestHandler;

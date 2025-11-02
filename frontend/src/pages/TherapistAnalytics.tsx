@@ -10,7 +10,6 @@ import {
   Award,
   Target,
   Activity,
-  DollarSign,
   Clock
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -72,22 +71,45 @@ const TherapistAnalytics: React.FC = () => {
   const upcomingSessions = bookings.filter((booking: Booking) => 
     new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
   ).length
-  const totalEarnings = bookings
-    .filter((booking: Booking) => booking.status === 'COMPLETED')
-    .reduce((sum: number) => sum + (profile?.baseCostPerSession || 0), 0)
 
   // Calculate completion rate
   const completionRate = totalBookings > 0 ? Math.round((completedSessions / totalBookings) * 100) : 0
 
-  // Chart data preparation
-  const monthlyData = [
-    { month: 'Jan', sessions: 12, earnings: 600 },
-    { month: 'Feb', sessions: 15, earnings: 750 },
-    { month: 'Mar', sessions: 18, earnings: 900 },
-    { month: 'Apr', sessions: 22, earnings: 1100 },
-    { month: 'May', sessions: 20, earnings: 1000 },
-    { month: 'Jun', sessions: 25, earnings: 1250 },
-  ]
+  // Generate real-time monthly session data from bookings
+  const monthlyData = React.useMemo(() => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthlySessions: { [key: string]: number } = {}
+    
+    // Initialize all months with 0
+    const now = new Date()
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`
+      monthlySessions[monthKey] = 0
+    }
+    
+    // Count sessions per month from real bookings
+    bookings.forEach((booking: Booking) => {
+      const bookingDate = new Date(booking.createdAt)
+      const monthKey = `${bookingDate.getFullYear()}-${bookingDate.getMonth()}`
+      if (monthlySessions.hasOwnProperty(monthKey)) {
+        monthlySessions[monthKey]++
+      }
+    })
+    
+    // Convert to chart format (last 6 months)
+    const chartData = []
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`
+      chartData.push({
+        month: monthNames[date.getMonth()],
+        sessions: monthlySessions[monthKey] || 0
+      })
+    }
+    
+    return chartData
+  }, [bookings])
 
   const sessionStatusData = [
     { name: 'Completed', value: completedSessions, color: '#10B981' },
@@ -119,7 +141,7 @@ const TherapistAnalytics: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -127,26 +149,16 @@ const TherapistAnalytics: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-purple-600/20 rounded-2xl" />
-        <div className="relative p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Analytics</span> Dashboard
+        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="relative p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
+                <span className="text-[#1A1A1A]">Analytics</span> Dashboard
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
+              <p className="text-[#4D4D4D] text-base sm:text-lg">
                 Track your therapy practice performance and insights
               </p>
-            </div>
-            <div className="hidden md:flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${totalEarnings}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Total Earnings
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -157,52 +169,40 @@ const TherapistAnalytics: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
       >
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
-          <CardContent className="p-6">
+        <Card className="bg-[#F9F9F9] border-gray-border">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Sessions</p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{totalBookings}</p>
+                <p className="text-sm font-medium text-[#1A1A1A]">Total Sessions</p>
+                <p className="text-2xl font-bold text-[#1A1A1A]">{totalBookings}</p>
               </div>
-              <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <Calendar className="h-8 w-8 text-[#1A1A1A]" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
-          <CardContent className="p-6">
+        <Card className="bg-accent-green/20 border-accent-green/30">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">Completed</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{completedSessions}</p>
+                <p className="text-sm font-medium text-[#1A1A1A]">Completed</p>
+                <p className="text-2xl font-bold text-[#1A1A1A]">{completedSessions}</p>
               </div>
-              <Target className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <Target className="h-8 w-8 text-[#1A1A1A]" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
-          <CardContent className="p-6">
+        <Card className="bg-[#F9F9F9] border-gray-border">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Completion Rate</p>
-                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{completionRate}%</p>
+                <p className="text-sm font-medium text-[#1A1A1A]">Completion Rate</p>
+                <p className="text-2xl font-bold text-[#1A1A1A]">{completionRate}%</p>
               </div>
-              <Award className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Total Earnings</p>
-                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">${totalEarnings}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+              <Award className="h-8 w-8 text-[#1A1A1A]" />
             </div>
           </CardContent>
         </Card>
@@ -216,14 +216,14 @@ const TherapistAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <TrendingUp className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-border">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2 text-[#1A1A1A]" />
                 Session Trends
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={monthlyData}>
                   <defs>
@@ -249,47 +249,20 @@ const TherapistAnalytics: React.FC = () => {
           </Card>
         </motion.div>
 
-        {/* Earnings Chart */}
+        {/* Session Status */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <DollarSign className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
-                Monthly Earnings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyData}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <Tooltip />
-                  <Bar dataKey="earnings" fill="#10B981" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Session Status */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <Target className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-border">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+                <Target className="h-5 w-5 mr-2 text-[#4D4D4D]" />
                 Session Status
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -316,16 +289,16 @@ const TherapistAnalytics: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <Users className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
+          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+            <CardHeader className="p-4 sm:p-6 border-b border-gray-border">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+                <Users className="h-5 w-5 mr-2 text-[#1A1A1A]" />
                 Sessions by Child
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={childChartData}>
                   <XAxis dataKey="name" />
@@ -344,37 +317,31 @@ const TherapistAnalytics: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-              <Award className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
+        <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-border">
+            <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <Award className="h-5 w-5 mr-2 text-[#1A1A1A]" />
               Practice Summary
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
                   {profile?.averageRating?.toFixed(1) || '0.0'}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Average Rating</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                   {childChartData.length}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Active Children</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                  ${profile?.baseCostPerSession || 0}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Session Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-[#4D4D4D] mb-2">
                   {upcomingSessions}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Upcoming Sessions</div>

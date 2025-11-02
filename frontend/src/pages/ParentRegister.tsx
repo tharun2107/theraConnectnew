@@ -58,10 +58,10 @@ const ParentRegister: React.FC = () => {
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900 dark:to-rose-900 mb-6 animate-float">
               <Users className="h-8 w-8 text-pink-600 dark:text-pink-400" />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
               Join as Parent
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-6">
               Create your family account and start your therapy journey
             </p>
             <div className="mt-4">

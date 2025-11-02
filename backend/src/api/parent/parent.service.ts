@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import type { childSchema } from './parent.validation';
 
-const prisma = new PrismaClient();
+import prisma from '../../utils/prisma';
 type ChildInput = z.infer<typeof childSchema>['body'];
 
 export const getParentProfile = async (userId: string) => {

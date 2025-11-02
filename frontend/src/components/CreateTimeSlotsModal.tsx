@@ -1,203 +1,244 @@
-import React, { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useMutation } from 'react-query'
+import React, { useState } from 'react'
+import { useMutation, useQuery } from 'react-query'
 import { therapistAPI } from '../lib/api'
-import { X, Calendar, Clock, CheckSquare, Square } from 'lucide-react'
+import { X, Clock, CheckSquare, Square } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface CreateTimeSlotsModalProps {
   onClose: () => void
   onSuccess: () => void
+  isMandatory?: boolean // If true, modal cannot be closed until slots are created
 }
 
-interface TimeSlotsFormData {
-  date: string
+// Generate time options for all 24 hours (00:00 to 23:00) in 1-hour intervals
+const generateTimeOptions = () => {
+  const times: string[] = []
+  for (let hour = 0; hour < 24; hour++) {
+    const timeStr = `${hour.toString().padStart(2, '0')}:00`
+    times.push(timeStr)
+  }
+  return times
 }
 
-const CreateTimeSlotsModal: React.FC<CreateTimeSlotsModalProps> = ({ onClose, onSuccess }) => {
-  const [generatedSlots, setGeneratedSlots] = useState<any[]>([])
-  const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([])
-  
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<TimeSlotsFormData>()
+const CreateTimeSlotsModal: React.FC<CreateTimeSlotsModalProps> = ({ onClose, onSuccess, isMandatory = false }) => {
+  const timeOptions = generateTimeOptions()
+  const [selectedTimes, setSelectedTimes] = useState<string[]>([])
 
-  const selectedDate = watch('date')
+  // Load existing slot times if any
+  const { data: profile } = useQuery(
+    'therapistProfile',
+    therapistAPI.getProfile,
+    { 
+      select: (response) => response.data,
+      onSuccess: (data) => {
+        if (data?.availableSlotTimes && Array.isArray(data.availableSlotTimes) && data.availableSlotTimes.length > 0) {
+          setSelectedTimes(data.availableSlotTimes)
+        }
+      }
+    }
+  )
 
-  // Remove explicit generate button; we'll auto-generate on date change
-
-  const activateMutation = useMutation(therapistAPI.createTimeSlots, {
+  const setSlotsMutation = useMutation(therapistAPI.setAvailableSlotTimes, {
     onSuccess: () => {
-      toast.success('Activated selected slots!')
+      toast.success('Available time slots saved successfully! These slots are now locked and will apply to all future dates.')
       onSuccess()
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to activate slots')
+      toast.error(error.response?.data?.message || 'Failed to save time slots')
     },
   })
 
-  // No onGenerate; handled automatically in useEffect
-
-  const onActivate = (data: TimeSlotsFormData) => {
-    if (selectedSlotIds.length === 0) {
-      toast.error('Select up to 10 slots to activate')
-      return
-    }
-    // Normalize to YYYY-MM-DD
-    data.date = data.date.slice(0, 10)
-    activateMutation.mutate({ date: data.date, activateSlotIds: selectedSlotIds })
-  }
-
-  const toggleSelect = (slotId: string) => {
-    setSelectedSlotIds((prev) => {
-      const exists = prev.includes(slotId)
-      if (exists) return prev.filter((id) => id !== slotId)
-      if (prev.length >= 10) {
-        toast.error('You can activate at most 10 slots')
+  const toggleTime = (time: string) => {
+    setSelectedTimes((prev) => {
+      const exists = prev.includes(time)
+      if (exists) {
+        return prev.filter((t) => t !== time)
+      }
+      if (prev.length >= 8) {
+        toast.error('You can select at most 8 time slots')
         return prev
       }
-      return [...prev, slotId]
+      return [...prev, time].sort()
     })
   }
 
-  useEffect(() => {
-    // Load slots when date changes, if already generated
-    if (selectedDate) {
-      const ymd = selectedDate.slice(0, 10)
-      // Auto-generate 24 slots for the day, then fetch
-      therapistAPI.createTimeSlots({ date: ymd, generate: true } as any)
-        .finally(() => {
-          therapistAPI.getMySlots(ymd).then((res) => {
-            setGeneratedSlots(res.data || [])
-          }).catch((e:any) => {
-            console.error('[CreateTimeSlotsModal] slots error', e?.response?.data || e?.message)
-          })
-        })
-      setSelectedSlotIds([])
+  const handleSave = () => {
+    if (selectedTimes.length === 0) {
+      toast.error('Please select at least one time slot')
+      return
     }
-  }, [selectedDate])
+    if (selectedTimes.length !== 8) {
+      toast.error('Please select exactly 8 time slots')
+      return
+    }
+    setSlotsMutation.mutate(selectedTimes)
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <Calendar className="h-5 w-5 text-primary-600" />
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isMandatory) {
+          onClose()
+        }
+      }}
+    >
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+            <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg flex-shrink-0">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">Create Time Slots</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-
-        <form className="p-6 space-y-6">
-          {/* Select Date */}
-          <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-              Select Date *
-            </label>
-            <input
-              {...register('date', { required: 'Please select a date' })}
-              type="date"
-              min={new Date().toISOString().split('T')[0]}
-              className="input"
-            />
-            {errors.date && (
-              <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>
-            )}
-          </div>
-
-          {/* Activate slots (auto-generated on date change) */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                disabled={!selectedDate || selectedSlotIds.length !== 10 || activateMutation.isLoading}
-                onClick={handleSubmit(onActivate)}
-                className="btn btn-primary"
-              >
-                {activateMutation.isLoading ? 'Activating...' : `Activate Selected (${selectedSlotIds.length}/10)`}
-              </button>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-700">Slots for {selectedDate || '—'}</span>
-                <span className="text-xs text-gray-500">Select exactly 10</span>
-              </div>
-              {(!selectedDate || generatedSlots.length === 0) ? (
-                <div className="text-center py-6">
-                  <Clock className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">No slots to display</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 max-h-72 overflow-auto">
-                  {generatedSlots.map((slot: any) => {
-                    const id = slot.id
-                    const selected = selectedSlotIds.includes(id)
-                    return (
-                      <button
-                        type="button"
-                        key={id}
-                        onClick={() => toggleSelect(id)}
-                        className={`flex items-center gap-3 p-2 border rounded hover:bg-white text-left ${selected ? 'border-primary-300 bg-primary-50' : 'border-gray-200 bg-white'}`}
-                      >
-                        {selected ? <CheckSquare className="h-4 w-4 text-primary-600"/> : <Square className="h-4 w-4 text-gray-400"/>}
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            {slot.isActive ? ' • Active' : ''}
-                            {slot.isBooked ? ' • Booked' : ''}
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">Set Your Available Time Slots</h2>
+              {isMandatory && (
+                <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                  ⚠️ Please set your available time slots to continue. These will apply to all days.
+                </p>
+              )}
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Select exactly 8 time slots (1 hour each) that you'll be available for every day.
+              </p>
+              {profile?.availableSlotTimes && profile.availableSlotTimes.length > 0 && (
+                <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                  ⚠️ You already have {profile.availableSlotTimes.length} time slot(s) configured. Changes are permanent.
+                </p>
               )}
             </div>
           </div>
+          {!isMandatory && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0 ml-2"
+            >
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+          )}
+        </div>
+
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          {/* Time Slots Grid */}
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-4">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Select Time Slots (8 slots required)
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Selected: {selectedTimes.length} / 8
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 max-h-96 overflow-y-auto">
+                {timeOptions.map((time) => {
+                  const selected = selectedTimes.includes(time)
+                  const [hours, minutes] = time.split(':').map(Number)
+                  const time12h = new Date(2000, 0, 1, hours, minutes).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                  })
+                  
+                  // Calculate end time (1 hour later)
+                  const endHour = (hours + 1) % 24
+                  const endTime = `${endHour.toString().padStart(2, '0')}:00`
+                  const endTime12h = new Date(2000, 0, 1, endHour, 0).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                  })
+                  
+                  return (
+                    <button
+                      type="button"
+                      key={time}
+                      onClick={() => toggleTime(time)}
+                      disabled={!selected && selectedTimes.length >= 8}
+                      className={`flex flex-col items-center justify-center gap-1 p-3 border-2 rounded-lg hover:bg-white dark:hover:bg-gray-800 text-center transition-all min-h-[80px] ${
+                        selected 
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400' 
+                          : selectedTimes.length >= 8
+                          ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:border-primary-300 dark:hover:border-primary-600'
+                      }`}
+                    >
+                      {selected ? (
+                        <CheckSquare className="h-5 w-5 text-primary-600 dark:text-primary-400 mb-1" />
+                      ) : (
+                        <Square className="h-5 w-5 text-gray-400 mb-1" />
+                      )}
+                      <div className="text-xs font-medium">{time12h}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">to {endTime12h}</div>
+                      <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{time} - {endTime}</div>
+                    </button>
+                  )
+                })}
+              </div>
+          </div>
 
           {/* Selection Summary */}
-          {selectedDate && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-2">Selection</h3>
-              <div className="text-sm text-gray-600">
-                <p><strong>Date:</strong> {new Date(selectedDate).toLocaleDateString()}</p>
-                <p><strong>Selected:</strong> {selectedSlotIds.length} / 10</p>
+          {selectedTimes.length > 0 && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2">Selected Times</h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedTimes.sort().map((time) => {
+                  const [hours, minutes] = time.split(':').map(Number)
+                  const endHour = (hours + 1) % 24
+                  const time12h = new Date(2000, 0, 1, hours, minutes).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                  })
+                  const endTime12h = new Date(2000, 0, 1, endHour, 0).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                  })
+                  return (
+                    <span
+                      key={time}
+                      className="px-3 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium"
+                    >
+                      {time12h} - {endTime12h}
+                    </span>
+                  )
+                })}
               </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                Each session is 1 hour long. These time slots will be available for booking on all future dates.
+              </p>
             </div>
           )}
 
-          <div className="flex space-x-3 pt-4">
+          {/* Action Buttons */}
+          <div className="flex space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            {!isMandatory && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-outline flex-1"
+              >
+                Cancel
+              </button>
+            )}
             <button
               type="button"
-              onClick={onClose}
-              className="btn btn-outline flex-1"
+              onClick={handleSave}
+              disabled={setSlotsMutation.isLoading || selectedTimes.length !== 8}
+              className={`btn btn-primary flex-1 ${
+                selectedTimes.length !== 8 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : ''
+              }`}
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit(onActivate)}
-              disabled={activateMutation.isLoading || selectedSlotIds.length !== 10}
-              className="btn btn-primary flex-1"
-            >
-              {activateMutation.isLoading ? 'Activating...' : 'Activate Selected (10/10)'}
+              {setSlotsMutation.isLoading 
+                ? 'Saving...' 
+                : selectedTimes.length === 8
+                ? 'Save Time Slots'
+                : `Save Time Slots (${selectedTimes.length}/8)`
+              }
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

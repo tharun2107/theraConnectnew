@@ -8,46 +8,48 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.listActiveTherapists = exports.deleteChild = exports.updateChild = exports.addChild = exports.getChildren = exports.updateParentProfile = exports.getParentProfile = void 0;
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = __importDefault(require("../../utils/prisma"));
 const getParentProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.parentProfile.findUnique({ where: { userId } });
+    return prisma_1.default.parentProfile.findUnique({ where: { userId } });
 });
 exports.getParentProfile = getParentProfile;
 const updateParentProfile = (userId, input) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.parentProfile.update({
+    return prisma_1.default.parentProfile.update({
         where: { userId },
         data: input,
     });
 });
 exports.updateParentProfile = updateParentProfile;
 const getChildren = (parentId) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.findMany({ where: { parentId } });
+    return prisma_1.default.child.findMany({ where: { parentId } });
 });
 exports.getChildren = getChildren;
 const addChild = (parentId, input) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.create({
+    return prisma_1.default.child.create({
         data: Object.assign(Object.assign({}, input), { parentId }),
     });
 });
 exports.addChild = addChild;
 const updateChild = (childId, parentId, input) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.update({
+    return prisma_1.default.child.update({
         where: { id: childId, parentId }, // Ensures a parent can only update their own child
         data: input,
     });
 });
 exports.updateChild = updateChild;
 const deleteChild = (childId, parentId) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.delete({
+    return prisma_1.default.child.delete({
         where: { id: childId, parentId },
     });
 });
 exports.deleteChild = deleteChild;
 const listActiveTherapists = () => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.therapistProfile.findMany({
+    return prisma_1.default.therapistProfile.findMany({
         where: { status: 'ACTIVE' },
         select: {
             id: true,

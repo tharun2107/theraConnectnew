@@ -102,3 +102,33 @@ export const updateTherapistStatusHandler = async (req: Request, res: Response) 
         res.status(500).json({ message: 'Failed to update therapist status' });
     }
 };
+
+export const listLeaveRequestsHandler = async (req: Request, res: Response) => {
+  try {
+    const leaves = await adminService.listLeaveRequests();
+    res.status(200).json(leaves);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to retrieve leave requests' });
+  }
+};
+
+export const approveLeaveRequestHandler = async (req: Request, res: Response) => {
+  try {
+    const { leaveId } = req.params as any;
+    const result = await adminService.approveLeaveRequest(leaveId);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to approve leave request' });
+  }
+};
+
+export const rejectLeaveRequestHandler = async (req: Request, res: Response) => {
+  try {
+    const { leaveId } = req.params as any;
+    const { reason } = req.body as any;
+    const result = await adminService.rejectLeaveRequest(leaveId, reason);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to reject leave request' });
+  }
+};
