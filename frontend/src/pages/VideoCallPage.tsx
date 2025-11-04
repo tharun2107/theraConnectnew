@@ -79,22 +79,22 @@ const VideoCallPage: React.FC = () => {
         }
         // Guard against double init under StrictMode
         try {
-         // await client.init({ zoomAppRoot: containerRef.current, language: 'en-US' })
-         await client.init({
-          zoomAppRoot: containerRef.current,
-          language: 'en-US',
-          customize: {
-            video: {
-              isResizable: false,
-              viewSizes: {
-                default: {
-                  width: 1000,    // Set your desired width in px
-                  height: 800    // Set your desired height in px
-                }
-              }
-            }
-          }
-        })
+         await client.init({ zoomAppRoot: containerRef.current, language: 'en-US' })
+        //  await client.init({
+        //   zoomAppRoot: containerRef.current,
+        //   language: 'en-US',
+        //   customize: {
+        //     video: {
+        //       isResizable: false,
+        //       viewSizes: {
+        //         default: {
+        //           width: 1000,    // Set your desired width in px
+        //           height: 800    // Set your desired height in px
+        //         }
+        //       }
+        //     }
+        //   }
+        // })
         
         } catch (e: any) {
           if (e?.reason === 'Duplicated init' || e?.type === 'INVALID_OPERATION') {
