@@ -83,7 +83,7 @@ const CreateTimeSlotsModal: React.FC<CreateTimeSlotsModalProps> = ({ onClose, on
         }
       }}
     >
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-black dark:border dark:border-gray-700 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
             <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg flex-shrink-0">
@@ -118,7 +118,7 @@ const CreateTimeSlotsModal: React.FC<CreateTimeSlotsModalProps> = ({ onClose, on
 
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Time Slots Grid */}
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 sm:p-4">
+          <div className="bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg p-3 sm:p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-4">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Select Time Slots (8 slots required)
@@ -157,8 +157,8 @@ const CreateTimeSlotsModal: React.FC<CreateTimeSlotsModalProps> = ({ onClose, on
                         selected 
                           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400' 
                           : selectedTimes.length >= 8
-                          ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:border-primary-300 dark:hover:border-primary-600'
+                          ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-black text-gray-400 cursor-not-allowed'
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-gray-900 dark:text-white hover:border-primary-300 dark:hover:border-primary-600'
                       }`}
                     >
                       {selected ? (

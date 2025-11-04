@@ -36,7 +36,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-0 right-0 left-72 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-30 shadow-sm"
+      className="fixed top-0 right-0 left-72 h-16 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-700 z-30 shadow-sm"
     >
       <div className="flex items-center justify-between h-full px-6">
         {/* Left side - Mobile menu button */}

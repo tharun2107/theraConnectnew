@@ -43,22 +43,22 @@ const NewLandingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
       {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
           <div className="flex justify-between items-center h-12 sm:h-14 md:h-16">
             {/* Logo */}
             <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
               <motion.div 
-                className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg"
-                whileHover={{ scale: 1.1 }}
+                className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg gpu-accelerated"
+                whileHover={{ scale: 1.05 }}
                 animate={{ 
-                  rotate: [0, 5, -5, 0],
+                  rotate: [0, 3, -3, 0],
                 }}
                 transition={{ 
-                  rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-                  scale: { duration: 0.3 }
+                  rotate: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                  scale: { duration: 0.2 }
                 }}
               >
                 <Stethoscope className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 text-white" />
@@ -78,6 +78,13 @@ const NewLandingPage: React.FC = () => {
 
             {/* Action Buttons - Show on md and up */}
             <div className="hidden md:flex items-center space-x-2 lg:space-x-3 xl:space-x-4 flex-shrink-0">
+              <button
+                onClick={() => setShowDemoModal(true)}
+                className="px-3 lg:px-4 py-1.5 lg:py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-300 flex items-center space-x-1.5 shadow-md hover:shadow-lg text-sm lg:text-base whitespace-nowrap"
+              >
+                <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                <span>Book Demo</span>
+              </button>
               <Link
                 to="/login"
                 className="px-3 lg:px-4 py-1.5 lg:py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium border border-gray-300 dark:border-gray-700 rounded-lg hover:border-blue-600 dark:hover:border-blue-400 text-sm lg:text-base whitespace-nowrap"
@@ -86,12 +93,13 @@ const NewLandingPage: React.FC = () => {
               </Link>
               <button
                 onClick={toggleDarkMode}
-                className="p-1.5 lg:p-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-1.5 lg:p-2 text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900"
                 aria-label="Toggle dark mode"
               >
                 <motion.div
                   animate={darkMode ? { rotate: [0, 360] } : { rotate: [360, 0] }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.3 }}
+                  className="gpu-accelerated"
                 >
                   {darkMode ? <Sun className="h-4 w-4 lg:h-5 lg:w-5" /> : <Moon className="h-4 w-4 lg:h-5 lg:w-5" />}
                 </motion.div>
@@ -100,6 +108,13 @@ const NewLandingPage: React.FC = () => {
 
             {/* Mobile Menu Button - Show on small devices (below md) */}
             <div className="md:hidden flex items-center space-x-1 sm:space-x-1.5 flex-shrink-0">
+              <button
+                onClick={() => setShowDemoModal(true)}
+                className="px-2 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-300 flex items-center space-x-1 text-xs whitespace-nowrap shadow-md"
+              >
+                <Calendar className="h-3 w-3" />
+                <span>Demo</span>
+              </button>
               <button
                 onClick={toggleDarkMode}
                 className="p-1.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg"
@@ -110,9 +125,10 @@ const NewLandingPage: React.FC = () => {
                     rotate: darkMode ? [0, 360] : [360, 0],
                   }}
                   transition={{ 
-                    duration: 0.5,
+                    duration: 0.3,
                     ease: "easeInOut"
                   }}
+                  className="gpu-accelerated"
                 >
                   {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </motion.div>
@@ -147,7 +163,7 @@ const NewLandingPage: React.FC = () => {
           {/* Mobile Menu */}
           {mobileMenuOpen && (
             <motion.div 
-              className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+              className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-black"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -156,7 +172,7 @@ const NewLandingPage: React.FC = () => {
               <div className="px-2 pt-2 pb-3 space-y-1">
                 <motion.a
                   href="#features"
-                  className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                  className="block px-3 py-2 text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-md transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -167,7 +183,7 @@ const NewLandingPage: React.FC = () => {
                 </motion.a>
                 <motion.a
                   href="#how-it-works"
-                  className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                  className="block px-3 py-2 text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-md transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -178,7 +194,7 @@ const NewLandingPage: React.FC = () => {
                 </motion.a>
                 <motion.a
                   href="#testimonials"
-                  className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                  className="block px-3 py-2 text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-md transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -189,7 +205,7 @@ const NewLandingPage: React.FC = () => {
                 </motion.a>
                 <motion.a
                   href="#pricing"
-                  className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                  className="block px-3 py-2 text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-md transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -198,6 +214,20 @@ const NewLandingPage: React.FC = () => {
                 >
                   Pricing
                 </motion.a>
+                <motion.button
+                  onClick={() => {
+                    setShowDemoModal(true)
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 shadow-md"
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>Book Demo Session</span>
+                </motion.button>
               </div>
             </motion.div>
           )}
@@ -209,7 +239,7 @@ const NewLandingPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="pt-14 sm:pt-16">
-        <HeroSection darkMode={darkMode} />
+        <HeroSection darkMode={darkMode} onBookDemoClick={() => setShowDemoModal(true)} />
         <VisionSection darkMode={darkMode} />
         <FeaturesSection darkMode={darkMode} />
         <HowItWorksSection darkMode={darkMode} />
@@ -220,14 +250,14 @@ const NewLandingPage: React.FC = () => {
         {/* Demo Section - Before Footer */}
         <section className={`py-12 sm:py-16 lg:py-20 transition-colors duration-300 relative overflow-hidden ${
           darkMode 
-            ? 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900' 
+            ? 'bg-black' 
             : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'
         }`}>
           <div className="absolute inset-0 pointer-events-none">
-            {[...Array(3)].map((_, i) => (
+            {[...Array(2)].map((_, i) => (
               <motion.div
                 key={i}
-                className={`absolute rounded-full ${
+                className={`absolute rounded-full gpu-accelerated ${
                   darkMode ? 'bg-blue-500/10' : 'bg-blue-400/20'
                 } blur-3xl`}
                 style={{
@@ -237,12 +267,12 @@ const NewLandingPage: React.FC = () => {
                   top: `${i * 30}%`,
                 }}
                 animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [0.2, 0.4, 0.2],
-                  rotate: [0, 180, 360]
+                  scale: [1, 1.2, 1],
+                  opacity: [0.2, 0.3, 0.2],
+                  rotate: [0, 90, 180]
                 }}
                 transition={{
-                  duration: 8 + i * 2,
+                  duration: 12 + i * 3,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -296,15 +326,16 @@ const NewLandingPage: React.FC = () => {
                 >
                   <motion.div
                     animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                    className="gpu-accelerated"
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mr-2" />
                   </motion.div>
                   <span className="text-sm sm:text-base md:text-lg">Book Demo Session</span>
                   <motion.div
-                    className="ml-2"
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="ml-2 gpu-accelerated"
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                   </motion.div>

@@ -11,17 +11,31 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 30000, // Data is fresh for 30 seconds
+      cacheTime: 300000, // Cache for 5 minutes
+      refetchOnMount: false, // Don't refetch on mount if data is fresh
     },
   },
 })
 
+// Remove StrictMode in production for better performance (it causes double renders)
+const isDevelopment = import.meta.env.DEV
+
+const AppWrapper = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <App />
+      <Toaster position="top-right" />
+    </BrowserRouter>
+  </QueryClientProvider>
+)
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-        <Toaster position="top-right" />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>,
+  isDevelopment ? (
+    <React.StrictMode>
+      <AppWrapper />
+    </React.StrictMode>
+  ) : (
+    <AppWrapper />
+  )
 )

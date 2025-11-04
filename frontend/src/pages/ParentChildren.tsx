@@ -18,7 +18,7 @@ const ParentChildren: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {children.map((c: any) => (
-            <Link key={c.id} to={`/parent/children/${c.id}`} className="block p-4 border hover:bg-gray-50 dark:hover:bg-gray-800">
+            <Link key={c.id} to={`/parent/children/${c.id}`} className="block p-4 border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-black dark:bg-black">
               <div className="font-medium">{c.name}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Age: {c.age}</div>
             </Link>

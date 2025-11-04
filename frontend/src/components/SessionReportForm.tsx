@@ -81,7 +81,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-black dark:border dark:border-gray-700 rounded-lg p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="text-center mb-4 sm:mb-6">
           <div className="mx-auto h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 mb-3 sm:mb-4">
             <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
@@ -104,7 +104,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
               {...register('sessionExperience', { required: 'Session experience is required' })}
               id="sessionExperience"
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-black dark:text-white"
               placeholder="Describe how the session went, what activities were done, and the overall experience..."
             />
             {errors.sessionExperience && (
@@ -121,7 +121,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
               {...register('childPerformance')}
               id="childPerformance"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-black dark:text-white"
               placeholder="How did the child perform during the session? Any notable behaviors or responses..."
             />
           </div>
@@ -135,7 +135,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
               {...register('improvements')}
               id="improvements"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-black dark:text-white"
               placeholder="What areas need improvement? Any challenges observed..."
             />
           </div>
@@ -149,7 +149,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
               {...register('medication')}
               id="medication"
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-black dark:text-white"
               placeholder="Any medication-related observations or recommendations..."
             />
           </div>
@@ -163,7 +163,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
               {...register('recommendations')}
               id="recommendations"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-black dark:text-white"
               placeholder="Recommendations for the parent regarding home activities, exercises, or other interventions..."
             />
           </div>
@@ -177,7 +177,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
               {...register('nextSteps')}
               id="nextSteps"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-black dark:text-white"
               placeholder="What should be the focus for the next session? Any specific goals or objectives..."
             />
           </div>
@@ -187,7 +187,7 @@ const SessionReportForm: React.FC<SessionReportFormProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-white dark:bg-black rounded-md hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-center justify-center"
             >
               <XCircle className="h-4 w-4 mr-2" />
               Cancel

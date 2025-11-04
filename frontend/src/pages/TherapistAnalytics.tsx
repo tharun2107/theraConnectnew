@@ -149,14 +149,14 @@ const TherapistAnalytics: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="absolute inset-0 bg-[#F9F9F9] dark:bg-black rounded-2xl" />
         <div className="relative p-4 sm:p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
-                <span className="text-[#1A1A1A]">Analytics</span> Dashboard
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] dark:text-white mb-2">
+                <span className="text-[#1A1A1A] dark:text-white">Analytics</span> Dashboard
               </h1>
-              <p className="text-[#4D4D4D] text-base sm:text-lg">
+              <p className="text-[#4D4D4D] dark:text-gray-300 text-base sm:text-lg">
                 Track your therapy practice performance and insights
               </p>
             </div>
@@ -171,14 +171,14 @@ const TherapistAnalytics: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="grid grid-cols-1 md:grid-cols-3 gap-6"
       >
-        <Card className="bg-[#F9F9F9] border-gray-border">
+        <Card className="bg-[#F9F9F9] dark:bg-black border-gray-border dark:border-gray-700">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#1A1A1A]">Total Sessions</p>
-                <p className="text-2xl font-bold text-[#1A1A1A]">{totalBookings}</p>
+                <p className="text-sm font-medium text-[#1A1A1A] dark:text-white">Total Sessions</p>
+                <p className="text-2xl font-bold text-[#1A1A1A] dark:text-white">{totalBookings}</p>
               </div>
-              <Calendar className="h-8 w-8 text-[#1A1A1A]" />
+              <Calendar className="h-8 w-8 text-[#1A1A1A] dark:text-white" />
             </div>
           </CardContent>
         </Card>
@@ -187,22 +187,22 @@ const TherapistAnalytics: React.FC = () => {
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#1A1A1A]">Completed</p>
-                <p className="text-2xl font-bold text-[#1A1A1A]">{completedSessions}</p>
+                <p className="text-sm font-medium text-[#1A1A1A] dark:text-white">Completed</p>
+                <p className="text-2xl font-bold text-[#1A1A1A] dark:text-white">{completedSessions}</p>
               </div>
-              <Target className="h-8 w-8 text-[#1A1A1A]" />
+              <Target className="h-8 w-8 text-[#1A1A1A] dark:text-white" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#F9F9F9] border-gray-border">
+        <Card className="bg-[#F9F9F9] dark:bg-black border-gray-border dark:border-gray-700">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#1A1A1A]">Completion Rate</p>
-                <p className="text-2xl font-bold text-[#1A1A1A]">{completionRate}%</p>
+                <p className="text-sm font-medium text-[#1A1A1A] dark:text-white">Completion Rate</p>
+                <p className="text-2xl font-bold text-[#1A1A1A] dark:text-white">{completionRate}%</p>
               </div>
-              <Award className="h-8 w-8 text-[#1A1A1A]" />
+              <Award className="h-8 w-8 text-[#1A1A1A] dark:text-white" />
             </div>
           </CardContent>
         </Card>
@@ -216,10 +216,10 @@ const TherapistAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-border">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
-                <TrendingUp className="h-5 w-5 mr-2 text-[#1A1A1A]" />
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2 text-[#1A1A1A] dark:text-white" />
                 Session Trends
               </CardTitle>
             </CardHeader>
@@ -255,10 +255,10 @@ const TherapistAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-border">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
-                <Target className="h-5 w-5 mr-2 text-[#4D4D4D]" />
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
+                <Target className="h-5 w-5 mr-2 text-[#4D4D4D] dark:text-gray-300" />
                 Session Status
               </CardTitle>
             </CardHeader>
@@ -291,10 +291,10 @@ const TherapistAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-border">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
-                <Users className="h-5 w-5 mr-2 text-[#1A1A1A]" />
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
+                <Users className="h-5 w-5 mr-2 text-[#1A1A1A] dark:text-white" />
                 Sessions by Child
               </CardTitle>
             </CardHeader>

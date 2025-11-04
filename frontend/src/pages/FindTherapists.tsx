@@ -1,14 +1,18 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, memo } from 'react'
 import { useQuery } from 'react-query'
 import { therapistAPI, bookingAPI } from '../lib/api'
 import BookSessionModal from '../components/BookSessionModal'
 import { Star, Briefcase, DollarSign, User, Stethoscope } from 'lucide-react'
+import { useDebounce } from '../hooks/useDebounce'
 
 const FindTherapists: React.FC = () => {
   const [query, setQuery] = useState('')
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0,10))
   const [timeFilter, setTimeFilter] = useState<string>('') // HH:MM optional
   const [filterByAvailability, setFilterByAvailability] = useState<boolean>(false)
+  
+  // Debounce search query to reduce API calls
+  const debouncedQuery = useDebounce(query, 300)
 
   const { data: therapists = [], isLoading } = useQuery(
     'therapistsList',
@@ -20,29 +24,50 @@ const FindTherapists: React.FC = () => {
   const [selectedTherapist, setSelectedTherapist] = useState<any | null>(null)
 
   // Fetch availability for all therapists when filtering is enabled or time filter is set
+  // Batch requests to avoid overwhelming the server
   const shouldFetchAvailability = filterByAvailability || !!timeFilter
   const { data: availabilityMap, isLoading: isLoadingAvailability } = useQuery(
     ['therapistAvailability', date, therapists?.length, filterByAvailability, timeFilter],
     async () => {
-      if (!shouldFetchAvailability || !Array.isArray(therapists)) return {}
-      const entries = await Promise.all(
-        therapists.map(async (t: any) => {
-          try {
-            const res = await bookingAPI.getAvailableSlots(t.id, date)
-            return [t.id, res.data as any[]]
-          } catch {
-            return [t.id, []]
-          }
-        })
-      )
-      return Object.fromEntries(entries)
+      if (!shouldFetchAvailability || !Array.isArray(therapists) || therapists.length === 0) return {}
+      
+      // Batch requests in chunks of 5 to avoid overwhelming the server
+      const chunkSize = 5
+      const chunks = []
+      for (let i = 0; i < therapists.length; i += chunkSize) {
+        chunks.push(therapists.slice(i, i + chunkSize))
+      }
+      
+      const allEntries = []
+      for (const chunk of chunks) {
+        const chunkEntries = await Promise.all(
+          chunk.map(async (t: any) => {
+            try {
+              const res = await bookingAPI.getAvailableSlots(t.id, date)
+              return [t.id, res.data as any[]]
+            } catch {
+              return [t.id, []]
+            }
+          })
+        )
+        allEntries.push(...chunkEntries)
+        // Small delay between chunks to prevent overwhelming the server
+        if (chunks.indexOf(chunk) < chunks.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+      }
+      
+      return Object.fromEntries(allEntries)
     },
-    { enabled: shouldFetchAvailability && therapists.length > 0 }
+    { 
+      enabled: shouldFetchAvailability && therapists.length > 0,
+      staleTime: 30000, // Cache for 30 seconds
+    }
   )
 
   const filtered = useMemo(() => {
     let list = therapists.filter((t: any) =>
-      [t.name, t.specialization].join(' ').toLowerCase().includes(query.toLowerCase())
+      [t.name, t.specialization].join(' ').toLowerCase().includes(debouncedQuery.toLowerCase())
     )
     
     // Filter by availability and/or time slot
@@ -81,7 +106,7 @@ const FindTherapists: React.FC = () => {
     }
     
     return list
-  }, [therapists, query, filterByAvailability, availabilityMap, timeFilter, shouldFetchAvailability])
+  }, [therapists, debouncedQuery, filterByAvailability, availabilityMap, timeFilter, shouldFetchAvailability])
 
   return (
     <div className="p-4 sm:p-6 space-y-4">
@@ -151,7 +176,7 @@ const FindTherapists: React.FC = () => {
           </div>
 
           {/* Clear All Filters */}
-          {(query || timeFilter || filterByAvailability) && (
+          {(debouncedQuery || timeFilter || filterByAvailability) && (
             <div>
               <button
                 onClick={() => {
@@ -159,7 +184,7 @@ const FindTherapists: React.FC = () => {
                   setTimeFilter('')
                   setFilterByAvailability(false)
                 }}
-                className="w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-white bg-gray-100 dark:bg-black dark:border dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-900 transition-colors"
               >
                 Clear All Filters
               </button>
@@ -202,7 +227,7 @@ const FindTherapists: React.FC = () => {
           {filtered.map((t: any) => (
             <div
               key={t.id}
-              className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-sm hover:shadow-xl transition-all duration-300"
+              className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-black backdrop-blur-sm shadow-sm hover:shadow-xl transition-all duration-300"
             >
               {/* Decorative gradient bar */}
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 opacity-80" />
@@ -226,21 +251,21 @@ const FindTherapists: React.FC = () => {
 
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-3 py-4">
-                  <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-black dark:border dark:border-gray-700 px-3 py-2">
                     <Briefcase className="h-4 w-4 text-gray-500" />
                     <div className="min-w-0">
                       <div className="text-xs text-gray-500">Experience</div>
                       <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{t.experience} yrs</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-black dark:border dark:border-gray-700 px-3 py-2">
                     <DollarSign className="h-4 w-4 text-gray-500" />
                     <div className="min-w-0">
                       <div className="text-xs text-gray-500">Base fee</div>
                       <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">${t.baseCostPerSession}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-black dark:border dark:border-gray-700 px-3 py-2">
                     <Star className="h-4 w-4 text-amber-500" />
                     <div className="min-w-0">
                       <div className="text-xs text-gray-500">Rating</div>
@@ -285,6 +310,6 @@ const FindTherapists: React.FC = () => {
   )
 }
 
-export default FindTherapists
+export default memo(FindTherapists)
 
 

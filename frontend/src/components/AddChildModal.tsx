@@ -43,7 +43,7 @@ const AddChildModal: React.FC<AddChildModalProps> = ({ onClose, onSuccess }) => 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 overflow-y-auto">
       <div className="min-h-full flex items-start justify-center p-4">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full transform animate-fade-in-up transition-all duration-300 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-black dark:border dark:border-gray-700 rounded-2xl shadow-2xl max-w-md w-full transform animate-fade-in-up transition-all duration-300 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
             <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg flex-shrink-0">
@@ -56,7 +56,7 @@ const AddChildModal: React.FC<AddChildModalProps> = ({ onClose, onSuccess }) => 
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-300 hover:scale-110 flex-shrink-0 ml-2"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all duration-300 hover:scale-110 flex-shrink-0 ml-2"
           >
             <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>

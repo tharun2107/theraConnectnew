@@ -136,7 +136,7 @@ const ParentProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600 dark:text-blue-400" />
@@ -159,7 +159,7 @@ const ParentProfile: React.FC = () => {
                     className="w-full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <User className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-900 dark:text-white">
                       {profile?.name || 'Not provided'}
@@ -173,7 +173,7 @@ const ParentProfile: React.FC = () => {
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email Address
                 </Label>
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <Mail className="h-4 w-4 text-gray-500" />
                   <span className="text-gray-900 dark:text-white">
                     {profile?.user?.email || 'Not provided'}
@@ -198,7 +198,7 @@ const ParentProfile: React.FC = () => {
                     className="w-full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <Phone className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-900 dark:text-white">
                       {profile?.phone || 'Not provided'}
@@ -212,7 +212,7 @@ const ParentProfile: React.FC = () => {
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Member Since
                 </Label>
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <Calendar className="h-4 w-4 text-gray-500" />
                   <span className="text-gray-900 dark:text-white">
                     {profile?.user?.createdAt 
@@ -237,7 +237,7 @@ const ParentProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Shield className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
@@ -246,7 +246,7 @@ const ParentProfile: React.FC = () => {
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white">Password</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -256,7 +256,7 @@ const ParentProfile: React.FC = () => {
                 {/* Change Password shortcut removed */}
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white">Account Status</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -281,7 +281,7 @@ const ParentProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />

@@ -154,7 +154,7 @@ const TherapistProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600 dark:text-purple-400" />
@@ -177,7 +177,7 @@ const TherapistProfile: React.FC = () => {
                     className="w-full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <User className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-900 dark:text-white">
                       {profile?.name || 'Not provided'}
@@ -200,7 +200,7 @@ const TherapistProfile: React.FC = () => {
                     className="w-full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <GraduationCap className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-900 dark:text-white">
                       {profile?.specialization || 'Not provided'}
@@ -223,7 +223,7 @@ const TherapistProfile: React.FC = () => {
                     className="w-full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <Calendar className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-900 dark:text-white">
                       {profile?.experience || 'Not provided'}
@@ -247,7 +247,7 @@ const TherapistProfile: React.FC = () => {
                     className="w-full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <DollarSign className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-900 dark:text-white">
                       ${profile?.baseCostPerSession || 'Not set'}
@@ -271,7 +271,7 @@ const TherapistProfile: React.FC = () => {
                   className="w-full min-h-[120px]"
                 />
               ) : (
-                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <p className="text-gray-900 dark:text-white">
                     {profile?.bio || 'No bio provided yet.'}
                   </p>
@@ -288,7 +288,7 @@ const TherapistProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Mail className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
@@ -302,7 +302,7 @@ const TherapistProfile: React.FC = () => {
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email Address
                 </Label>
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <Mail className="h-4 w-4 text-gray-500" />
                   <span className="text-gray-900 dark:text-white">
                     {profile?.user?.email || 'Not provided'}
@@ -327,7 +327,7 @@ const TherapistProfile: React.FC = () => {
                     className="w-full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <Phone className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-900 dark:text-white">
                       {profile?.phone || 'Not provided'}
@@ -341,7 +341,7 @@ const TherapistProfile: React.FC = () => {
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Member Since
                 </Label>
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <Calendar className="h-4 w-4 text-gray-500" />
                   <span className="text-gray-900 dark:text-white">
                     {profile?.user?.createdAt 
@@ -361,7 +361,7 @@ const TherapistProfile: React.FC = () => {
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Account Status
                 </Label>
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <Shield className="h-4 w-4 text-gray-500" />
                   <span className="text-gray-900 dark:text-white capitalize">
                     {profile?.status || 'Unknown'}
@@ -379,7 +379,7 @@ const TherapistProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />

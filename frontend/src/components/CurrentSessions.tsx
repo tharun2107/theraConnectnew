@@ -227,7 +227,15 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
               <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${status.color} mr-2 sm:mr-3 animate-pulse`} />
               Current Session
             </CardTitle>
-            <Badge variant={status.variant} className="ml-0 sm:ml-2">
+            <Badge 
+              className={`ml-0 sm:ml-2 ${
+                status.text === 'Live Now'
+                  ? 'bg-green-500 text-white border-green-600 hover:bg-green-600'
+                  : status.text === 'Ready to Join'
+                  ? 'bg-blue-500 text-white border-blue-600 hover:bg-blue-600'
+                  : 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
+              }`}
+            >
               {status.text}
             </Badge>
           </div>
@@ -272,7 +280,7 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
           </div>
 
           {/* Session Details */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-blue-800">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-gray-700">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
               <div>
                 <span className="font-medium text-gray-700">
@@ -494,21 +502,21 @@ const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSessi
       >
         <GlowCard>
           <CardContent className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Active Sessions</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Active Sessions</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
               You don't have any sessions scheduled for today or the next few hours.
             </p>
             {totalBookings > 0 && (
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                 You have {scheduledBookings} scheduled session(s) and {upcomingBookings} upcoming session(s).
                 <br />
                 Check your upcoming sessions below to see when you can join.
               </p>
             )}
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Check your upcoming sessions below or book a new one.
             </p>
           </CardContent>

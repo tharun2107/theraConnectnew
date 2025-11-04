@@ -102,7 +102,7 @@ const AdminProfile: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-purple-600/20 rounded-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 dark:bg-black rounded-2xl" />
         <div className="relative p-4 sm:p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
@@ -129,7 +129,7 @@ const AdminProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
@@ -268,7 +268,7 @@ const AdminProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
@@ -306,7 +306,7 @@ const AdminProfile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Shield className="h-5 w-5 mr-2 text-red-600 dark:text-red-400" />
@@ -315,7 +315,7 @@ const AdminProfile: React.FC = () => {
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">Change Password</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -326,7 +326,7 @@ const AdminProfile: React.FC = () => {
                   Change Password
                 </Button>
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">Two-Factor Authentication</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">

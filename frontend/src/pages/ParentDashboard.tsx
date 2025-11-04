@@ -77,7 +77,7 @@ const ParentDashboard: React.FC = () => {
         console.log('[ParentDashboard] Bookings response:', response)
         return response.data || []
       },
-      // Auto-refetch every 10 seconds when there are active sessions
+      // Auto-refetch every 30 seconds when there are active sessions (reduced from 10s for better performance)
       refetchInterval: (data) => {
         const bookings = (data as Booking[] | undefined) || []
         if (!bookings || bookings.length === 0) return false
@@ -91,7 +91,7 @@ const ParentDashboard: React.FC = () => {
           // Refetch if session is within 30 minutes before or during the session
           return timeDiff <= 30 && timeDiff >= -60
         })
-        return hasActiveSessions ? 10000 : false // Refetch every 10 seconds if active sessions
+        return hasActiveSessions ? 30000 : false // Refetch every 30 seconds if active sessions (reduced frequency)
       }
     }
   )
@@ -200,14 +200,14 @@ const ParentDashboard: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="absolute inset-0 bg-[#F9F9F9] dark:bg-black rounded-2xl" />
         <div className="relative p-4 sm:p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
-                Welcome back, <span className="text-[#1A1A1A]">{profile?.name || 'Parent'}</span>!
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] dark:text-white mb-2">
+                Welcome back, <span className="text-[#1A1A1A] dark:text-white">{profile?.name || 'Parent'}</span>!
               </h1>
-              <p className="text-[#4D4D4D] text-base sm:text-lg">
+              <p className="text-[#4D4D4D] dark:text-gray-300 text-base sm:text-lg">
                 Your children's therapy journey continues today.
               </p>
             </div>
@@ -253,7 +253,7 @@ const ParentDashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Play className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
@@ -287,7 +287,7 @@ const ParentDashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
@@ -322,7 +322,7 @@ const ParentDashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Users className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
@@ -388,7 +388,7 @@ const ParentDashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
@@ -444,7 +444,7 @@ const ParentDashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Shield className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />

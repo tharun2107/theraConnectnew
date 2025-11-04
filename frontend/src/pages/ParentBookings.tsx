@@ -134,7 +134,7 @@ const ParentBookings: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
@@ -167,7 +167,7 @@ const ParentBookings: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Star className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
@@ -200,7 +200,7 @@ const ParentBookings: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Clock className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
@@ -233,7 +233,7 @@ const ParentBookings: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardContent className="p-12 text-center">
               <div className="text-4xl mb-4">📅</div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">

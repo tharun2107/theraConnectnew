@@ -90,15 +90,15 @@ const AdminTherapistsView: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+        return 'bg-green-500 text-white border-green-600 hover:bg-green-600'
       case 'PENDING_VERIFICATION':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+        return 'bg-yellow-500 text-white border-yellow-600 hover:bg-yellow-600'
       case 'INACTIVE':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        return 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
       case 'SUSPENDED':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+        return 'bg-red-500 text-white border-red-600 hover:bg-red-600'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        return 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
     }
   }
 
@@ -175,7 +175,7 @@ const AdminTherapistsView: React.FC = () => {
         </Card>
 
         {/* Sessions List */}
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600 dark:text-blue-400" />
@@ -252,7 +252,7 @@ const AdminTherapistsView: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             <Card 
-              className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow cursor-pointer"
+              className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow cursor-pointer"
               onClick={() => handleTherapistClick(therapist)}
             >
               <CardHeader className="pb-3">

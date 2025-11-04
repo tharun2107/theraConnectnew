@@ -211,7 +211,17 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
               {formatDate(booking.timeSlot.startTime)}
             </CardTitle>
             <div className="flex items-center space-x-2">
-              <Badge variant={booking.status === 'COMPLETED' ? 'default' : 'secondary'}>
+              <Badge 
+                className={
+                  booking.status === 'COMPLETED'
+                    ? 'bg-green-500 text-white border-green-600 hover:bg-green-600'
+                    : booking.status === 'SCHEDULED'
+                    ? 'bg-blue-500 text-white border-blue-600 hover:bg-blue-600'
+                    : booking.status.includes('CANCELLED')
+                    ? 'bg-red-500 text-white border-red-600 hover:bg-red-600'
+                    : 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
+                }
+              >
                 {booking.status}
               </Badge>
               <Button
@@ -234,14 +244,14 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
           {/* Basic Session Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
+              <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 {formatTime(booking.timeSlot.startTime)} - {formatTime(booking.timeSlot.endTime)}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
+              <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 {userRole === 'PARENT' 
                   ? `Therapist: ${booking.therapist?.name || 'Unknown Therapist'}`
                   : userRole === 'ADMIN'
@@ -263,63 +273,33 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">Loading session details...</span>
+                  <span className="ml-2 text-gray-600 dark:text-gray-300">Loading session details...</span>
                 </div>
               ) : (
                 <>
-                  {/* Session Feedback (for Parents) */}
-                  {userRole === 'PARENT' && sessionData?.sessionFeedback && (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <Star className="h-5 w-5 text-green-600 mr-2" />
-                        <h4 className="font-semibold text-green-800 dark:text-green-200">Your Feedback</h4>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex space-x-1">
-                            {renderStars(sessionData.sessionFeedback.rating)}
-                          </div>
-                          <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                            {getRatingText(sessionData.sessionFeedback.rating)}
-                          </span>
-                        </div>
-                        {sessionData.sessionFeedback.comment && (
-                          <div className="bg-white dark:bg-gray-800 rounded p-3 border border-green-200 dark:border-green-700">
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              {sessionData.sessionFeedback.comment}
-                            </p>
-                          </div>
-                        )}
-                        <div className="text-xs text-green-600 dark:text-green-400">
-                          Submitted on {formatDate(sessionData.sessionFeedback.createdAt)}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Session Report (for Parents) */}
+                  {/* Session Report (for Parents) - Only show Session Report, not feedback */}
                   {userRole === 'PARENT' && sessionData?.sessionReport && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div className="bg-blue-50 dark:bg-black border border-blue-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                        <h4 className="font-semibold text-blue-800 dark:text-blue-200">Therapist's Report</h4>
+                        <h4 className="font-semibold text-blue-800 dark:text-white">Therapist's Report</h4>
                       </div>
                       <div className="space-y-3">
                         <div>
-                          <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                          <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                             Session Experience
                           </h5>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                          <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                             {sessionData.sessionReport.sessionExperience}
                           </p>
                         </div>
                         
                         {sessionData.sessionReport.childPerformance && (
                           <div>
-                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                            <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                               Child's Performance
                             </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                            <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                               {sessionData.sessionReport.childPerformance}
                             </p>
                           </div>
@@ -327,10 +307,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                         {sessionData.sessionReport.recommendations && (
                           <div>
-                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                            <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                               Recommendations
                             </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                            <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                               {sessionData.sessionReport.recommendations}
                             </p>
                           </div>
@@ -338,10 +318,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                         {sessionData.sessionReport.nextSteps && (
                           <div>
-                            <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                            <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                               Next Steps
                             </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                            <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                               {sessionData.sessionReport.nextSteps}
                             </p>
                           </div>
@@ -359,29 +339,29 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Session Report */}
                       {sessionData?.sessionReport ? (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div className="bg-blue-50 dark:bg-black border border-blue-200 dark:border-gray-700 rounded-lg p-4">
                           <div className="flex items-center mb-3">
                             <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                            <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+                            <h4 className="font-semibold text-blue-800 dark:text-white">
                               Session Report
                             </h4>
                           </div>
                           <div className="space-y-3">
                             <div>
-                              <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                              <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                 Session Experience
                               </h5>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                              <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                 {sessionData.sessionReport.sessionExperience}
                               </p>
                             </div>
                             
                             {sessionData.sessionReport.childPerformance && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Child's Performance
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.childPerformance}
                                 </p>
                               </div>
@@ -389,10 +369,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                             {sessionData.sessionReport.improvements && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Improvements
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.improvements}
                                 </p>
                               </div>
@@ -400,10 +380,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                             {sessionData.sessionReport.recommendations && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Recommendations
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.recommendations}
                                 </p>
                               </div>
@@ -411,23 +391,23 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                             {sessionData.sessionReport.nextSteps && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Next Steps
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.nextSteps}
                                 </p>
                               </div>
                             )}
 
-                            <div className="text-xs text-blue-600 dark:text-blue-400">
+                            <div className="text-xs text-blue-600 dark:text-white">
                               Report created on {formatDate(sessionData.sessionReport.createdAt)}
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex items-center justify-center">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="bg-gray-50 dark:bg-black dark:border-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-center">
+                          <p className="text-sm text-gray-500 dark:text-gray-300">
                             No session report available
                           </p>
                         </div>
@@ -435,10 +415,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                       {/* Parent Feedback */}
                       {sessionData?.sessionFeedback ? (
-                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div className="bg-green-50 dark:bg-black border border-green-200 dark:border-gray-700 rounded-lg p-4">
                           <div className="flex items-center mb-3">
                             <Star className="h-5 w-5 text-green-600 mr-2" />
-                            <h4 className="font-semibold text-green-800 dark:text-green-200">
+                            <h4 className="font-semibold text-green-800 dark:text-white">
                               Parent Feedback
                             </h4>
                           </div>
@@ -447,25 +427,25 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                               <div className="flex space-x-1">
                                 {renderStars(sessionData.sessionFeedback.rating)}
                               </div>
-                              <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                              <span className="text-sm font-medium text-green-700 dark:text-white">
                                 {getRatingText(sessionData.sessionFeedback.rating)}
                               </span>
                             </div>
                             {sessionData.sessionFeedback.comment && (
-                              <div className="bg-white dark:bg-gray-800 rounded p-3 border border-green-200 dark:border-green-700">
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                              <div className="bg-white dark:bg-black rounded p-3 border border-green-200 dark:border-gray-700">
+                                <p className="text-sm text-gray-700 dark:text-white">
                                   {sessionData.sessionFeedback.comment}
                                 </p>
                               </div>
                             )}
-                            <div className="text-xs text-green-600 dark:text-green-400">
+                            <div className="text-xs text-green-600 dark:text-white">
                               Submitted on {formatDate(sessionData.sessionFeedback.createdAt)}
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex items-center justify-center">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="bg-gray-50 dark:bg-black dark:border-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-center">
+                          <p className="text-sm text-gray-500 dark:text-gray-300">
                             No parent feedback available
                           </p>
                         </div>
@@ -475,29 +455,29 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
                     <>
                       {/* Session Report (for Therapists only) */}
                       {userRole === 'THERAPIST' && sessionData?.sessionReport && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div className="bg-blue-50 dark:bg-black border border-blue-200 dark:border-gray-700 rounded-lg p-4">
                           <div className="flex items-center mb-3">
                             <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                            <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+                            <h4 className="font-semibold text-blue-800 dark:text-white">
                               Your Session Report
                             </h4>
                           </div>
                           <div className="space-y-3">
                             <div>
-                              <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                              <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                 Session Experience
                               </h5>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                              <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                 {sessionData.sessionReport.sessionExperience}
                               </p>
                             </div>
                             
                             {sessionData.sessionReport.childPerformance && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Child's Performance
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.childPerformance}
                                 </p>
                               </div>
@@ -505,10 +485,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                             {sessionData.sessionReport.improvements && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Improvements
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.improvements}
                                 </p>
                               </div>
@@ -516,10 +496,10 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                             {sessionData.sessionReport.recommendations && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Recommendations
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.recommendations}
                                 </p>
                               </div>
@@ -527,80 +507,52 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
 
                             {sessionData.sessionReport.nextSteps && (
                               <div>
-                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-white mb-1">
                                   Next Steps
                                 </h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3 border border-blue-200 dark:border-blue-700">
+                                <p className="text-sm text-gray-700 dark:text-white bg-white dark:bg-black rounded p-3 border border-blue-200 dark:border-gray-700">
                                   {sessionData.sessionReport.nextSteps}
                                 </p>
                               </div>
                             )}
 
-                            <div className="text-xs text-blue-600 dark:text-blue-400">
+                            <div className="text-xs text-blue-600 dark:text-white">
                               Report created on {formatDate(sessionData.sessionReport.createdAt)}
                             </div>
                           </div>
                         </div>
                       )}
 
-                      {/* Parent Feedback (for Therapists only) */}
-                      {userRole === 'THERAPIST' && sessionData?.sessionFeedback && (
-                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                          <div className="flex items-center mb-3">
-                            <Star className="h-5 w-5 text-green-600 mr-2" />
-                            <h4 className="font-semibold text-green-800 dark:text-green-200">
-                              Parent's Feedback
-                            </h4>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <div className="flex space-x-1">
-                                {renderStars(sessionData.sessionFeedback.rating)}
-                              </div>
-                              <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                                {getRatingText(sessionData.sessionFeedback.rating)}
-                              </span>
-                            </div>
-                            {sessionData.sessionFeedback.comment && (
-                              <div className="bg-white dark:bg-gray-800 rounded p-3 border border-green-200 dark:border-green-700">
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
-                                  {sessionData.sessionFeedback.comment}
-                                </p>
-                              </div>
-                            )}
-                            <div className="text-xs text-green-600 dark:text-green-400">
-                              Submitted on {formatDate(sessionData.sessionFeedback.createdAt)}
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </>
                   )}
 
                   {/* Consent Status */}
                   {sessionData?.consentRequest && (
-                    <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                    <div className="bg-purple-50 dark:bg-black border border-purple-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <Shield className="h-5 w-5 text-purple-600 mr-2" />
-                        <h4 className="font-semibold text-purple-800 dark:text-purple-200">Data Sharing Consent</h4>
+                        <h4 className="font-semibold text-purple-800 dark:text-white">Data Sharing Consent</h4>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge 
-                          variant={
-                            sessionData.consentRequest.status === 'GRANTED' ? 'default' :
-                            sessionData.consentRequest.status === 'DENIED' ? 'destructive' : 'secondary'
+                          className={
+                            sessionData.consentRequest.status === 'GRANTED'
+                              ? 'bg-green-500 text-white border-green-600 hover:bg-green-600'
+                              : sessionData.consentRequest.status === 'DENIED'
+                              ? 'bg-red-500 text-white border-red-600 hover:bg-red-600'
+                              : 'bg-yellow-500 text-white border-yellow-600 hover:bg-yellow-600'
                           }
                         >
                           {sessionData.consentRequest.status}
                         </Badge>
                         {sessionData.consentRequest.respondedAt && (
-                          <span className="text-xs text-purple-600 dark:text-purple-400">
+                          <span className="text-xs text-purple-600 dark:text-white">
                             on {formatDate(sessionData.consentRequest.respondedAt)}
                           </span>
                         )}
                       </div>
                       {sessionData.consentRequest.notes && (
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 bg-white dark:bg-gray-800 rounded p-3 border border-purple-200 dark:border-purple-700">
+                        <p className="text-sm text-gray-700 dark:text-white mt-2 bg-white dark:bg-black rounded p-3 border border-purple-200 dark:border-gray-700">
                           {sessionData.consentRequest.notes}
                         </p>
                       )}

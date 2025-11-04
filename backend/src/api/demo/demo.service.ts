@@ -99,7 +99,7 @@ export async function getAvailableDemoSlots(userTimezone?: string, selectedDate?
   })
 
   // Filter out weekends (Saturday=6, Sunday=0)
-  const weekdaySlots = slots.filter((slot) => {
+  const weekdaySlots = slots.filter((slot: any) => {
     const slotDate = new Date(slot.date)
     const dayOfWeek = slotDate.getDay()
     return dayOfWeek !== 0 && dayOfWeek !== 6 // Not Sunday or Saturday

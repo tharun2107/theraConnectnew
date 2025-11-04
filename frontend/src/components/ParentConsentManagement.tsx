@@ -350,7 +350,7 @@ const ParentConsentManagement: React.FC = () => {
                   </div>
                   
                   {child.totalSessions === 0 && (
-                    <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400">
+                    <div className="mt-2 p-2 bg-gray-100 dark:bg-black dark:border dark:border-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">
                       <AlertCircle className="h-3 w-3 inline mr-1" />
                       No completed sessions yet. Consent can be managed after the first session.
                     </div>
