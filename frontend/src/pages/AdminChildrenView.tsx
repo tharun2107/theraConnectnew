@@ -169,7 +169,7 @@ const AdminChildrenView: React.FC = () => {
         </Card>
 
         {/* Sessions List */}
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600 dark:text-green-400" />
@@ -246,7 +246,7 @@ const AdminChildrenView: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             <Card 
-              className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow cursor-pointer"
+              className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow cursor-pointer"
               onClick={() => handleChildClick(child)}
             >
               <CardHeader className="pb-3">

@@ -50,7 +50,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         transition: { duration: 0.2 }
       }}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-gray-border bg-white p-4 sm:p-6 shadow-gentle transition-all duration-300 hover:shadow-calm",
+        "group relative overflow-hidden rounded-2xl border border-gray-border dark:border-gray-700 bg-white dark:bg-black p-4 sm:p-6 shadow-gentle transition-all duration-300 hover:shadow-calm",
         className
       )}
     >
@@ -88,7 +88,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: delay + 0.3, duration: 0.5 }}
-            className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]"
+            className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] dark:text-white"
           >
             <AnimatedCounter value={value} />
           </motion.div>
@@ -99,7 +99,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: delay + 0.4, duration: 0.5 }}
-          className="text-sm font-medium text-[#4D4D4D]"
+          className="text-sm font-medium text-[#4D4D4D] dark:text-gray-300"
         >
           {title}
         </motion.p>

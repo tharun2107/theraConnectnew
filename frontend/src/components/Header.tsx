@@ -11,7 +11,7 @@ const Header: React.FC = () => {
   }
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
+    <header className="bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           <div>

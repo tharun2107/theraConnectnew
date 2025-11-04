@@ -5,7 +5,7 @@ import { Heart, Users, Stethoscope, Shield, Star, Play } from 'lucide-react'
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="relative min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-white overflow-hidden">
+    <div className="relative min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white overflow-hidden">
       {/* Navbar */}
       <LandingNavbar />
 
@@ -80,7 +80,7 @@ const LandingPage: React.FC = () => {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            <div className="p-6 rounded-xl bg-gray-100 dark:bg-gray-800/50 hover:shadow-lg transition-all">
+            <div className="p-6 rounded-xl bg-gray-100 dark:bg-black dark:border dark:border-gray-700 hover:shadow-lg transition-all">
               <div className="bg-primary-100 dark:bg-primary-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Users className="h-8 w-8 text-primary-600 dark:text-primary-400" />
               </div>
@@ -90,7 +90,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-6 rounded-xl bg-gray-100 dark:bg-gray-800/50 hover:shadow-lg transition-all">
+            <div className="p-6 rounded-xl bg-gray-100 dark:bg-black dark:border dark:border-gray-700 hover:shadow-lg transition-all">
               <div className="bg-green-100 dark:bg-green-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Stethoscope className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
@@ -100,7 +100,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-6 rounded-xl bg-gray-100 dark:bg-gray-800/50 hover:shadow-lg transition-all">
+            <div className="p-6 rounded-xl bg-gray-100 dark:bg-black dark:border dark:border-gray-700 hover:shadow-lg transition-all">
               <div className="bg-purple-100 dark:bg-purple-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-purple-600 dark:text-purple-400" />
               </div>
@@ -122,7 +122,7 @@ const LandingPage: React.FC = () => {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {['Sign Up', 'Connect', 'Thrive'].map((step, i) => (
-              <div key={i} className="text-center bg-gray-100 dark:bg-gray-800/40 p-6 rounded-xl">
+              <div key={i} className="text-center bg-gray-100 dark:bg-black dark:border dark:border-gray-700 p-6 rounded-xl">
                 <div className="bg-primary-600 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                   {i + 1}
                 </div>
@@ -173,7 +173,7 @@ const LandingPage: React.FC = () => {
               { name: 'Dr. Michael Chen', role: 'Child Psychologist', text: 'As a therapist, TheraConnect has helped me grow my practice significantly.' },
               { name: 'Emily Rodriguez', role: 'Parent', text: 'The convenience of online sessions and the quality of therapists has been life-changing.' }
             ].map((t, i) => (
-              <div key={i} className="bg-gray-100 dark:bg-gray-800/60 p-6 rounded-lg hover:shadow-lg transition-all">
+              <div key={i} className="bg-gray-100 dark:bg-black dark:border dark:border-gray-700 p-6 rounded-lg hover:shadow-lg transition-all">
                 <div className="flex items-center justify-center mb-4 space-x-1">
                   {[...Array(5)].map((_, j) => <Star key={j} className="h-5 w-5 text-yellow-400" />)}
                 </div>
@@ -203,7 +203,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-16 z-10 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+      <footer className="relative py-16 z-10 bg-gray-100 dark:bg-black border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             <div className="md:col-span-2">

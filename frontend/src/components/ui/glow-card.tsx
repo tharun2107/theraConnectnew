@@ -40,7 +40,7 @@ export const GlowCard: React.FC<GlowCardProps> = ({
       initial="rest"
       whileHover="hover"
       className={cn(
-        "relative rounded-xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300",
+        "relative rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-6 shadow-lg transition-all duration-300",
         className
       )}
     >

@@ -5,7 +5,6 @@ import {
   Clock,
   Mail,
   Phone,
-  User,
   FileText,
   Video,
   Edit2,
@@ -117,13 +116,13 @@ const AdminDemoHistory: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'SCHEDULED':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-blue-500 text-white border-blue-600 hover:bg-blue-600'
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-500 text-white border-green-600 hover:bg-green-600'
       case 'CANCELLED':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-500 text-white border-red-600 hover:bg-red-600'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
     }
   }
 

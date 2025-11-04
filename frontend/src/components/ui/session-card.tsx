@@ -43,13 +43,13 @@ export const SessionCard: React.FC<SessionCardProps> = ({
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'scheduled':
-        return 'bg-accent-green/20 text-[#1A1A1A] border-accent-green/30'
+        return 'bg-blue-500 text-white border-blue-600 hover:bg-blue-600'
       case 'completed':
-        return 'bg-[#F9F9F9] text-[#1A1A1A] border-gray-border'
+        return 'bg-green-500 text-white border-green-600 hover:bg-green-600'
       case 'cancelled':
-        return 'bg-[#F9F9F9] text-[#1A1A1A] border-gray-border'
+        return 'bg-red-500 text-white border-red-600 hover:bg-red-600'
       default:
-        return 'bg-[#F9F9F9] text-[#1A1A1A] border-gray-border'
+        return 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
     }
   }
 

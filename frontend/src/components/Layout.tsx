@@ -77,17 +77,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'PARENT': return 'bg-accent-blue/20 text-[#1A1A1A] border border-accent-blue/30'
-      case 'THERAPIST': return 'bg-accent-green/20 text-[#1A1A1A] border border-accent-green/30'
-      case 'ADMIN': return 'bg-[#F9F9F9] text-[#1A1A1A] border border-gray-border'
-      default: return 'bg-[#F9F9F9] text-[#1A1A1A] border border-gray-border'
+      case 'PARENT': return 'bg-accent-blue/20 dark:bg-blue-900/30 text-[#1A1A1A] dark:text-white border border-accent-blue/30 dark:border-blue-700'
+      case 'THERAPIST': return 'bg-accent-green/20 dark:bg-green-900/30 text-[#1A1A1A] dark:text-white border border-accent-green/30 dark:border-green-700'
+      case 'ADMIN': return 'bg-[#F9F9F9] dark:bg-black text-[#1A1A1A] dark:text-white border border-gray-border dark:border-gray-700'
+      default: return 'bg-[#F9F9F9] dark:bg-black text-[#1A1A1A] dark:text-white border border-gray-border dark:border-gray-700'
     }
   }
 
   return (
     <div className="min-h-screen transition-colors duration-200">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/95">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-border dark:border-gray-700 bg-white/95 dark:bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-white/95 dark:supports-[backdrop-filter]:bg-black/95">
         <div className="flex h-16 items-center justify-between px-4 sm:px-6">
           {/* Logo and Brand */}
           <div className="flex items-center space-x-2 sm:space-x-4">
@@ -109,8 +109,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <span className="text-white font-bold text-sm">TC</span>
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg sm:text-xl font-bold text-[#1A1A1A]">TheraConnect</h1>
-                <p className="text-xs text-[#4D4D4D]">Professional Therapy</p>
+                <h1 className="text-lg sm:text-xl font-bold text-[#1A1A1A] dark:text-white">TheraConnect</h1>
+                <p className="text-xs text-[#4D4D4D] dark:text-gray-400">Professional Therapy</p>
               </div>
             </div>
           </div>
@@ -125,7 +125,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-[#4D4D4D] hover:text-[#1A1A1A] hover:bg-[#F9F9F9] rounded-lg transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-[#4D4D4D] dark:text-gray-300 hover:text-[#1A1A1A] dark:hover:text-white hover:bg-[#F9F9F9] dark:hover:bg-gray-900 rounded-lg transition-colors"
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
@@ -141,7 +141,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="p-2 text-[#B3B3B3] hover:text-[#1A1A1A]"
+              className="p-2 text-[#B3B3B3] dark:text-gray-400 hover:text-[#1A1A1A] dark:hover:text-white"
             >
               {theme === 'dark' ? (
                 <Sun className="h-4 w-4" />
@@ -154,7 +154,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 text-[#B3B3B3] hover:text-[#1A1A1A] relative"
+              className="p-2 text-[#B3B3B3] dark:text-gray-400 hover:text-[#1A1A1A] dark:hover:text-white relative"
             >
               <Bell className="h-4 w-4" />
               <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-black text-white">
@@ -172,15 +172,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden lg:block text-left">
-                    <p className="text-sm font-medium text-[#1A1A1A]">{user.name || 'User'}</p>
-                    <p className="text-xs text-[#4D4D4D]">{user.email || 'user@example.com'}</p>
+                    <p className="text-sm font-medium text-[#1A1A1A] dark:text-white">{user.name || 'User'}</p>
+                    <p className="text-xs text-[#4D4D4D] dark:text-gray-400">{user.email || 'user@example.com'}</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2">
-                  <p className="text-sm font-medium text-[#1A1A1A]">{user.name || 'User'}</p>
-                  <p className="text-xs text-[#4D4D4D]">{user.email || 'user@example.com'}</p>
+                  <p className="text-sm font-medium text-[#1A1A1A] dark:text-white">{user.name || 'User'}</p>
+                  <p className="text-xs text-[#4D4D4D] dark:text-gray-400">{user.email || 'user@example.com'}</p>
                   <Badge className={`mt-1 text-xs ${getRoleColor(user.role || 'USER')}`}>
                     {user.role || 'USER'}
                   </Badge>
@@ -195,7 +195,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-[#1A1A1A] hover:bg-[#F9F9F9]">
+                <DropdownMenuItem onClick={handleLogout} className="text-[#1A1A1A] dark:text-white hover:bg-[#F9F9F9] dark:hover:bg-gray-900">
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </DropdownMenuItem>
@@ -206,7 +206,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-border bg-white">
+          <div className="md:hidden border-t border-gray-border dark:border-gray-700 bg-white dark:bg-black">
             <nav className="px-4 py-3 space-y-1">
               {navigationItems.map((item) => {
                 const Icon = item.icon
@@ -218,7 +218,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       navigate(item.path)
                       setMobileMenuOpen(false)
                     }}
-                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-base font-medium text-[#4D4D4D] hover:text-[#1A1A1A] hover:bg-[#F9F9F9] rounded-lg transition-colors justify-start"
+                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-base font-medium text-[#4D4D4D] dark:text-gray-300 hover:text-[#1A1A1A] dark:hover:text-white hover:bg-[#F9F9F9] dark:hover:bg-gray-900 rounded-lg transition-colors justify-start"
                   >
                     <Icon className="h-5 w-5" />
                     <span>{item.label}</span>
@@ -231,7 +231,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className="min-h-screen bg-[#F9F9F9] transition-colors duration-200">
+      <main className="min-h-screen bg-[#F9F9F9] dark:bg-black transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
           {children}
         </div>

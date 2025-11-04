@@ -136,9 +136,9 @@ const AdminSettings: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardContent className="p-4 sm:p-6">
-            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex space-x-1 bg-gray-100 dark:bg-black dark:border dark:border-gray-700 rounded-lg p-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (
@@ -147,7 +147,7 @@ const AdminSettings: React.FC = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       activeTab === tab.id
-                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        ? 'bg-white dark:bg-black dark:border dark:border-gray-700 text-blue-600 dark:text-white shadow-sm'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                   >
@@ -168,7 +168,7 @@ const AdminSettings: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.4 }}
       >
         {activeTab === 'general' && (
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Settings className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
@@ -277,7 +277,7 @@ const AdminSettings: React.FC = () => {
         )}
 
         {activeTab === 'notifications' && (
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Bell className="h-5 w-5 mr-2 text-yellow-600 dark:text-yellow-400" />
@@ -286,7 +286,7 @@ const AdminSettings: React.FC = () => {
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Email Notifications</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -331,7 +331,7 @@ const AdminSettings: React.FC = () => {
         )}
 
         {activeTab === 'security' && (
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Shield className="h-5 w-5 mr-2 text-red-600 dark:text-red-400" />
@@ -340,7 +340,7 @@ const AdminSettings: React.FC = () => {
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Maintenance Mode</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -353,7 +353,7 @@ const AdminSettings: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Allow New Registrations</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -386,7 +386,7 @@ const AdminSettings: React.FC = () => {
         )}
 
         {activeTab === 'platform' && (
-          <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Globe className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />

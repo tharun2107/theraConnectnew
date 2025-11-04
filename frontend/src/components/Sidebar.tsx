@@ -46,7 +46,7 @@ const Sidebar: React.FC = () => {
   const navigationItems = getNavigationItems()
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-900 shadow-sm border-r border-gray-200 dark:border-gray-700 min-h-screen transition-colors duration-200">
+    <div className="w-64 bg-white dark:bg-black shadow-sm border-r border-gray-200 dark:border-gray-700 min-h-screen transition-colors duration-200">
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
@@ -66,7 +66,7 @@ const Sidebar: React.FC = () => {
                 `flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-white'
                 }`
               }
             >

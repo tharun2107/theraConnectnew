@@ -3,14 +3,15 @@ import { Button } from "./ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar } from "lucide-react";
 import heroImage from "../../assets/hero-therapy-session.jpg";
 
 interface HeroSectionProps {
   darkMode?: boolean
+  onBookDemoClick?: () => void
 }
 
-const HeroSection: React.FC<HeroSectionProps> = ({ darkMode = false }) => {
+const HeroSection: React.FC<HeroSectionProps> = ({ darkMode = false, onBookDemoClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -259,6 +260,35 @@ const HeroSection: React.FC<HeroSectionProps> = ({ darkMode = false }) => {
                   />
                 </Button>
               </Link>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Button 
+                size="lg" 
+                onClick={onBookDemoClick}
+                className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold relative overflow-hidden group shadow-2xl border-0"
+                style={{
+                  boxShadow: '0 10px 30px rgba(34, 211, 238, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                }}
+              >
+                <motion.span
+                  className="relative z-10 flex items-center"
+                  initial={{ opacity: 1 }}
+                  whileHover={{ opacity: 0.9 }}
+                >
+                  <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  Book Demo Session
+                </motion.span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: "100%" }}
+                  transition={{ duration: 0.6 }}
+                />
+              </Button>
             </motion.div>
           </motion.div>
 

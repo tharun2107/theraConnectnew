@@ -115,15 +115,15 @@ const AdminDashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+        return 'bg-green-500 text-white border-green-600 hover:bg-green-600'
       case 'PENDING_VERIFICATION':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+        return 'bg-yellow-500 text-white border-yellow-600 hover:bg-yellow-600'
       case 'INACTIVE':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        return 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
       case 'SUSPENDED':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+        return 'bg-red-500 text-white border-red-600 hover:bg-red-600'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        return 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
     }
   }
 
@@ -140,14 +140,14 @@ const AdminDashboard: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="absolute inset-0 bg-[#F9F9F9] dark:bg-black rounded-2xl" />
         <div className="relative p-4 sm:p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
-                Welcome back, <span className="text-[#1A1A1A]">Admin</span>!
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] dark:text-white mb-2">
+                Welcome back, <span className="text-[#1A1A1A] dark:text-white">Admin</span>!
               </h1>
-              <p className="text-[#4D4D4D] text-base sm:text-lg">
+              <p className="text-[#4D4D4D] dark:text-gray-300 text-base sm:text-lg">
                 Manage your therapy platform and support your team.
               </p>
             </div>
@@ -209,7 +209,7 @@ const AdminDashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">

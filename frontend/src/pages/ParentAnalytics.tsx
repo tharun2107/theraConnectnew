@@ -177,23 +177,23 @@ const ParentAnalytics: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[#F9F9F9] rounded-2xl" />
+        <div className="absolute inset-0 bg-[#F9F9F9] dark:bg-black rounded-2xl" />
         <div className="relative p-4 sm:p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-2">
-                <span className="text-[#1A1A1A]">Analytics</span> Dashboard
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] dark:text-white mb-2">
+                <span className="text-[#1A1A1A] dark:text-white">Analytics</span> Dashboard
               </h1>
-              <p className="text-[#4D4D4D] text-base sm:text-lg">
+              <p className="text-[#4D4D4D] dark:text-gray-300 text-base sm:text-lg">
                 Track your children's therapy progress and session insights
               </p>
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-2xl font-bold text-[#1A1A1A]">
+                <p className="text-2xl font-bold text-[#1A1A1A] dark:text-white">
                   {completionRate}%
                 </p>
-                <p className="text-sm text-[#4D4D4D]">
+                <p className="text-sm text-[#4D4D4D] dark:text-gray-300">
                   Completion Rate
                 </p>
               </div>
@@ -266,9 +266,9 @@ const ParentAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                 Session Trends
               </CardTitle>
@@ -305,9 +305,9 @@ const ParentAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
                 Child Sessions
               </CardTitle>
@@ -332,9 +332,9 @@ const ParentAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <Target className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
                 Session Status
               </CardTitle>
@@ -368,9 +368,9 @@ const ParentAnalytics: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
         >
-          <Card className="bg-white shadow-gentle rounded-xl border border-gray-border">
+          <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <Users className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
                 Therapist Sessions
               </CardTitle>
@@ -409,25 +409,25 @@ const ParentAnalytics: React.FC = () => {
                 <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                   {totalChildren}
                 </div>
-                <div className="text-sm text-[#4D4D4D]">Children in Therapy</div>
+                <div className="text-sm text-[#4D4D4D] dark:text-gray-300">Children in Therapy</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                   {completionRate}%
                 </div>
-                <div className="text-sm text-[#4D4D4D]">Session Completion Rate</div>
+                <div className="text-sm text-[#4D4D4D] dark:text-gray-300">Session Completion Rate</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                   {therapistChartData.length}
                 </div>
-                <div className="text-sm text-[#4D4D4D]">Active Therapists</div>
+                <div className="text-sm text-[#4D4D4D] dark:text-gray-300">Active Therapists</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
                   {upcomingSessions}
                 </div>
-                <div className="text-sm text-[#4D4D4D]">Upcoming Sessions</div>
+                <div className="text-sm text-[#4D4D4D] dark:text-gray-300">Upcoming Sessions</div>
               </div>
             </div>
           </CardContent>

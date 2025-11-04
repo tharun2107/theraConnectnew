@@ -102,7 +102,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-black dark:border dark:border-gray-700 rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="text-center mb-4 sm:mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Session Feedback
@@ -142,7 +142,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
               {...register('comment')}
               id="comment"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-black dark:text-white"
               placeholder="Share your thoughts about the session..."
             />
           </div>
@@ -174,7 +174,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-white dark:bg-black rounded-md hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
             >
               Cancel
             </button>
