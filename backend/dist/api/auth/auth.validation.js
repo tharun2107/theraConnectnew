@@ -20,6 +20,7 @@ exports.registerTherapistSchema = zod_1.z.object({
         specialization: zod_1.z.string().min(3, { message: "Specialization must be at least 3 characters long." }),
         experience: zod_1.z.number().int().positive({ message: "Experience must be a positive integer." }),
         baseCostPerSession: zod_1.z.number().positive({ message: "Base cost per session must be a positive number." }),
+        timezone: zod_1.z.string().optional(),
     }),
 }).strict();
 exports.registerAdminSchema = zod_1.z.object({

@@ -82,6 +82,7 @@ export const registerTherapist = async (input: RegisterTherapistInput) => {
     specialization,
     experience,
     baseCostPerSession,
+    timezone
   } = input;
 
   // Pre-checks
@@ -96,7 +97,7 @@ export const registerTherapist = async (input: RegisterTherapistInput) => {
   try {
     return await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
-        data: { email, password: hashedPassword, role: Role.THERAPIST, name }, // <-- FIXED: Added name to User
+        data: { email, password: hashedPassword, role: Role.THERAPIST, name,timezone:timezone}, // <-- FIXED: Added name to User
       });
       await tx.therapistProfile.create({
         data: {

@@ -186,8 +186,7 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
     const user = await authService.registerTherapist(req.body);
     const  token = signJwt({ userId: user.id, role: user.role });
     const { password, ...userWithoutPassword } = user;
-
-        const finduser = await prisma.user.findUnique({
+      const finduser = await prisma.user.findUnique({
       where: { id: user.id },
       include: { therapistProfile: true }
     });
@@ -955,7 +954,6 @@ export const googleCallbackHandler = async (req: Request, res: Response) => {
   // with the user object returned from our `findOrCreateUserFromProvider` service.
   // `User` type was not defined/imported; cast to `any` or replace with a proper imported type.
   const user = req.user as any;
-
   if (!user) {
     return res
       .status(401)

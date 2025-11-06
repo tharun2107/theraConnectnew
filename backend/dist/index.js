@@ -20,10 +20,10 @@ const client_1 = require("@prisma/client");
 const auth_routes_js_1 = __importDefault(require("./api/auth/auth.routes.js"));
 const admin_routes_js_1 = __importDefault(require("./api/admin/admin.routes.js"));
 const parent_routes_js_1 = __importDefault(require("./api/parent/parent.routes.js"));
-// import therapistRoutes from './api/therapist/therapist.routes.js';
-// import bookingRoutes from './api/booking/booking.routes.js';
-// import slotRoutes from './api/slots/slots.routes.js';
-// import feedbackRoutes from './api/feedback/feedback.routes.js';
+const therapist_routes_js_1 = __importDefault(require("./api/therapist/therapist.routes.js"));
+const booking_routes_js_1 = __importDefault(require("./api/booking/booking.routes.js"));
+const slots_routes_js_1 = __importDefault(require("./api/slots/slots.routes.js"));
+const feedback_routes_js_1 = __importDefault(require("./api/feedback/feedback.routes.js"));
 const passport_1 = __importDefault(require("passport"));
 const express_session_1 = __importDefault(require("express-session"));
 require("./services/passport.service.js");
@@ -32,7 +32,7 @@ dotenv_1.default.config();
 const { SESSION_SECRET } = process.env;
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
     "https://thera-connectnew.vercel.app",
     "http://localhost:3000",
@@ -49,6 +49,11 @@ const corsOptions = {
     },
     credentials: true,
 };
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        message: "therabee is healthy"
+    });
+});
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -67,10 +72,10 @@ app.use(passport_1.default.initialize());
 app.use('/api/v1/auth', auth_routes_js_1.default);
 app.use('/api/v1/admin', admin_routes_js_1.default);
 app.use('/api/v1/parents', parent_routes_js_1.default);
-// app.use('/api/v1/therapists', therapistRoutes);
-// app.use('/api/v1/bookings', bookingRoutes);
-// app.use('/api/v1/slots', slotRoutes);
-// app.use('/api/v1/feedback', feedbackRoutes);
+app.use('/api/v1/therapists', therapist_routes_js_1.default);
+app.use('/api/v1/bookings', booking_routes_js_1.default);
+app.use('/api/v1/slots', slots_routes_js_1.default);
+app.use('/api/v1/feedback', feedback_routes_js_1.default);
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$connect();

@@ -1,28 +1,29 @@
 import type { Request, Response } from 'express';
 import * as parentService from './parent.service';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { AuthenticatedRequest } from '../../middleware/auth.middleware';
+import { childSchema } from './parent.validation';
+import z from 'zod';
 
 const prisma = new PrismaClient();
-
+export type ChildInput = z.infer<typeof childSchema>['body'];
 const getParentId = async (userId: string) => {
     const parentProfile = await prisma.parentProfile.findUnique({ where: { userId }, select: { id: true } });
     if (!parentProfile) throw new Error('Parent profile not found');
     return parentProfile.id;
 }
 
-export const getMyProfileHandler = async (req: AuthenticatedRequest, res: Response) => {
+export const getMyProfileHandler = async (req: Request, res: Response) => {
     try {
-        const profile = await parentService.getParentProfile(req.user!.id);
+        const profile = await parentService.getParentProfile(req.currentUser!.userId);
         res.status(200).json(profile);
     } catch (error: any) {
         res.status(404).json({ message: error.message });
     }
 }
 
-export const getMyChildrenHandler = async (req: AuthenticatedRequest, res: Response) => {
+export const getMyChildrenHandler = async (req: Request, res: Response) => {
     try {
-        const parentId = await getParentId(req.user!.id);
+        const parentId = await getParentId(req.currentUser!.userId);
         const children = await parentService.getChildren(parentId);
         res.status(200).json(children);
     } catch (error: any) {
@@ -30,12 +31,10 @@ export const getMyChildrenHandler = async (req: AuthenticatedRequest, res: Respo
     }
 }
 
-export const addChildHandler = async (req: AuthenticatedRequest, res: Response) => {
+export const addChildHandler = async (req: Request, res: Response) => {
   try {
-    const parentId = await getParentId(req.user!.id);
-    
-    const childInput: ChildInput = req.body as ChildInput;
-    const child = await parentService.addChild(parentId, childInput);
+    const parentId = await getParentId(req.currentUser!.userId);
+    const child = await parentService.addChild(parentId, req.body as any);
     res.status(201).json(child);
   } catch (error: any) {
     // Check for Prisma unique constraint error
@@ -55,7 +54,7 @@ export const addChildHandler = async (req: AuthenticatedRequest, res: Response) 
 
 export const updateChildHandler = async (req: Request, res: Response) => {
     try {
-        const parentId = await getParentId(req.user!.userId);
+        const parentId = await getParentId(req.currentUser!.userId);
         const { childId } = req.params;
         const child = await parentService.updateChild(childId, parentId, req.body);
         res.status(200).json(child);
@@ -66,7 +65,7 @@ export const updateChildHandler = async (req: Request, res: Response) => {
 
 export const deleteChildHandler = async (req: Request, res: Response) => {
     try {
-        const parentId = await getParentId(req.user!.userId);
+        const parentId = await getParentId(req.currentUser!.userId);
         const { childId } = req.params;
         await parentService.deleteChild(childId, parentId);
         res.status(204).send();

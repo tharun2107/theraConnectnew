@@ -6,6 +6,8 @@ const validate_middleware_1 = require("../../middleware/validate.middleware");
 const client_1 = require("@prisma/client");
 const parent_controller_1 = require("./parent.controller");
 const parent_validation_1 = require("./parent.validation");
+const booking_validation_1 = require("../booking/booking.validation");
+const booking_controller_1 = require("../booking/booking.controller");
 const router = (0, express_1.Router)();
 // All routes are for authenticated Parents only
 router.use(auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)([client_1.Role.PARENT]));
@@ -17,4 +19,20 @@ router.put('/me/children/:childId', (0, validate_middleware_1.validate)({ body: 
 router.delete('/me/children/:childId', (0, validate_middleware_1.validate)({ params: parent_validation_1.childIdParamSchema.shape.params }), parent_controller_1.deleteChildHandler);
 // Public list of active therapists for parents
 router.get('/therapists', parent_controller_1.getActiveTherapistsHandler);
+router.post('/recurring-bookings', (0, validate_middleware_1.validate)({ body: booking_validation_1.createRecurringBookingSchema.shape.body }), booking_controller_1.createRecurringBookingHandler);
+/**
+ * GET /api/parent/recurring-bookings
+ * Get all recurring bookings for the parent
+ */
+router.get('/recurring-bookings/:recurringBookingId', (0, validate_middleware_1.validate)({ params: booking_validation_1.getRecurringBookingSchema.shape.params }), booking_controller_1.getRecurringBookingsHandler);
+/**
+ * GET /api/parent/recurring-bookings/:recurringBookingId/sessions
+ * Get upcoming sessions for a specific recurring booking
+ */
+router.get('/recurring-bookings/:recurringBookingId/sessions', (0, validate_middleware_1.validate)({ params: booking_validation_1.getRecurringBookingSchema.shape.params }), booking_controller_1.getUpcomingSessionsHandler);
+/**
+ * DELETE /api/parent/recurring-bookings/:recurringBookingId
+ * Cancel a recurring booking (cancels all future sessions)
+ */
+router.delete('/recurring-bookings/:recurringBookingId', (0, validate_middleware_1.validate)({ body: booking_validation_1.cancelRecurringBookingSchema.shape.body }), booking_controller_1.cancelRecurringBookingHandler);
 exports.default = router;

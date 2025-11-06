@@ -2,6 +2,12 @@ import jwt, { type Secret, type SignOptions } from 'jsonwebtoken';
 import { Role } from '@prisma/client';
  import { config } from './config';
 
+ export interface UserRole {
+  userId: string;
+  role: Role;
+}
+
+
 export interface JwtPayload {
   userId: string;
   role: Role;

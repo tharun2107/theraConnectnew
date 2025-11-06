@@ -19,7 +19,9 @@ export const registerTherapistSchema = z.object({
     specialization: z.string().min(3, { message: "Specialization must be at least 3 characters long." }),
     experience: z.number().int().positive({ message: "Experience must be a positive integer." }),
     baseCostPerSession: z.number().positive({ message: "Base cost per session must be a positive number." }),
+    timezone: z.string().optional(),
   }),
+
 }).strict();
 
 export const registerAdminSchema = z.object({

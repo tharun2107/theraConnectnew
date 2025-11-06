@@ -11,6 +11,8 @@ import {
   getActiveTherapistsHandler,
 } from './parent.controller';
 import { childIdParamSchema, childSchema, updateChildSchema } from './parent.validation';
+import { cancelRecurringBookingSchema, createBookingSchema, createRecurringBookingSchema, getRecurringBookingSchema, getSlotsQuerySchema } from '../booking/booking.validation';
+import { cancelRecurringBookingHandler, createRecurringBookingHandler, getRecurringBookingsHandler, getUpcomingSessionsHandler } from '../booking/booking.controller';
 
 const router = Router();
 
@@ -27,5 +29,26 @@ router.delete('/me/children/:childId', validate({ params: childIdParamSchema.sha
 
 // Public list of active therapists for parents
 router.get('/therapists', getActiveTherapistsHandler);
+
+
+router.post('/recurring-bookings',validate({ body: createRecurringBookingSchema.shape.body }),createRecurringBookingHandler);
+
+/**
+ * GET /api/parent/recurring-bookings
+ * Get all recurring bookings for the parent
+ */
+router.get('/recurring-bookings/:recurringBookingId',validate({params:getRecurringBookingSchema.shape.params}),getRecurringBookingsHandler);
+
+/**
+ * GET /api/parent/recurring-bookings/:recurringBookingId/sessions
+ * Get upcoming sessions for a specific recurring booking
+ */
+router.get('/recurring-bookings/:recurringBookingId/sessions',validate({ params: getRecurringBookingSchema.shape.params }),getUpcomingSessionsHandler);
+
+/**
+ * DELETE /api/parent/recurring-bookings/:recurringBookingId
+ * Cancel a recurring booking (cancels all future sessions)
+ */
+router.delete('/recurring-bookings/:recurringBookingId',validate({body : cancelRecurringBookingSchema.shape.body}),cancelRecurringBookingHandler);
 
 export default router;

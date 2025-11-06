@@ -7,10 +7,10 @@ import { PrismaClient } from '@prisma/client';
 import authRoutes from './api/auth/auth.routes.js';
 import adminRoutes from './api/admin/admin.routes.js';
 import parentRoutes from './api/parent/parent.routes.js';
-// import therapistRoutes from './api/therapist/therapist.routes.js';
-// import bookingRoutes from './api/booking/booking.routes.js';
-// import slotRoutes from './api/slots/slots.routes.js';
-// import feedbackRoutes from './api/feedback/feedback.routes.js';
+import therapistRoutes from './api/therapist/therapist.routes.js';
+import bookingRoutes from './api/booking/booking.routes.js';
+import slotRoutes from './api/slots/slots.routes.js';
+import feedbackRoutes from './api/feedback/feedback.routes.js';
 import passport from 'passport';
 import session from 'express-session'
 import './services/passport.service.js';
@@ -23,7 +23,7 @@ const  {SESSION_SECRET} = process.env;
 
 const prisma = new PrismaClient();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const allowedOrigins: string[] = [
   "https://thera-connectnew.vercel.app",
   "http://localhost:3000",
@@ -39,6 +39,12 @@ const corsOptions: CorsOptions = {
   },
   credentials: true,
 };
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    message : "therabee is healthy"
+  })
+});
 
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -62,10 +68,10 @@ app.use(passport.initialize());
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/parents', parentRoutes);
-// app.use('/api/v1/therapists', therapistRoutes);
-// app.use('/api/v1/bookings', bookingRoutes);
-// app.use('/api/v1/slots', slotRoutes);
-// app.use('/api/v1/feedback', feedbackRoutes);
+app.use('/api/v1/therapists', therapistRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/slots', slotRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
 
 
 const startServer = async () => {

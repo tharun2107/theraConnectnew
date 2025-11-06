@@ -71,7 +71,7 @@ const registerParent = (input) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.registerParent = registerParent;
 const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, name, phone, specialization, experience, baseCostPerSession, } = input;
+    const { email, password, name, phone, specialization, experience, baseCostPerSession, timezone } = input;
     // Pre-checks
     const [existingUser, existingPhone] = yield Promise.all([
         prisma.user.findUnique({ where: { email } }),
@@ -85,7 +85,7 @@ const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function*
     try {
         return yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
             const user = yield tx.user.create({
-                data: { email, password: hashedPassword, role: client_1.Role.THERAPIST, name }, // <-- FIXED: Added name to User
+                data: { email, password: hashedPassword, role: client_1.Role.THERAPIST, name, timezone: timezone }, // <-- FIXED: Added name to User
             });
             yield tx.therapistProfile.create({
                 data: {

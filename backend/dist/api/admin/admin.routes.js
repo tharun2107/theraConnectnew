@@ -6,6 +6,8 @@ const validate_middleware_1 = require("../../middleware/validate.middleware");
 const client_1 = require("@prisma/client");
 const admin_controller_1 = require("./admin.controller");
 const admin_validation_1 = require("./admin.validation");
+const leave_validation_1 = require("../leaves/leave.validation");
+const leave_controller_1 = require("../leaves/leave.controller");
 const router = (0, express_1.Router)();
 // All routes in this file are protected and for Admins only
 router.use(auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)([client_1.Role.ADMIN]));
@@ -24,4 +26,17 @@ router.get('/profile', admin_controller_1.getProfileHandler);
 // Platform settings
 router.get('/settings', admin_controller_1.getPlatformSettingsHandler);
 router.put('/settings', admin_controller_1.updatePlatformSettingsHandler);
+//leaves mgt
+router.get('/leaves', (0, validate_middleware_1.validate)({ body: leave_validation_1.getLeaveRequestsSchema.shape.body }), leave_controller_1.getAllLeavesHandler);
+/**
+ * GET /api/admin/leaves/:leaveId
+ * Get details of a specific leave request
+ */
+router.get('/leaves/:leaveId', (0, validate_middleware_1.validate)({ params: leave_validation_1.getLeaveByIdSchema.shape.params }), leave_controller_1.getLeaveDetailsHandler);
+/**
+ * PUT /api/admin/leaves/:leaveId
+ * Approve or reject a leave request
+ * Body: { action: "APPROVE" | "REJECT", adminNotes?: "..." }
+ */
+router.put('/leaves', (0, validate_middleware_1.validate)({ body: leave_validation_1.processLeaveSchema.shape.body }), leave_controller_1.processLeaveHandler);
 exports.default = router;

@@ -14,6 +14,8 @@ import {
   updatePlatformSettingsHandler
 } from './admin.controller';
 import { updateTherapistStatusSchema } from './admin.validation';
+import { getLeaveByIdSchema, getLeaveRequestsSchema, processLeaveSchema } from '../leaves/leave.validation';
+import { getAllLeavesHandler, getLeaveDetailsHandler, processLeaveHandler } from '../leaves/leave.controller';
 
 const router = Router();
 
@@ -39,5 +41,33 @@ router.get('/profile', getProfileHandler);
 // Platform settings
 router.get('/settings', getPlatformSettingsHandler);
 router.put('/settings', updatePlatformSettingsHandler);
+
+//leaves mgt
+router.get(
+  '/leaves',
+  validate({ body: getLeaveRequestsSchema.shape.body }),
+  getAllLeavesHandler
+);
+
+/**
+ * GET /api/admin/leaves/:leaveId
+ * Get details of a specific leave request
+ */
+router.get(
+  '/leaves/:leaveId',
+  validate({ params: getLeaveByIdSchema.shape.params }),
+  getLeaveDetailsHandler
+);
+
+/**
+ * PUT /api/admin/leaves/:leaveId
+ * Approve or reject a leave request
+ * Body: { action: "APPROVE" | "REJECT", adminNotes?: "..." }
+ */
+router.put(
+  '/leaves',
+  validate({ body: processLeaveSchema.shape.body }),
+  processLeaveHandler
+);
 
 export default router;

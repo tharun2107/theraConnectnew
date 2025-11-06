@@ -39,10 +39,10 @@ enum TherapistStatus {
 }
 
 enum LeaveType {
-  CASUAL
-  SICK
-  FESTIVE
-  OPTIONAL
+  CASUAL //5
+  SICK  // 5
+  FESTIVE //5
+  OPTIONAL // 1
 }
 
 enum LeaveStatus {
@@ -213,7 +213,9 @@ model TherapistProfile {
 
   scheduleStartTime   String @default("09:00") // Local time
   slotDurationInMinutes Int @default(60)
+  selectedSlots       String[] @default([])
   maxSlotsPerDay      Int @default(8)
+  
 
   breaks            TherapistBreak[]
   timeSlots         TimeSlot[]
@@ -279,15 +281,23 @@ model TimeSlot {
   @@index([therapistId, startTime])
 }
 
+
+
 model RecurringBooking {
   id          String   @id @default(cuid())
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  recurrencePattern RecurrencePattern @default(WEEKLY)
-  dayOfWeek   DayOfWeek?
-  slotTime    String // Local HH:mm
-
+  recurrencePattern RecurrencePattern @default(DAILY) // Changed default to DAILY
+  dayOfWeek   DayOfWeek? 
+  slotTime    String 
+  
+  
+  
+  startDate   DateTime @db.Date 
+  endDate     DateTime @db.Date 
+  
+  // Relations
   parentId    String
   childId     String
   therapistId String
@@ -296,11 +306,12 @@ model RecurringBooking {
   child       Child            @relation(fields: [childId], references: [id])
   therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
 
-  bookings Booking[]
-
+  bookings Booking[]  
+  
   @@index([therapistId])
   @@index([parentId])
   @@index([childId])
+  @@index([startDate, endDate])
 }
 
 model Booking {
@@ -344,6 +355,11 @@ model TherapistLeave {
   reason    String?
   createdAt DateTime @default(now())
   status    LeaveStatus @default(PENDING)
+
+  casualRemaining   Int @default(5)
+  sickRemaining     Int @default(5)
+  festiveRemaining  Int @default(5)
+  optionalRemaining Int @default(1)
 
   therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
   therapistId String

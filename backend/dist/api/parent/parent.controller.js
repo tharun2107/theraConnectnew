@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -44,7 +54,7 @@ const getParentId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const getMyProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const profile = yield parentService.getParentProfile(req.user.id);
+        const profile = yield parentService.getParentProfile(req.currentUser.userId);
         res.status(200).json(profile);
     }
     catch (error) {
@@ -54,7 +64,7 @@ const getMyProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
 exports.getMyProfileHandler = getMyProfileHandler;
 const getMyChildrenHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const parentId = yield getParentId(req.user.id);
+        const parentId = yield getParentId(req.currentUser.userId);
         const children = yield parentService.getChildren(parentId);
         res.status(200).json(children);
     }
@@ -66,7 +76,7 @@ exports.getMyChildrenHandler = getMyChildrenHandler;
 const addChildHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const parentId = yield getParentId(req.user.id);
+        const parentId = yield getParentId(req.currentUser.userId);
         const child = yield parentService.addChild(parentId, req.body);
         res.status(201).json(child);
     }
@@ -87,7 +97,7 @@ const addChildHandler = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.addChildHandler = addChildHandler;
 const updateChildHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const parentId = yield getParentId(req.user.userId);
+        const parentId = yield getParentId(req.currentUser.userId);
         const { childId } = req.params;
         const child = yield parentService.updateChild(childId, parentId, req.body);
         res.status(200).json(child);
@@ -99,7 +109,7 @@ const updateChildHandler = (req, res) => __awaiter(void 0, void 0, void 0, funct
 exports.updateChildHandler = updateChildHandler;
 const deleteChildHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const parentId = yield getParentId(req.user.userId);
+        const parentId = yield getParentId(req.currentUser.userId);
         const { childId } = req.params;
         yield parentService.deleteChild(childId, parentId);
         res.status(204).send();
