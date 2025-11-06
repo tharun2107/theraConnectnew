@@ -134,9 +134,26 @@ export const therapistAPI = {
   }) => api.post('/therapists/me/slots', data),
   requestLeave: (data: {
     date: string
-    type: 'FULL_DAY'
+    type: 'CASUAL' | 'SICK' | 'FESTIVE' | 'OPTIONAL'
     reason?: string
-  }) => api.post('/therapists/me/leaves', data),
+  }) => {
+    console.log('[therapistAPI.requestLeave] Request data:', data)
+    return api.post('/therapist/leaves', data)
+  },
+  getMyLeaves: () => {
+    console.log('[therapistAPI.getMyLeaves] Fetching leaves...')
+    return api.get('/therapist/leaves').then(response => {
+      console.log('[therapistAPI.getMyLeaves] Full Response:', response)
+      console.log('[therapistAPI.getMyLeaves] Response.data:', response.data)
+      console.log('[therapistAPI.getMyLeaves] Response.data.data:', response.data?.data)
+      console.log('[therapistAPI.getMyLeaves] Response.data.data.leaves:', response.data?.data?.leaves)
+      return response
+    }).catch(error => {
+      console.error('[therapistAPI.getMyLeaves] Error:', error)
+      console.error('[therapistAPI.getMyLeaves] Error response:', error.response)
+      throw error
+    })
+  },
 }
 
 // Admin API
@@ -152,6 +169,23 @@ export const adminAPI = {
   updateProfile: (data: any) => api.put('/admin/profile', data),
   getPlatformSettings: () => api.get('/admin/settings'),
   updatePlatformSettings: (data: any) => api.put('/admin/settings', data),
+  getAllLeaves: (status?: 'PENDING' | 'APPROVED' | 'REJECTED') => {
+    console.log('[adminAPI.getAllLeaves] Fetching leaves with status:', status)
+    return api.get('/admin/leaves', { params: status ? { status } : {} }).then(response => {
+      console.log('[adminAPI.getAllLeaves] Full Response:', response)
+      console.log('[adminAPI.getAllLeaves] Response.data:', response.data)
+      console.log('[adminAPI.getAllLeaves] Response.data.data:', response.data?.data)
+      console.log('[adminAPI.getAllLeaves] Response.data.data.leaves:', response.data?.data?.leaves)
+      return response
+    }).catch(error => {
+      console.error('[adminAPI.getAllLeaves] Error:', error)
+      console.error('[adminAPI.getAllLeaves] Error response:', error.response)
+      throw error
+    })
+  },
+  getLeaveDetails: (leaveId: string) => api.get(`/admin/leaves/${leaveId}`),
+  processLeave: (leaveId: string, data: { action: 'APPROVE' | 'REJECT'; adminNotes?: string }) =>
+    api.put(`/admin/leaves/${leaveId}`, data),
 }
 
 // Booking API
@@ -167,6 +201,21 @@ export const bookingAPI = {
   markHostStarted: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/host-started`),
   getSignature: (bookingId: string) => api.get(`/bookings/${bookingId}/zoom/signature`),
   markSessionCompleted: (bookingId: string) => api.post(`/bookings/${bookingId}/complete`),
+  // Recurring bookings
+  createRecurringBooking: (data: {
+    childId: string
+    therapistId: string
+    slotTime: string // HH:mm format
+    recurrencePattern: 'DAILY' | 'WEEKLY'
+    dayOfWeek?: 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY'
+    startDate: string // YYYY-MM-DD
+    endDate: string // YYYY-MM-DD
+  }) => api.post('/bookings/recurring', data),
+  getRecurringBookings: () => api.get('/bookings/recurring'),
+  getUpcomingSessions: (recurringBookingId: string) =>
+    api.get(`/bookings/recurring/${recurringBookingId}/sessions`),
+  cancelRecurringBooking: (recurringBookingId: string) =>
+    api.delete(`/bookings/recurring/${recurringBookingId}`),
 }
 
 // Slots API

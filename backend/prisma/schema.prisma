@@ -39,6 +39,7 @@ model ParentProfile {
   user            User              @relation(fields: [userId], references: [id])
   payments        Payment[]
   SessionFeedback SessionFeedback[]
+  recurringBookings RecurringBooking[]
 }
 
 model TherapistProfile {
@@ -66,6 +67,7 @@ model TherapistProfile {
   leaves                   TherapistLeave[]
   user                     User                   @relation(fields: [userId], references: [id])
   timeSlots                TimeSlot[]
+  recurringBookings       RecurringBooking[]
 
   @@index([specialization])
 }
@@ -81,6 +83,27 @@ model TherapistBreak {
   @@index([therapistId])
 }
 
+enum LeaveType {
+  CASUAL //5
+  SICK  // 5
+  FESTIVE //5
+  OPTIONAL // 1
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
 model Child {
   id         String                 @id @default(cuid())
   name       String
@@ -92,6 +115,7 @@ model Child {
   bookings   Booking[]
   parent     ParentProfile          @relation(fields: [parentId], references: [id])
   dataAccess DataAccessPermission[]
+  recurringBookings RecurringBooking[]
 
   @@unique([parentId, name])
   @@index([parentId])
@@ -110,6 +134,38 @@ model TimeSlot {
   @@index([therapistId, startTime])
 }
 
+model RecurringBooking {
+  id          String   @id @default(cuid())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  // Recurrence configuration
+  recurrencePattern RecurrencePattern @default(DAILY) // DAILY or WEEKLY
+  dayOfWeek   DayOfWeek?  // Required if recurrencePattern is WEEKLY (MONDAY, TUESDAY, etc.)
+  slotTime    String      // Time slot in HH:mm format (e.g., "09:00", "14:30")
+  
+  // Date range for recurring bookings
+  startDate   DateTime @db.Date  // Start date of recurring series
+  endDate     DateTime @db.Date  // End date of recurring series (typically end of month)
+  
+  // Relations
+  parentId    String
+  childId     String
+  therapistId String
+
+  parent      ParentProfile    @relation(fields: [parentId], references: [id])
+  child       Child            @relation(fields: [childId], references: [id])
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+
+  bookings    Booking[]        // All bookings generated from this recurring booking
+  
+  @@index([therapistId])
+  @@index([parentId])
+  @@index([childId])
+  @@index([startDate, endDate])
+  @@index([isActive])
+}
+
 model Booking {
   id              String                @id @default(cuid())
   status          BookingStatus         @default(SCHEDULED)
@@ -124,10 +180,12 @@ model Booking {
   meetingPassword String?
   completedAt     DateTime?
   isCompleted     Boolean               @default(false)
+  recurringBookingId String?          // Optional: links to RecurringBooking if this is part of a recurring series
   child           Child                 @relation(fields: [childId], references: [id])
   parent          ParentProfile         @relation(fields: [parentId], references: [id])
   therapist       TherapistProfile      @relation(fields: [therapistId], references: [id])
   timeSlot        TimeSlot              @relation(fields: [timeSlotId], references: [id])
+  recurringBooking RecurringBooking?    @relation(fields: [recurringBookingId], references: [id])
   ConsentRequest  ConsentRequest?
   dataAccess      DataAccessPermission?
   payment         Payment?
@@ -136,6 +194,7 @@ model Booking {
   testimonial     Testimonial?
 
   @@index([parentId, therapistId, childId])
+  @@index([recurringBookingId])
 }
 
 model TherapistLeave {
@@ -143,12 +202,19 @@ model TherapistLeave {
   date        DateTime         @db.Date
   type        LeaveType
   reason      String?
-  isApproved  Boolean          @default(true)
+  status      LeaveStatus      @default(PENDING) // Changed from isApproved to status for better tracking
   createdAt   DateTime         @default(now())
   therapistId String
   therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+  
+  // Leave balance tracking fields (for reference, can be calculated from leave history)
+  casualRemaining   Int?       // Remaining casual leaves after this leave
+  sickRemaining     Int?       // Remaining sick leaves after this leave
+  festiveRemaining  Int?       // Remaining festive leaves after this leave
+  optionalRemaining Int?       // Remaining optional leaves after this leave
 
   @@index([therapistId, date])
+  @@index([status])
 }
 
 model DataAccessPermission {
@@ -302,9 +368,8 @@ enum TherapistStatus {
   SUSPENDED
 }
 
-enum LeaveType {
-  FULL_DAY
-}
+
+
 
 
 enum NotificationType {
@@ -319,6 +384,10 @@ enum NotificationType {
   CONSENT_REQUESTED
   CONSENT_RESPONSE
   REGISTRATION_SUCCESSFUL
+  LEAVE_REQUEST_SUBMITTED
+  LEAVE_REQUEST_APPROVED
+  LEAVE_REQUEST_REJECTED
+  SESSION_CANCELLED_BY_LEAVE
 }
 
 enum NotificationChannel {
@@ -330,6 +399,11 @@ enum ConsentStatus {
   PENDING
   GRANTED
   DENIED
+}
+
+enum RecurrencePattern {
+  DAILY
+  WEEKLY
 }
 
 model DemoSlot {

@@ -37,6 +37,9 @@ const TherapistBookings = lazy(() => import('./pages/TherapistBookings'))
 const TherapistAnalytics = lazy(() => import('./pages/TherapistAnalytics'))
 const TherapistProfile = lazy(() => import('./pages/TherapistProfile'))
 const TherapistSettings = lazy(() => import('./pages/TherapistSettings'))
+const LeaveManagement = lazy(() => import('./pages/LeaveManagement'))
+const RecurringBookings = lazy(() => import('./pages/RecurringBookings'))
+const LeaveApproval = lazy(() => import('./pages/LeaveApproval'))
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -76,12 +79,14 @@ function AppRoutes() {
                 <Route path="/parent/children/:childId" element={<ParentChildDetails />} />
                 <Route path="/parent/therapists" element={<FindTherapists />} />
                 <Route path="/parent/bookings" element={<ParentBookings />} />
+                <Route path="/parent/recurring-bookings" element={<RecurringBookings />} />
                 <Route path="/parent/analytics" element={<ParentAnalytics />} />
                 <Route path="/parent/profile" element={<ParentProfile />} />
                 <Route path="/parent/settings" element={<ParentSettings />} />
                 <Route path="/therapist" element={<TherapistDashboard />} />
                 <Route path="/therapist/bookings" element={<TherapistBookings />} />
                 <Route path="/therapist/schedule" element={<TherapistSchedule />} />
+                <Route path="/therapist/leaves" element={<LeaveManagement />} />
                 <Route path="/therapist/analytics" element={<TherapistAnalytics />} />
                 <Route path="/therapist/profile" element={<TherapistProfile />} />
                 <Route path="/therapist/settings" element={<TherapistSettings />} />
@@ -94,6 +99,7 @@ function AppRoutes() {
                 <Route path="/admin/create-therapist" element={<AdminOnlyTherapistRegister />} />
                 <Route path="/admin/demo-slots" element={<AdminDemoManagement />} />
                 <Route path="/admin/demo-history" element={<AdminDemoHistory />} />
+                <Route path="/admin/leaves" element={<LeaveApproval />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>

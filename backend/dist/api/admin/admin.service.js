@@ -162,7 +162,7 @@ const approveLeaveRequest = (leaveId) => __awaiter(void 0, void 0, void 0, funct
     const leave = yield prisma_1.default.therapistLeave.findUnique({ where: { id: leaveId } });
     if (!leave)
         throw new Error('Leave not found');
-    if (leave.isApproved)
+    if (leave.status === client_1.LeaveStatus.APPROVED)
         return leave;
     const startOfDay = leave.date;
     const endOfDay = new Date(new Date(startOfDay).setUTCHours(23, 59, 59, 999));
@@ -175,7 +175,7 @@ const approveLeaveRequest = (leaveId) => __awaiter(void 0, void 0, void 0, funct
         include: { parent: { include: { user: true } }, timeSlot: true },
     });
     yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        yield tx.therapistLeave.update({ where: { id: leaveId }, data: { isApproved: true } });
+        yield tx.therapistLeave.update({ where: { id: leaveId }, data: { status: client_1.LeaveStatus.APPROVED } });
         yield tx.therapistProfile.update({ where: { id: leave.therapistId }, data: { leavesRemainingThisMonth: { decrement: 1 } } });
         for (const booking of affectedBookings) {
             yield tx.booking.update({ where: { id: booking.id }, data: { status: client_1.BookingStatus.CANCELLED_BY_THERAPIST } });
@@ -205,7 +205,7 @@ const rejectLeaveRequest = (leaveId, reason) => __awaiter(void 0, void 0, void 0
     const leave = yield prisma_1.default.therapistLeave.findUnique({ where: { id: leaveId } });
     if (!leave)
         throw new Error('Leave not found');
-    yield prisma_1.default.therapistLeave.update({ where: { id: leaveId }, data: { isApproved: false, reason: reason || leave.reason } });
+    yield prisma_1.default.therapistLeave.update({ where: { id: leaveId }, data: { status: client_1.LeaveStatus.REJECTED, reason: reason || leave.reason } });
     const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: leave.therapistId } });
     if (therapist) {
         yield (0, notification_service_1.sendNotification)({

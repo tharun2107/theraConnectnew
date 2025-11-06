@@ -12,7 +12,8 @@ import {
   Plus,
   Settings,
   Calendar,
-  History
+  History,
+  FileText
 } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -171,6 +172,15 @@ const AdminDashboard: React.FC = () => {
                 >
                   <History className="h-4 w-4 mr-2" />
                   Demo History
+                </Button>
+              </Link>
+              <Link to="/admin/leaves">
+                <Button
+                  variant="outline"
+                  className="border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9]"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Leave Approval
                 </Button>
               </Link>
               <Link to="/admin/settings">

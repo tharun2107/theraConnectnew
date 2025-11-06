@@ -12,7 +12,7 @@ interface RequestLeaveModalProps {
 
 interface LeaveFormData {
   date: string
-  type: 'FULL_DAY'
+  type: 'CASUAL' | 'SICK' | 'FESTIVE' | 'OPTIONAL'
   reason?: string
 }
 
@@ -75,7 +75,7 @@ const RequestLeaveModal: React.FC<RequestLeaveModalProps> = ({ onClose, onSucces
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Leave Date *
               </label>
               <input
@@ -85,27 +85,31 @@ const RequestLeaveModal: React.FC<RequestLeaveModalProps> = ({ onClose, onSucces
                 className="input"
               />
               {errors.date && (
-                <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.date.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Leave Type *
               </label>
               <select
                 {...register('type', { required: 'Please select leave type' })}
                 className="input"
               >
-                <option value="FULL_DAY">Full Day</option>
+                <option value="">Select leave type</option>
+                <option value="CASUAL">Casual Leave</option>
+                <option value="SICK">Sick Leave</option>
+                <option value="FESTIVE">Festive Leave</option>
+                <option value="OPTIONAL">Optional Leave</option>
               </select>
               {errors.type && (
-                <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.type.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Reason (Optional)
               </label>
               <textarea

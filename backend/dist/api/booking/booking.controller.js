@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = exports.markSessionCompletedHandler = void 0;
+exports.cancelRecurringBookingHandler = exports.getUpcomingSessionsHandler = exports.getRecurringBookingsHandler = exports.createRecurringBookingHandler = exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = exports.markSessionCompletedHandler = void 0;
 const bookingService = __importStar(require("./booking.service"));
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 const notification_service_1 = require("../../services/notification.service");
@@ -1132,3 +1132,126 @@ const getMyBookingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.getMyBookingsHandler = getMyBookingsHandler;
+/**
+ * POST /api/parent/recurring-bookings
+ * Create a recurring booking for a child
+ */
+const createRecurringBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.userId;
+        const bookingData = req.body;
+        const recurringBooking = yield bookingService.recurringBookingService.createRecurringBooking(userId, bookingData);
+        return res.status(201).json({
+            success: true,
+            message: 'Recurring booking created successfully. Your child now has daily sessions!',
+            data: {
+                recurringBookingId: recurringBooking.id,
+                slotTime: recurringBooking.slotTime,
+                startDate: recurringBooking.startDate,
+                endDate: recurringBooking.endDate,
+                recurrencePattern: recurringBooking.recurrencePattern
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error creating recurring booking:', error);
+        if (error instanceof Error) {
+            if (error.message.includes('not found') || error.message.includes('does not belong')) {
+                return res.status(404).json({ success: false, message: error.message });
+            }
+            if (error.message.includes('already have') || error.message.includes('not available')) {
+                return res.status(409).json({ success: false, message: error.message });
+            }
+            if (error.message.includes('Cannot create') || error.message.includes('Only') || error.message.includes('in the past')) {
+                return res.status(400).json({ success: false, message: error.message });
+            }
+        }
+        return res.status(500).json({ success: false, message: 'Failed to create recurring booking' });
+    }
+});
+exports.createRecurringBookingHandler = createRecurringBookingHandler;
+/**
+ * GET /api/parent/recurring-bookings
+ * Get all recurring bookings for the parent
+ */
+const getRecurringBookingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.userId;
+        const recurringBookings = yield bookingService.recurringBookingService.getParentRecurringBookings(userId);
+        return res.status(200).json({
+            success: true,
+            message: 'Recurring bookings retrieved successfully',
+            data: {
+                totalRecurringBookings: recurringBookings.length,
+                recurringBookings: recurringBookings
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching recurring bookings:', error);
+        return res.status(500).json({ success: false, message: 'Failed to retrieve recurring bookings' });
+    }
+});
+exports.getRecurringBookingsHandler = getRecurringBookingsHandler;
+/**
+ * GET /api/parent/recurring-bookings/:recurringBookingId/sessions
+ * Get upcoming sessions for a specific recurring booking
+ */
+const getUpcomingSessionsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.userId;
+        const { recurringBookingId } = req.params;
+        const sessions = yield bookingService.recurringBookingService.getUpcomingSessionsForRecurring(userId, recurringBookingId);
+        return res.status(200).json({
+            success: true,
+            message: 'Upcoming sessions retrieved successfully',
+            data: {
+                totalUpcomingSessions: sessions.length,
+                sessions: sessions
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching upcoming sessions:', error);
+        if (error instanceof Error && error.message.includes('not found')) {
+            return res.status(404).json({ success: false, message: error.message });
+        }
+        return res.status(500).json({ success: false, message: 'Failed to retrieve upcoming sessions' });
+    }
+});
+exports.getUpcomingSessionsHandler = getUpcomingSessionsHandler;
+/**
+ * DELETE /api/parent/recurring-bookings/:recurringBookingId
+ * Cancel a recurring booking (cancels all future sessions)
+ */
+const cancelRecurringBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.userId;
+        const { recurringBookingId } = req.params;
+        const cancelled = yield bookingService.recurringBookingService.cancelRecurringBooking(userId, recurringBookingId);
+        return res.status(200).json({
+            success: true,
+            message: 'Recurring booking cancelled successfully. All future sessions have been cancelled.',
+            data: {
+                recurringBookingId: cancelled.id,
+                isActive: cancelled.isActive
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error cancelling recurring booking:', error);
+        if (error instanceof Error) {
+            if (error.message.includes('not found')) {
+                return res.status(404).json({ success: false, message: error.message });
+            }
+            if (error.message.includes('does not belong')) {
+                return res.status(403).json({ success: false, message: error.message });
+            }
+            if (error.message.includes('already cancelled')) {
+                return res.status(400).json({ success: false, message: error.message });
+            }
+        }
+        return res.status(500).json({ success: false, message: 'Failed to cancel recurring booking' });
+    }
+});
+exports.cancelRecurringBookingHandler = cancelRecurringBookingHandler;

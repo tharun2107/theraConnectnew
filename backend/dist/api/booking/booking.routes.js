@@ -57,4 +57,9 @@ router.post('/:bookingId/zoom/host-started', (0, auth_middleware_1.authorize)([c
 router.get('/:bookingId/zoom/signature', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), zoomController.getSignature);
 // Mark session as completed (can be called by both parent and therapist)
 router.post('/:bookingId/complete', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), booking_controller_1.markSessionCompletedHandler);
+// Recurring booking routes (Parent only)
+router.post('/recurring', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), booking_controller_1.createRecurringBookingHandler);
+router.get('/recurring', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), booking_controller_1.getRecurringBookingsHandler);
+router.get('/recurring/:recurringBookingId/sessions', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), booking_controller_1.getUpcomingSessionsHandler);
+router.delete('/recurring/:recurringBookingId', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), booking_controller_1.cancelRecurringBookingHandler);
 exports.default = router;

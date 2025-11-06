@@ -14,7 +14,7 @@ import {
   Users,
   Calendar,
   BarChart3,
-  Shield
+  UserCheck
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
@@ -54,6 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         ...baseItems,
         { id: 'schedule', label: 'Schedule', icon: Calendar, path: '/therapist/schedule' },
         { id: 'bookings', label: 'Bookings', icon: Users, path: '/therapist/bookings' },
+        { id: 'leaves', label: 'Leave Management', icon: UserCheck, path: '/therapist/leaves' },
         { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/therapist/analytics' },
       ]
     } else if (user.role === 'ADMIN') {

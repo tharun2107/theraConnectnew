@@ -1,0 +1,411 @@
+{
+  "info": {
+    "name": "TheraConnect API - Recurring Bookings & Leave Management",
+    "description": "Complete API testing for recurring bookings and leave management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login Parent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"parent@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Therapist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"therapist@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recurring Bookings",
+      "item": [
+        {
+          "name": "Create Daily Recurring Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{parent_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"childId\": \"clxxx...\",\n  \"therapistId\": \"clxxx...\",\n  \"slotTime\": \"14:00\",\n  \"recurrencePattern\": \"DAILY\",\n  \"startDate\": \"2024-12-01\",\n  \"endDate\": \"2024-12-31\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/bookings/recurring",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "bookings", "recurring"]
+            }
+          }
+        },
+        {
+          "name": "Create Weekly Recurring Booking (Monday)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{parent_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"childId\": \"clxxx...\",\n  \"therapistId\": \"clxxx...\",\n  \"slotTime\": \"10:00\",\n  \"recurrencePattern\": \"WEEKLY\",\n  \"dayOfWeek\": \"MONDAY\",\n  \"startDate\": \"2024-12-01\",\n  \"endDate\": \"2024-12-31\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/bookings/recurring",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "bookings", "recurring"]
+            }
+          }
+        },
+        {
+          "name": "Get All Recurring Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{parent_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/v1/bookings/recurring",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "bookings", "recurring"]
+            }
+          }
+        },
+        {
+          "name": "Get Upcoming Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{parent_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/v1/bookings/recurring/:recurringBookingId/sessions",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "bookings", "recurring", ":recurringBookingId", "sessions"],
+              "variable": [
+                {
+                  "key": "recurringBookingId",
+                  "value": "clxxx...",
+                  "description": "ID of the recurring booking"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Recurring Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{parent_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/v1/bookings/recurring/:recurringBookingId",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "bookings", "recurring", ":recurringBookingId"],
+              "variable": [
+                {
+                  "key": "recurringBookingId",
+                  "value": "clxxx...",
+                  "description": "ID of the recurring booking to cancel"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leave Management",
+      "item": [
+        {
+          "name": "Request Leave (Therapist)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{therapist_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2024-12-15\",\n  \"type\": \"CASUAL\",\n  \"reason\": \"Personal work\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/therapist/leaves",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "therapist", "leaves"]
+            }
+          }
+        },
+        {
+          "name": "Get My Leaves (Therapist)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{therapist_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/v1/therapist/leaves",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "therapist", "leaves"]
+            }
+          }
+        },
+        {
+          "name": "Get All Leaves (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/v1/admin/leaves",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "admin", "leaves"]
+            }
+          }
+        },
+        {
+          "name": "Get Leave Details (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/v1/admin/leaves/:leaveId",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "admin", "leaves", ":leaveId"],
+              "variable": [
+                {
+                  "key": "leaveId",
+                  "value": "clxxx...",
+                  "description": "ID of the leave request"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Leave (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"APPROVE\",\n  \"adminNotes\": \"Approved for personal work\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/admin/leaves/:leaveId",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "admin", "leaves", ":leaveId"],
+              "variable": [
+                {
+                  "key": "leaveId",
+                  "value": "clxxx...",
+                  "description": "ID of the leave request"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Leave (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"REJECT\",\n  \"adminNotes\": \"Not enough notice given\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/v1/admin/leaves/:leaveId",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "v1", "admin", "leaves", ":leaveId"],
+              "variable": [
+                {
+                  "key": "leaveId",
+                  "value": "clxxx...",
+                  "description": "ID of the leave request"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "parent_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "therapist_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+

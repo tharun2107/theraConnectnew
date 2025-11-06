@@ -24,6 +24,7 @@ const booking_routes_js_1 = __importDefault(require("./api/booking/booking.route
 const slots_routes_js_1 = __importDefault(require("./api/slots/slots.routes.js"));
 const feedback_routes_js_1 = __importDefault(require("./api/feedback/feedback.routes.js"));
 const demo_routes_js_1 = __importDefault(require("./api/demo/demo.routes.js"));
+const leave_route_js_1 = require("./leaves/leave.route.js");
 const prisma_js_1 = __importDefault(require("./utils/prisma.js"));
 // Load environment variables
 dotenv_1.default.config();
@@ -68,6 +69,8 @@ app.use('/api/v1/bookings', booking_routes_js_1.default);
 app.use('/api/v1/slots', slots_routes_js_1.default);
 app.use('/api/v1/feedback', feedback_routes_js_1.default);
 app.use('/api/v1/demo', demo_routes_js_1.default);
+app.use('/api/v1/therapist', leave_route_js_1.therapistLeaveRoutes);
+app.use('/api/v1/admin', leave_route_js_1.adminLeaveRoutes);
 // Health endpoint for connectivity checks
 app.get('/api/v1/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });

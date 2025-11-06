@@ -9,7 +9,9 @@ import {
   Settings, 
   Clock,
   Heart,
-  Shield
+  Shield,
+  Repeat,
+  FileText
 } from 'lucide-react'
 
 const Sidebar: React.FC = () => {
@@ -22,6 +24,7 @@ const Sidebar: React.FC = () => {
           { to: '/parent', icon: Home, label: 'Dashboard' },
           { to: '/parent/children', icon: Users, label: 'My Children' },
           { to: '/parent/bookings', icon: Calendar, label: 'Bookings' },
+          { to: '/parent/recurring-bookings', icon: Repeat, label: 'Recurring Bookings' },
           { to: '/parent/therapists', icon: Heart, label: 'Find Therapists' },
         ]
       case 'THERAPIST':
@@ -36,6 +39,7 @@ const Sidebar: React.FC = () => {
           { to: '/admin', icon: Home, label: 'Dashboard' },
           { to: '/admin/therapists', icon: Users, label: 'Therapists' },
           { to: '/admin/bookings', icon: Calendar, label: 'All Bookings' },
+          { to: '/admin/leaves', icon: FileText, label: 'Leave Approval' },
           { to: '/admin/settings', icon: Settings, label: 'Settings' },
         ]
       default:

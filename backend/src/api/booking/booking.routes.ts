@@ -7,6 +7,10 @@ import {
   createBookingHandler,
   getMyBookingsHandler,
   markSessionCompletedHandler,
+  createRecurringBookingHandler,
+  getRecurringBookingsHandler,
+  getUpcomingSessionsHandler,
+  cancelRecurringBookingHandler,
 } from './booking.controller';
 import { getSlotsQuerySchema, createBookingSchema } from './booking.validation';
 import * as zoomController from './zoom.controller';
@@ -56,5 +60,11 @@ router.post(
   authorize([Role.PARENT, Role.THERAPIST]),
   markSessionCompletedHandler
 );
+
+// Recurring booking routes (Parent only)
+router.post('/recurring', authorize([Role.PARENT]), createRecurringBookingHandler);
+router.get('/recurring', authorize([Role.PARENT]), getRecurringBookingsHandler);
+router.get('/recurring/:recurringBookingId/sessions', authorize([Role.PARENT]), getUpcomingSessionsHandler);
+router.delete('/recurring/:recurringBookingId', authorize([Role.PARENT]), cancelRecurringBookingHandler);
 
 export default router;

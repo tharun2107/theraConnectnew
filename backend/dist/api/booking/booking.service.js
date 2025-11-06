@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMyBookings = exports.createBooking = exports.getAvailableSlots = exports.markSessionCompleted = void 0;
+exports.recurringBookingService = exports.RecurringBookingService = exports.getMyBookings = exports.createBooking = exports.getAvailableSlots = exports.markSessionCompleted = void 0;
 const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
@@ -280,3 +280,359 @@ const getMyBookings = (userId, role) => __awaiter(void 0, void 0, void 0, functi
     return bookings;
 });
 exports.getMyBookings = getMyBookings;
+// ============================================
+// RECURRING BOOKING SERVICE
+// ============================================
+const client_2 = require("@prisma/client");
+const date_fns_1 = require("date-fns");
+class RecurringBookingService {
+    /**
+     * Create a recurring booking and generate individual bookings
+     */
+    createRecurringBooking(userId, input) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Get parent profile
+            const parent = yield prisma_1.default.parentProfile.findUnique({
+                where: { userId },
+                include: { user: true }
+            });
+            if (!parent)
+                throw new Error('Parent profile not found');
+            // Verify child belongs to parent
+            const child = yield prisma_1.default.child.findFirst({
+                where: { id: input.childId, parentId: parent.id }
+            });
+            if (!child)
+                throw new Error('Child not found or does not belong to this parent');
+            // Verify therapist exists and is active
+            const therapist = yield prisma_1.default.therapistProfile.findUnique({
+                where: { id: input.therapistId, status: client_1.TherapistStatus.ACTIVE },
+                include: { user: true }
+            });
+            if (!therapist)
+                throw new Error('Therapist not found or not active');
+            // Validate dates
+            const startDate = new Date(input.startDate);
+            const endDate = new Date(input.endDate);
+            const today = (0, date_fns_1.startOfDay)(new Date());
+            if (startDate < today) {
+                throw new Error('Start date cannot be in the past');
+            }
+            if (endDate < startDate) {
+                throw new Error('End date must be after start date');
+            }
+            // Validate recurrence pattern
+            if (input.recurrencePattern === client_2.RecurrencePattern.WEEKLY && !input.dayOfWeek) {
+                throw new Error('dayOfWeek is required for WEEKLY recurrence pattern');
+            }
+            // Check if child already has an active recurring booking with this therapist
+            const existingRecurring = yield prisma_1.default.recurringBooking.findFirst({
+                where: {
+                    childId: input.childId,
+                    therapistId: input.therapistId,
+                    isActive: true
+                }
+            });
+            if (existingRecurring) {
+                throw new Error('Child already has an active recurring booking with this therapist');
+            }
+            // Create recurring booking
+            const recurringBooking = yield prisma_1.default.recurringBooking.create({
+                data: {
+                    parentId: parent.id,
+                    childId: input.childId,
+                    therapistId: input.therapistId,
+                    slotTime: input.slotTime,
+                    recurrencePattern: input.recurrencePattern,
+                    dayOfWeek: input.dayOfWeek || null,
+                    startDate: startDate,
+                    endDate: endDate,
+                    isActive: true
+                }
+            });
+            // Generate individual bookings for the date range
+            yield this.generateBookingsForRecurring(recurringBooking.id);
+            return recurringBooking;
+        });
+    }
+    /**
+     * Generate individual bookings from a recurring booking
+     */
+    generateBookingsForRecurring(recurringBookingId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const recurring = yield prisma_1.default.recurringBooking.findUnique({
+                where: { id: recurringBookingId },
+                include: {
+                    parent: true,
+                    child: true,
+                    therapist: { include: { user: true } }
+                }
+            });
+            if (!recurring || !recurring.isActive) {
+                throw new Error('Recurring booking not found or inactive');
+            }
+            const startDate = new Date(recurring.startDate);
+            const endDate = new Date(recurring.endDate);
+            const today = (0, date_fns_1.startOfDay)(new Date());
+            // Generate dates based on recurrence pattern
+            const dates = [];
+            if (recurring.recurrencePattern === client_2.RecurrencePattern.DAILY) {
+                // Generate all dates in range (excluding weekends)
+                const allDays = (0, date_fns_1.eachDayOfInterval)({ start: startDate, end: endDate });
+                dates.push(...allDays.filter(day => !(0, date_fns_1.isWeekend)(day) && day >= today));
+            }
+            else if (recurring.recurrencePattern === client_2.RecurrencePattern.WEEKLY && recurring.dayOfWeek) {
+                // Generate dates for specific day of week
+                const dayOfWeekMap = {
+                    MONDAY: 1,
+                    TUESDAY: 2,
+                    WEDNESDAY: 3,
+                    THURSDAY: 4,
+                    FRIDAY: 5,
+                    SATURDAY: 6
+                };
+                const targetDay = dayOfWeekMap[recurring.dayOfWeek];
+                let currentDate = new Date(startDate);
+                while (currentDate <= endDate) {
+                    if (currentDate.getDay() === targetDay && currentDate >= today) {
+                        dates.push(new Date(currentDate));
+                    }
+                    currentDate = (0, date_fns_1.addDays)(currentDate, 1);
+                }
+            }
+            // Parse slot time (HH:mm)
+            const [hours, minutes] = recurring.slotTime.split(':').map(Number);
+            const slotDurationMinutes = recurring.therapist.slotDurationInMinutes || 60;
+            // Create bookings for each date in a transaction
+            const finalFee = (_a = recurring.parent.customFee) !== null && _a !== void 0 ? _a : recurring.therapist.baseCostPerSession;
+            const bookingsToCreate = [];
+            for (const date of dates) {
+                // Check if therapist has leave on this date
+                const hasLeave = yield prisma_1.default.therapistLeave.findFirst({
+                    where: {
+                        therapistId: recurring.therapistId,
+                        date: date,
+                        status: 'APPROVED'
+                    }
+                });
+                if (hasLeave)
+                    continue;
+                // Create time slot
+                const slotStart = new Date(date);
+                slotStart.setHours(hours, minutes, 0, 0);
+                const slotEnd = new Date(slotStart.getTime() + slotDurationMinutes * 60000);
+                // Check if slot already exists
+                const existingSlot = yield prisma_1.default.timeSlot.findFirst({
+                    where: {
+                        therapistId: recurring.therapistId,
+                        startTime: slotStart,
+                        endTime: slotEnd
+                    }
+                });
+                if (existingSlot && existingSlot.isBooked) {
+                    continue; // Skip if already booked
+                }
+                // Create booking in transaction
+                const result = yield prisma_1.default.$transaction((tx) => __awaiter(this, void 0, void 0, function* () {
+                    const timeSlot = existingSlot || (yield tx.timeSlot.create({
+                        data: {
+                            therapistId: recurring.therapistId,
+                            startTime: slotStart,
+                            endTime: slotEnd,
+                            isActive: true,
+                            isBooked: false
+                        }
+                    }));
+                    // Check if booking already exists
+                    const existingBooking = yield tx.booking.findFirst({
+                        where: {
+                            recurringBookingId: recurringBookingId,
+                            timeSlotId: timeSlot.id
+                        }
+                    });
+                    if (existingBooking)
+                        return null;
+                    // Create booking
+                    const booking = yield tx.booking.create({
+                        data: {
+                            parentId: recurring.parentId,
+                            childId: recurring.childId,
+                            therapistId: recurring.therapistId,
+                            timeSlotId: timeSlot.id,
+                            recurringBookingId: recurringBookingId
+                        }
+                    });
+                    // Mark slot as booked
+                    yield tx.timeSlot.update({
+                        where: { id: timeSlot.id },
+                        data: { isBooked: true }
+                    });
+                    // Create payment
+                    yield tx.payment.create({
+                        data: {
+                            bookingId: booking.id,
+                            parentId: recurring.parentId,
+                            therapistId: recurring.therapistId,
+                            amount: finalFee
+                        }
+                    });
+                    // Create data access permission
+                    yield tx.dataAccessPermission.create({
+                        data: {
+                            bookingId: booking.id,
+                            childId: recurring.childId,
+                            therapistId: recurring.therapistId,
+                            canViewDetails: false,
+                            accessStartTime: slotStart,
+                            accessEndTime: slotEnd
+                        }
+                    });
+                    return booking;
+                }));
+                if (result) {
+                    bookingsToCreate.push(result);
+                }
+            }
+            return bookingsToCreate;
+        });
+    }
+    /**
+     * Get all recurring bookings for a parent
+     */
+    getParentRecurringBookings(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parent = yield prisma_1.default.parentProfile.findUnique({
+                where: { userId }
+            });
+            if (!parent)
+                throw new Error('Parent profile not found');
+            return prisma_1.default.recurringBooking.findMany({
+                where: { parentId: parent.id },
+                include: {
+                    child: true,
+                    therapist: {
+                        select: {
+                            id: true,
+                            name: true,
+                            specialization: true
+                        }
+                    },
+                    bookings: {
+                        where: {
+                            status: client_1.BookingStatus.SCHEDULED
+                        },
+                        include: {
+                            timeSlot: true
+                        },
+                        orderBy: {
+                            timeSlot: {
+                                startTime: 'asc'
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            });
+        });
+    }
+    /**
+     * Get upcoming sessions for a recurring booking
+     */
+    getUpcomingSessionsForRecurring(userId, recurringBookingId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parent = yield prisma_1.default.parentProfile.findUnique({
+                where: { userId }
+            });
+            if (!parent)
+                throw new Error('Parent profile not found');
+            const recurring = yield prisma_1.default.recurringBooking.findFirst({
+                where: {
+                    id: recurringBookingId,
+                    parentId: parent.id
+                }
+            });
+            if (!recurring) {
+                throw new Error('Recurring booking not found or does not belong to this parent');
+            }
+            const today = new Date();
+            return prisma_1.default.booking.findMany({
+                where: {
+                    recurringBookingId: recurringBookingId,
+                    status: client_1.BookingStatus.SCHEDULED,
+                    timeSlot: {
+                        startTime: {
+                            gte: today
+                        }
+                    }
+                },
+                include: {
+                    timeSlot: true,
+                    child: true,
+                    therapist: {
+                        select: {
+                            id: true,
+                            name: true,
+                            specialization: true
+                        }
+                    }
+                },
+                orderBy: {
+                    timeSlot: {
+                        startTime: 'asc'
+                    }
+                }
+            });
+        });
+    }
+    /**
+     * Cancel a recurring booking (cancels all future sessions)
+     */
+    cancelRecurringBooking(userId, recurringBookingId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parent = yield prisma_1.default.parentProfile.findUnique({
+                where: { userId }
+            });
+            if (!parent)
+                throw new Error('Parent profile not found');
+            const recurring = yield prisma_1.default.recurringBooking.findFirst({
+                where: {
+                    id: recurringBookingId,
+                    parentId: parent.id
+                }
+            });
+            if (!recurring) {
+                throw new Error('Recurring booking not found or does not belong to this parent');
+            }
+            if (!recurring.isActive) {
+                throw new Error('Recurring booking is already cancelled');
+            }
+            const today = new Date();
+            // Cancel all future bookings
+            yield prisma_1.default.booking.updateMany({
+                where: {
+                    recurringBookingId: recurringBookingId,
+                    status: client_1.BookingStatus.SCHEDULED,
+                    timeSlot: {
+                        startTime: {
+                            gte: today
+                        }
+                    }
+                },
+                data: {
+                    status: client_1.BookingStatus.CANCELLED_BY_PARENT
+                }
+            });
+            // Mark recurring booking as inactive
+            const cancelled = yield prisma_1.default.recurringBooking.update({
+                where: { id: recurringBookingId },
+                data: { isActive: false }
+            });
+            return cancelled;
+        });
+    }
+}
+exports.RecurringBookingService = RecurringBookingService;
+exports.recurringBookingService = new RecurringBookingService();

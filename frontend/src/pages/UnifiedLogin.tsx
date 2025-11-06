@@ -29,26 +29,39 @@ const UnifiedLogin: React.FC = () => {
       }
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
       if (!clientId) {
-        try { console.warn('[GSI] Missing VITE_GOOGLE_CLIENT_ID') } catch {}
+        try { 
+          console.error('[GSI] Missing VITE_GOOGLE_CLIENT_ID environment variable')
+          console.error('[GSI] Available env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')))
+          toast.error('Google OAuth not configured. Please contact support.')
+        } catch {}
         return
       }
-      try { console.log('[GSI] Initializing with clientId', clientId.slice(0, 8) + '***') } catch {}
+      
+      // Enhanced logging for debugging
+      try { 
+        console.log('[GSI] Initializing with clientId', clientId.slice(0, 8) + '***')
+        console.log('[GSI] Client ID length:', clientId.length)
+        console.log('[GSI] Current origin:', window.location.origin)
+        console.log('[GSI] Is production:', import.meta.env.PROD)
+      } catch {}
+      
+      // Validate Client ID format (should be a long string ending with .apps.googleusercontent.com)
+      if (!clientId.includes('.apps.googleusercontent.com') && clientId.length < 20) {
+        console.error('[GSI] Invalid Client ID format detected')
+        toast.error('Invalid Google OAuth configuration')
+        return
+      }
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: async (response: any) => {
           try {
             setIsLoading(true)
             const { credential } = response
-            try { console.log('[GSI] Received credential of length', credential?.length) } catch {}
-            // Connectivity probe to backend health
-            try {
-              const healthUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1') + '/health'
-              console.log('[GSI] Probing health:', healthUrl)
-              const healthRes = await fetch(healthUrl, { method: 'GET' })
-              console.log('[GSI] Health response:', healthRes.status)
-            } catch (e) {
-              console.error('[GSI] Health probe failed:', e)
+            if (!credential) {
+              throw new Error('No credential received from Google')
             }
+            try { console.log('[GSI] Received credential of length', credential?.length) } catch {}
+            
             let result
             try {
               result = await loginWithGoogle(credential)
@@ -64,11 +77,18 @@ const UnifiedLogin: React.FC = () => {
                 })
                 const text = await fetchRes.text()
                 console.log('[GSI][fallback] status:', fetchRes.status, 'body:', text)
-                if (!fetchRes.ok) throw new Error('Fallback fetch failed: ' + fetchRes.status)
-                try { result = JSON.parse(text) } catch { result = undefined }
-              } catch (fallbackErr) {
+                if (!fetchRes.ok) {
+                  const errorData = JSON.parse(text || '{}')
+                  throw new Error(errorData.message || `Fallback fetch failed: ${fetchRes.status}`)
+                }
+                try { 
+                  result = JSON.parse(text) 
+                } catch { 
+                  throw new Error('Invalid response from server')
+                }
+              } catch (fallbackErr: any) {
                 console.error('[GSI] fetch fallback error', fallbackErr)
-                throw primaryErr
+                throw new Error(fallbackErr?.message || 'Google sign-in failed. Please check your Google OAuth configuration.')
               }
             }
             toast.success('Signed in successfully!')
@@ -79,11 +99,19 @@ const UnifiedLogin: React.FC = () => {
             }
           } catch (err: any) {
             try { console.error('[GSI][callback][error]', err) } catch {}
-            toast.error(err?.message || 'Google sign-in failed')
+            const errorMessage = err?.message || 'Google sign-in failed'
+            // Check for specific OAuth errors
+            if (errorMessage.includes('invalid_request') || errorMessage.includes('bad_request')) {
+              toast.error('OAuth configuration error. Please check Google Cloud Console settings.')
+            } else {
+              toast.error(errorMessage)
+            }
           } finally {
             setIsLoading(false)
           }
         },
+        // Add auto_select to improve UX
+        auto_select: false,
       })
       if (buttonDivRef.current) {
         window.google.accounts.id.renderButton(buttonDivRef.current, {

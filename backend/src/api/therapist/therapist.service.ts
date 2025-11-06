@@ -1,4 +1,4 @@
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, LeaveStatus } from '@prisma/client';
 import { z } from 'zod';
 import { sendNotification, sendNotificationBookingCancelled } from '../../services/notification.service';
 import type { requestLeaveSchema, createTimeSlotsSchema } from './therapist.validation';
@@ -109,7 +109,7 @@ export const requestLeave = async (therapistId: string, input: RequestLeaveInput
 
   // Create a pending leave request; admin will approve/reject later
   await prisma.$transaction(async (tx) => {
-    await tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason, isApproved: false } });
+    await tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason, status: LeaveStatus.PENDING } });
   });
 
   // Notify all admins via notification/email

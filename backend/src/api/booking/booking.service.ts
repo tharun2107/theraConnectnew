@@ -1,4 +1,4 @@
-import { Role, TherapistStatus } from '@prisma/client';
+import { Role, TherapistStatus, BookingStatus } from '@prisma/client';
 import { z } from 'zod';
 import { sendNotification, sendNotificationAfterAnEventSessionCompleted, sendNotificationBookingConfirmed } from '../../services/notification.service';
 import type { createBookingSchema } from './booking.validation';
@@ -307,3 +307,399 @@ export const getMyBookings = async (userId: string, role: Role) => {
 
     return bookings;
 };
+
+// ============================================
+// RECURRING BOOKING SERVICE
+// ============================================
+
+import { RecurrencePattern, DayOfWeek } from '@prisma/client';
+import { addDays, startOfDay, eachDayOfInterval, isWeekend } from 'date-fns';
+
+export interface RecurringBookingInput {
+  childId: string;
+  therapistId: string;
+  slotTime: string; // HH:mm format
+  recurrencePattern: RecurrencePattern;
+  dayOfWeek?: DayOfWeek; // Required if recurrencePattern is WEEKLY
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD (typically end of month)
+}
+
+export class RecurringBookingService {
+  /**
+   * Create a recurring booking and generate individual bookings
+   */
+  async createRecurringBooking(userId: string, input: RecurringBookingInput) {
+    // Get parent profile
+    const parent = await prisma.parentProfile.findUnique({
+      where: { userId },
+      include: { user: true }
+    });
+    if (!parent) throw new Error('Parent profile not found');
+
+    // Verify child belongs to parent
+    const child = await prisma.child.findFirst({
+      where: { id: input.childId, parentId: parent.id }
+    });
+    if (!child) throw new Error('Child not found or does not belong to this parent');
+
+    // Verify therapist exists and is active
+    const therapist = await prisma.therapistProfile.findUnique({
+      where: { id: input.therapistId, status: TherapistStatus.ACTIVE },
+      include: { user: true }
+    });
+    if (!therapist) throw new Error('Therapist not found or not active');
+
+    // Validate dates
+    const startDate = new Date(input.startDate);
+    const endDate = new Date(input.endDate);
+    const today = startOfDay(new Date());
+
+    if (startDate < today) {
+      throw new Error('Start date cannot be in the past');
+    }
+    if (endDate < startDate) {
+      throw new Error('End date must be after start date');
+    }
+
+    // Validate recurrence pattern
+    if (input.recurrencePattern === RecurrencePattern.WEEKLY && !input.dayOfWeek) {
+      throw new Error('dayOfWeek is required for WEEKLY recurrence pattern');
+    }
+
+    // Check if child already has an active recurring booking with this therapist
+    const existingRecurring = await prisma.recurringBooking.findFirst({
+      where: {
+        childId: input.childId,
+        therapistId: input.therapistId,
+        isActive: true
+      }
+    });
+
+    if (existingRecurring) {
+      throw new Error('Child already has an active recurring booking with this therapist');
+    }
+
+    // Create recurring booking
+    const recurringBooking = await prisma.recurringBooking.create({
+      data: {
+        parentId: parent.id,
+        childId: input.childId,
+        therapistId: input.therapistId,
+        slotTime: input.slotTime,
+        recurrencePattern: input.recurrencePattern,
+        dayOfWeek: input.dayOfWeek || null,
+        startDate: startDate,
+        endDate: endDate,
+        isActive: true
+      }
+    });
+
+    // Generate individual bookings for the date range
+    await this.generateBookingsForRecurring(recurringBooking.id);
+
+    return recurringBooking;
+  }
+
+  /**
+   * Generate individual bookings from a recurring booking
+   */
+  private async generateBookingsForRecurring(recurringBookingId: string) {
+    const recurring = await prisma.recurringBooking.findUnique({
+      where: { id: recurringBookingId },
+      include: {
+        parent: true,
+        child: true,
+        therapist: { include: { user: true } }
+      }
+    });
+
+    if (!recurring || !recurring.isActive) {
+      throw new Error('Recurring booking not found or inactive');
+    }
+
+    const startDate = new Date(recurring.startDate);
+    const endDate = new Date(recurring.endDate);
+    const today = startOfDay(new Date());
+
+    // Generate dates based on recurrence pattern
+    const dates: Date[] = [];
+    
+    if (recurring.recurrencePattern === RecurrencePattern.DAILY) {
+      // Generate all dates in range (excluding weekends)
+      const allDays = eachDayOfInterval({ start: startDate, end: endDate });
+      dates.push(...allDays.filter(day => !isWeekend(day) && day >= today));
+    } else if (recurring.recurrencePattern === RecurrencePattern.WEEKLY && recurring.dayOfWeek) {
+      // Generate dates for specific day of week
+      const dayOfWeekMap: { [key in DayOfWeek]: number } = {
+        MONDAY: 1,
+        TUESDAY: 2,
+        WEDNESDAY: 3,
+        THURSDAY: 4,
+        FRIDAY: 5,
+        SATURDAY: 6
+      };
+      const targetDay = dayOfWeekMap[recurring.dayOfWeek];
+      
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        if (currentDate.getDay() === targetDay && currentDate >= today) {
+          dates.push(new Date(currentDate));
+        }
+        currentDate = addDays(currentDate, 1);
+      }
+    }
+
+    // Parse slot time (HH:mm)
+    const [hours, minutes] = recurring.slotTime.split(':').map(Number);
+    const slotDurationMinutes = recurring.therapist.slotDurationInMinutes || 60;
+
+    // Create bookings for each date in a transaction
+    const finalFee = recurring.parent.customFee ?? recurring.therapist.baseCostPerSession;
+    const bookingsToCreate = [];
+
+    for (const date of dates) {
+      // Check if therapist has leave on this date
+      const hasLeave = await prisma.therapistLeave.findFirst({
+        where: {
+          therapistId: recurring.therapistId,
+          date: date,
+          status: 'APPROVED'
+        }
+      });
+      if (hasLeave) continue;
+
+      // Create time slot
+      const slotStart = new Date(date);
+      slotStart.setHours(hours, minutes, 0, 0);
+      const slotEnd = new Date(slotStart.getTime() + slotDurationMinutes * 60000);
+
+      // Check if slot already exists
+      const existingSlot = await prisma.timeSlot.findFirst({
+        where: {
+          therapistId: recurring.therapistId,
+          startTime: slotStart,
+          endTime: slotEnd
+        }
+      });
+
+      if (existingSlot && existingSlot.isBooked) {
+        continue; // Skip if already booked
+      }
+
+      // Create booking in transaction
+      const result = await prisma.$transaction(async (tx) => {
+        const timeSlot = existingSlot || await tx.timeSlot.create({
+          data: {
+            therapistId: recurring.therapistId,
+            startTime: slotStart,
+            endTime: slotEnd,
+            isActive: true,
+            isBooked: false
+          }
+        });
+
+        // Check if booking already exists
+        const existingBooking = await tx.booking.findFirst({
+          where: {
+            recurringBookingId: recurringBookingId,
+            timeSlotId: timeSlot.id
+          }
+        });
+
+        if (existingBooking) return null;
+
+        // Create booking
+        const booking = await tx.booking.create({
+          data: {
+            parentId: recurring.parentId,
+            childId: recurring.childId,
+            therapistId: recurring.therapistId,
+            timeSlotId: timeSlot.id,
+            recurringBookingId: recurringBookingId
+          }
+        });
+
+        // Mark slot as booked
+        await tx.timeSlot.update({
+          where: { id: timeSlot.id },
+          data: { isBooked: true }
+        });
+
+        // Create payment
+        await tx.payment.create({
+          data: {
+            bookingId: booking.id,
+            parentId: recurring.parentId,
+            therapistId: recurring.therapistId,
+            amount: finalFee
+          }
+        });
+
+        // Create data access permission
+        await tx.dataAccessPermission.create({
+          data: {
+            bookingId: booking.id,
+            childId: recurring.childId,
+            therapistId: recurring.therapistId,
+            canViewDetails: false,
+            accessStartTime: slotStart,
+            accessEndTime: slotEnd
+          }
+        });
+
+        return booking;
+      });
+
+      if (result) {
+        bookingsToCreate.push(result);
+      }
+    }
+
+    return bookingsToCreate;
+  }
+
+  /**
+   * Get all recurring bookings for a parent
+   */
+  async getParentRecurringBookings(userId: string) {
+    const parent = await prisma.parentProfile.findUnique({
+      where: { userId }
+    });
+    if (!parent) throw new Error('Parent profile not found');
+
+    return prisma.recurringBooking.findMany({
+      where: { parentId: parent.id },
+      include: {
+        child: true,
+        therapist: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true
+          }
+        },
+        bookings: {
+          where: {
+            status: BookingStatus.SCHEDULED
+          },
+          include: {
+            timeSlot: true
+          },
+          orderBy: {
+            timeSlot: {
+              startTime: 'asc'
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+  }
+
+  /**
+   * Get upcoming sessions for a recurring booking
+   */
+  async getUpcomingSessionsForRecurring(userId: string, recurringBookingId: string) {
+    const parent = await prisma.parentProfile.findUnique({
+      where: { userId }
+    });
+    if (!parent) throw new Error('Parent profile not found');
+
+    const recurring = await prisma.recurringBooking.findFirst({
+      where: {
+        id: recurringBookingId,
+        parentId: parent.id
+      }
+    });
+
+    if (!recurring) {
+      throw new Error('Recurring booking not found or does not belong to this parent');
+    }
+
+    const today = new Date();
+
+    return prisma.booking.findMany({
+      where: {
+        recurringBookingId: recurringBookingId,
+        status: BookingStatus.SCHEDULED,
+        timeSlot: {
+          startTime: {
+            gte: today
+          }
+        }
+      },
+      include: {
+        timeSlot: true,
+        child: true,
+        therapist: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true
+          }
+        }
+      },
+      orderBy: {
+        timeSlot: {
+          startTime: 'asc'
+        }
+      }
+    });
+  }
+
+  /**
+   * Cancel a recurring booking (cancels all future sessions)
+   */
+  async cancelRecurringBooking(userId: string, recurringBookingId: string) {
+    const parent = await prisma.parentProfile.findUnique({
+      where: { userId }
+    });
+    if (!parent) throw new Error('Parent profile not found');
+
+    const recurring = await prisma.recurringBooking.findFirst({
+      where: {
+        id: recurringBookingId,
+        parentId: parent.id
+      }
+    });
+
+    if (!recurring) {
+      throw new Error('Recurring booking not found or does not belong to this parent');
+    }
+
+    if (!recurring.isActive) {
+      throw new Error('Recurring booking is already cancelled');
+    }
+
+    const today = new Date();
+
+    // Cancel all future bookings
+    await prisma.booking.updateMany({
+      where: {
+        recurringBookingId: recurringBookingId,
+        status: BookingStatus.SCHEDULED,
+        timeSlot: {
+          startTime: {
+            gte: today
+          }
+        }
+      },
+      data: {
+        status: BookingStatus.CANCELLED_BY_PARENT
+      }
+    });
+
+    // Mark recurring booking as inactive
+    const cancelled = await prisma.recurringBooking.update({
+      where: { id: recurringBookingId },
+      data: { isActive: false }
+    });
+
+    return cancelled;
+  }
+}
+
+export const recurringBookingService = new RecurringBookingService();

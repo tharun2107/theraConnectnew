@@ -1,4 +1,4 @@
-import { PrismaClient, TherapistStatus, type TherapistStatus as TherapistStatusType, BookingStatus } from '@prisma/client';
+import { PrismaClient, TherapistStatus, type TherapistStatus as TherapistStatusType, BookingStatus, LeaveStatus } from '@prisma/client';
 import { sendNotification, therapistAccountApproved, sendNotificationBookingCancelled } from '../../services/notification.service';
 import prisma from '../../utils/prisma';
 
@@ -157,7 +157,7 @@ export const listLeaveRequests = async () => {
 export const approveLeaveRequest = async (leaveId: string) => {
   const leave = await prisma.therapistLeave.findUnique({ where: { id: leaveId } });
   if (!leave) throw new Error('Leave not found');
-  if (leave.isApproved) return leave;
+  if (leave.status === LeaveStatus.APPROVED) return leave;
 
   const startOfDay = leave.date;
   const endOfDay = new Date(new Date(startOfDay).setUTCHours(23, 59, 59, 999));
@@ -172,7 +172,7 @@ export const approveLeaveRequest = async (leaveId: string) => {
   });
 
   await prisma.$transaction(async (tx) => {
-    await tx.therapistLeave.update({ where: { id: leaveId }, data: { isApproved: true } });
+    await tx.therapistLeave.update({ where: { id: leaveId }, data: { status: LeaveStatus.APPROVED } });
     await tx.therapistProfile.update({ where: { id: leave.therapistId }, data: { leavesRemainingThisMonth: { decrement: 1 } } });
     for (const booking of affectedBookings) {
       await tx.booking.update({ where: { id: booking.id }, data: { status: BookingStatus.CANCELLED_BY_THERAPIST } });
@@ -205,7 +205,7 @@ export const rejectLeaveRequest = async (leaveId: string, reason?: string) => {
   const leave = await prisma.therapistLeave.findUnique({ where: { id: leaveId } });
   if (!leave) throw new Error('Leave not found');
 
-  await prisma.therapistLeave.update({ where: { id: leaveId }, data: { isApproved: false, reason: reason || leave.reason } });
+  await prisma.therapistLeave.update({ where: { id: leaveId }, data: { status: LeaveStatus.REJECTED, reason: reason || leave.reason } });
 
   const therapist = await prisma.therapistProfile.findUnique({ where: { id: leave.therapistId } });
   if (therapist) {

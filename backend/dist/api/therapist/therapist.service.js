@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAvailableSlotTimes = exports.hasActiveSlots = exports.getMySlotsForDate = exports.requestLeave = exports.createTimeSlots = exports.getTherapistProfile = void 0;
+const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 const getTherapistProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -112,7 +113,7 @@ const requestLeave = (therapistId, input) => __awaiter(void 0, void 0, void 0, f
     const startOfDay = new Date(leaveDate.setUTCHours(0, 0, 0, 0));
     // Create a pending leave request; admin will approve/reject later
     yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        yield tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason, isApproved: false } });
+        yield tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason, status: client_1.LeaveStatus.PENDING } });
     }));
     // Notify all admins via notification/email
     const admins = yield prisma_1.default.user.findMany({ where: { role: 'ADMIN' } });
