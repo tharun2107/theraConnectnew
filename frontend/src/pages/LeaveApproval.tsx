@@ -198,11 +198,33 @@ const LeaveApproval: React.FC = () => {
       select: (response) => {
         console.log('[LeaveApproval] API Response:', response)
         console.log('[LeaveApproval] Response data:', response.data)
+        console.log('[LeaveApproval] Response data type:', typeof response.data)
+        console.log('[LeaveApproval] Is array?', Array.isArray(response.data))
         console.log('[LeaveApproval] Response data.data:', response.data?.data)
-        console.log('[LeaveApproval] Leaves array:', response.data?.data?.leaves)
-        // Backend returns: { success: true, data: { leaves: [...], totalLeaves: 2 } }
-        // Axios wraps it, so response.data = { success: true, data: { leaves: [...] } }
-        return response.data?.data?.leaves || []
+        console.log('[LeaveApproval] Response data.data?.leaves:', response.data?.data?.leaves)
+        
+        // Handle both response structures:
+        // Case 1: response.data is an array directly (unexpected but possible)
+        if (Array.isArray(response.data)) {
+          console.log('[LeaveApproval] Using response.data directly (array):', response.data.length)
+          return response.data
+        }
+        
+        // Case 2: response.data is an object with nested data.leaves
+        if (response.data?.data?.leaves && Array.isArray(response.data.data.leaves)) {
+          console.log('[LeaveApproval] Using response.data.data.leaves:', response.data.data.leaves.length)
+          return response.data.data.leaves
+        }
+        
+        // Case 3: response.data.leaves (direct leaves property)
+        if (response.data?.leaves && Array.isArray(response.data.leaves)) {
+          console.log('[LeaveApproval] Using response.data.leaves:', response.data.leaves.length)
+          return response.data.leaves
+        }
+        
+        console.warn('[LeaveApproval] No leaves found in response, returning empty array')
+        console.warn('[LeaveApproval] Full response structure:', JSON.stringify(response.data, null, 2))
+        return []
       },
       onError: (error: any) => {
         console.error('[LeaveApproval] Error fetching leaves:', error)
