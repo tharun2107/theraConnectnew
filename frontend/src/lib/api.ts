@@ -264,6 +264,47 @@ export const feedbackAPI = {
     api.get(`/feedback/session/${bookingId}`),
 }
 
+// Therapy Notes API
+export const therapyNotesAPI = {
+  // Therapist - Monthly Goals
+  getMonthlyGoals: (childId: string, month: number, year: number) =>
+    api.get('/therapy-notes/therapist/monthly-goals', { params: { childId, month, year } }),
+  updateMonthlyGoals: (data: {
+    childId: string
+    month: number
+    year: number
+    goals: string[]
+  }) => api.put('/therapy-notes/therapist/monthly-goals', data),
+  
+  // Therapist - Session Reports
+  createSessionReport: (data: {
+    bookingId: string
+    childId: string
+    sessionDetails: string[]
+    tasks: { taskGiven: string }[]
+  }) => api.post('/therapy-notes/therapist/session-report', data),
+  getSessionReport: (bookingId: string) =>
+    api.get(`/therapy-notes/therapist/session-report/${bookingId}`),
+  getMonthlySessionReports: (childId: string, month: number, year: number) =>
+    api.get('/therapy-notes/therapist/session-reports/monthly', { params: { childId, month, year } }),
+  checkIsFirstSession: (bookingId: string) =>
+    api.get(`/therapy-notes/therapist/session-report/${bookingId}/is-first`),
+  
+  // Parent - Task Management
+  updateTaskCompletion: (taskId: string, isDone: boolean) =>
+    api.put(`/therapy-notes/parent/task/${taskId}/completion`, { isDone }),
+  updateTaskObservation: (taskId: string, observation: string) =>
+    api.put(`/therapy-notes/parent/task/${taskId}/observation`, { observation }),
+  getPendingTasks: () =>
+    api.get('/therapy-notes/parent/tasks/pending'),
+  getCurrentMonthTasks: () =>
+    api.get('/therapy-notes/parent/tasks/current-month'),
+  
+  // Shared
+  getSessionReportShared: (bookingId: string) =>
+    api.get(`/therapy-notes/session-report/${bookingId}`),
+}
+
 // Demo API
 export const demoAPI = {
   getAvailableSlots: (timezone?: string, date?: string) =>

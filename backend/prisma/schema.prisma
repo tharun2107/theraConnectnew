@@ -234,6 +234,7 @@ model TherapistProfile {
   sessionReports    SessionReport[]
   ConsentRequest    ConsentRequest[]
   recurringBookings RecurringBooking[]
+  monthlyGoals      MonthlyGoal[]
 
   @@index([specialization])
 }
@@ -264,6 +265,8 @@ model Child {
   bookings          Booking[]
   dataAccess        DataAccessPermission[]
   recurringBookings RecurringBooking[]
+  monthlyGoals      MonthlyGoal[]
+  sessionReports    SessionReport[]
 
   @@unique([parentId, name])
   @@index([parentId])
@@ -428,24 +431,61 @@ model Testimonial {
 // REPORTING AND FEEDBACK
 //
 
+// Monthly Goals - Set by therapist on first session of the month
+model MonthlyGoal {
+  id          String   @id @default(cuid())
+  month       Int      // 1-12
+  year        Int
+  goals       String[] @default([]) // Array of goal strings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  therapistId String
+  childId     String
+  
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+  child       Child            @relation(fields: [childId], references: [id])
+  
+  @@unique([therapistId, childId, month, year])
+  @@index([therapistId, childId])
+  @@index([month, year])
+}
+
+// Session Report - Created after each session with session-specific details and tasks
 model SessionReport {
   id                String   @id @default(cuid())
-  sessionExperience String
-  childPerformance  String?
-  improvements      String?
-  medication        String?
-  recommendations   String?
-  nextSteps         String?
+  sessionDetails    String[] @default([]) // Array of session detail points
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-
+  
   bookingId   String @unique
   therapistId String
-
+  childId     String? // Made optional to handle existing data
+  
   booking   Booking          @relation(fields: [bookingId], references: [id])
   therapist TherapistProfile @relation(fields: [therapistId], references: [id])
-
+  child     Child?           @relation(fields: [childId], references: [id])
+  
+  tasks SessionTask[]
+  
   @@index([therapistId])
+  @@index([childId])
+  @@index([createdAt])
+}
+
+// Session Tasks - Tasks given by therapist, completed by parent
+model SessionTask {
+  id            String   @id @default(cuid())
+  taskGiven     String   // Task description
+  isDone        Boolean? // Parent's response (null if not answered, true/false when answered)
+  observation   String?  // Parent's observation notes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  sessionReportId String
+  sessionReport   SessionReport @relation(fields: [sessionReportId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionReportId])
 }
 
 model SessionFeedback {

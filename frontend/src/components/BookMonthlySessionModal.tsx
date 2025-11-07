@@ -111,16 +111,20 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
     setValue('startDate', normalized, { shouldValidate: true })
   }
 
-  // Calculate end date (one month from start date)
+  // Calculate end date (exactly one month from start date, minus 1 day)
+  // Example: Nov 7 -> Dec 6 (complete month from booking date)
   const calculateEndDate = (startDate: string): string => {
     if (!startDate) return ''
     const start = new Date(startDate)
     const end = new Date(start)
+    
+    // Add one month
     end.setMonth(end.getMonth() + 1)
-    // Set to last day of the month
-    end.setDate(0) // This gives us the last day of the previous month
-    end.setMonth(end.getMonth() + 1) // Move to next month
-    end.setDate(0) // Get last day of that month
+    
+    // Subtract one day to get the day before the same date next month
+    // This gives us a complete month: Nov 7 -> Dec 6
+    end.setDate(end.getDate() - 1)
+    
     return end.toISOString().split('T')[0]
   }
 
@@ -274,7 +278,7 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
           {/* Select Start Date */}
           <div>
             <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Start Date (Sessions will be booked for one month from this date) *
+              Start Date (Sessions will be booked for one complete month from this date) *
             </label>
             <input
               type="date"

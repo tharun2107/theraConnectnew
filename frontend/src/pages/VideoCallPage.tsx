@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import VideoControls from '../components/VideoControls'
 import FeedbackForm from '../components/FeedbackForm'
-import SessionReportForm from '../components/SessionReportForm'
+import TherapyNotesModal from '../components/TherapyNotesModal'
 import { useAuth } from '../hooks/useAuth'
 
 
@@ -35,6 +35,7 @@ const VideoCallPage: React.FC = () => {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
   const [showSessionReportForm, setShowSessionReportForm] = useState(false)
   const [sessionDetails, setSessionDetails] = useState<any>(null)
+  const [showGuideTooltip, setShowGuideTooltip] = useState(false)
 
   useEffect(() => {
     if (!bookingId) {
@@ -79,22 +80,22 @@ const VideoCallPage: React.FC = () => {
         }
         // Guard against double init under StrictMode
         try {
-         // await client.init({ zoomAppRoot: containerRef.current, language: 'en-US' })
-         await client.init({
-          zoomAppRoot: containerRef.current,
-          language: 'en-US',
-          customize: {
-            video: {
-              isResizable: false,
-              viewSizes: {
-                default: {
-                  width: 1000,    // Set your desired width in px
-                  height: 800    // Set your desired height in px
-                }
-              }
-            }
-          }
-        })
+         await client.init({ zoomAppRoot: containerRef.current, language: 'en-US' })
+        //  await client.init({
+        //   zoomAppRoot: containerRef.current,
+        //   language: 'en-US',
+        //   customize: {
+        //     video: {
+        //       isResizable: false,
+        //       viewSizes: {
+        //         default: {
+        //           width: 1000,    // Set your desired width in px
+        //           height: 800    // Set your desired height in px
+        //         }
+        //       }
+        //     }
+        //   }
+        // })
         
         } catch (e: any) {
           if (e?.reason === 'Duplicated init' || e?.type === 'INVALID_OPERATION') {
@@ -116,7 +117,7 @@ const VideoCallPage: React.FC = () => {
             sdkKey: data.sdkKey,
             meetingNumber: data.meetingNumber,
             password: data.password || '',
-            userName: 'Therabee User',
+            userName: 'TheraConnect User',
           })
         } catch (e: any) {
           if (e?.type === 'INVALID_OPERATION' && e?.reason?.toLowerCase().includes('duplicated')) {
@@ -129,6 +130,20 @@ const VideoCallPage: React.FC = () => {
         
         console.log('[VideoCallPage] join success')
         setMeetingStarted(true)
+        
+        // Show one-time guide for first-time users
+        const hasSeenGuide = localStorage.getItem('zoomGuideShown')
+        if (!hasSeenGuide) {
+          setTimeout(() => {
+            setShowGuideTooltip(true)
+            localStorage.setItem('zoomGuideShown', 'true')
+            
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+              setShowGuideTooltip(false)
+            }, 8000)
+          }, 2000)
+        }
       } catch (e: any) {
         console.error('[VideoCallPage] join error', e)
         if (!cancelled) {
@@ -196,17 +211,23 @@ const VideoCallPage: React.FC = () => {
         // Continue anyway - we'll show the form with fallback data
       }
       
-      // Load session details
+      // Load session details with child ID
       try {
         console.log('📋 Loading session details...')
         const response = await feedbackAPI.getSessionDetails(bookingId!)
         console.log('📋 Session details loaded:', response.data)
-        setSessionDetails(response.data.sessionDetails)
+        setSessionDetails({
+          ...response.data.sessionDetails,
+          child: {
+            ...response.data.sessionDetails?.child,
+            id: response.data.sessionDetails?.child?.id || response.data.sessionDetails?.childId || ''
+          }
+        })
       } catch (error) {
         console.error('❌ Failed to load session details:', error)
         // Create fallback session details if API fails
         setSessionDetails({
-          child: { name: 'Child' },
+          child: { name: 'Child', id: '' },
           therapist: { name: 'Therapist' },
           parent: { name: 'Parent' }
         })
@@ -232,15 +253,15 @@ const VideoCallPage: React.FC = () => {
         console.log('👨‍👩‍👧‍👦 Error fallback: Showing feedback form for parent')
         setShowFeedbackForm(true)
         setSessionDetails({
-          child: { name: 'Child' },
+          child: { name: 'Child', id: '' },
           therapist: { name: 'Therapist' },
           parent: { name: 'Parent' }
         })
       } else if (user?.role === 'THERAPIST') {
-        console.log('👩‍⚕️ Error fallback: Showing session report form for therapist')
+        console.log('👩‍⚕️ Error fallback: Showing therapy notes modal for therapist')
         setShowSessionReportForm(true)
         setSessionDetails({
-          child: { name: 'Child' },
+          child: { name: 'Child', id: '' },
           therapist: { name: 'Therapist' },
           parent: { name: 'Parent' }
         })
@@ -253,7 +274,7 @@ const VideoCallPage: React.FC = () => {
   const handleTestFeedback = () => {
     console.log('🧪 Testing feedback form')
     setSessionDetails({
-      child: { name: 'Test Child' },
+      child: { name: 'Test Child', id: 'test-child-id' },
       therapist: { name: 'Test Therapist' },
       parent: { name: 'Test Parent' }
     })
@@ -317,16 +338,18 @@ const VideoCallPage: React.FC = () => {
     )
   }
 
-  // Show session report form for therapists
+  // Show therapy notes modal for therapists
   if (showSessionReportForm) {
-    console.log('🎯 Rendering session report form for therapist')
+    console.log('🎯 Rendering therapy notes modal for therapist')
     return (
-      <SessionReportForm
+      <TherapyNotesModal
         bookingId={bookingId!}
+        childId={sessionDetails?.child?.id || ''}
         childName={sessionDetails?.child?.name || 'Child'}
-        parentName={sessionDetails?.parent?.name || 'Parent'}
+        therapistName={user?.name || sessionDetails?.therapist?.name || 'Therapist'}
+        sessionDate={new Date()}
+        onClose={handleSessionReportCancel}
         onSuccess={handleSessionReportSuccess}
-        onCancel={handleSessionReportCancel}
       />
     )
   }
@@ -340,7 +363,7 @@ const VideoCallPage: React.FC = () => {
             <AvatarFallback className="text-xs sm:text-sm">TC</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h1 className="font-semibold text-xs sm:text-sm truncate">Therabee Session</h1>
+            <h1 className="font-semibold text-xs sm:text-sm truncate">TheraConnect Session</h1>
             <p className="text-xs text-gray-400 truncate">
               {meetingStarted ? 'Session Active' : 'Connecting...'}
             </p>
@@ -369,6 +392,34 @@ const VideoCallPage: React.FC = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
               <p className="text-lg">Connecting to meeting...</p>
+            </div>
+          </div>
+        )}
+        
+        {/* One-time Guide Tooltip - Shows once after first login */}
+        {showGuideTooltip && meetingStarted && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-blue-600 text-white p-4 rounded-lg shadow-2xl max-w-md animate-fade-in">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold mb-2">Quick Guide:</h3>
+                <ul className="text-sm space-y-1">
+                  <li>• Resize video by dragging corners</li>
+                  <li>• Hover over red button below to end session</li>
+                </ul>
+              </div>
+              <button
+                onClick={() => setShowGuideTooltip(false)}
+                className="flex-shrink-0 text-white hover:text-gray-200"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
             </div>
           </div>
         )}

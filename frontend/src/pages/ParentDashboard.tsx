@@ -24,6 +24,7 @@ import BookMonthlySessionModal from '../components/BookMonthlySessionModal'
 import CurrentSessions from '../components/CurrentSessions'
 import SessionDetails from '../components/SessionDetails'
 import ParentConsentManagement from '../components/ParentConsentManagement'
+import ParentTasksView from '../components/ParentTasksView'
 
 interface Child {
   id: string
@@ -448,11 +449,29 @@ const ParentDashboard: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Consent Management */}
+      {/* Session Tasks - To be followed at home */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
+      >
+        <React.Suspense fallback={
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg">
+            <CardContent className="py-12 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 dark:text-gray-400 mt-4">Loading tasks...</p>
+            </CardContent>
+          </Card>
+        }>
+          <ParentTasksView />
+        </React.Suspense>
+      </motion.div>
+
+      {/* Consent Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
       >
         <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">

@@ -79,71 +79,11 @@ export const createFeedback = async (input: CreateFeedbackInput) => {
 }
 
 export const createSessionReport = async (input: CreateSessionReportInput) => {
-  const { bookingId, sessionExperience, childPerformance, improvements, medication, recommendations, nextSteps } = input
-
-  // Verify booking exists and belongs to therapist
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      parent: { include: { user: true } },
-      child: true,
-      therapist: { include: { user: true } },
-      timeSlot: true,
-    },
-  })
-
-  if (!booking) {
-    throw new Error('Booking not found')
-  }
-
-  if (booking.status !== 'COMPLETED') {
-    console.log('⚠️ Session not marked as completed, marking it now...')
-    // Mark the session as completed if it's not already
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: 'COMPLETED',
-        completedAt: new Date(),
-        isCompleted: true,
-      } as any,
-    })
-  }
-
-  // Check if report already exists
-  const existingReport = await (prisma as any).sessionReport.findUnique({
-    where: { bookingId },
-  })
-
-  if (existingReport) {
-    throw new Error('Session report already exists for this session')
-  }
-
-  // Create session report
-  const report = await (prisma as any).sessionReport.create({
-    data: {
-      id: `report_${Date.now()}`,
-      sessionExperience,
-      childPerformance,
-      improvements,
-      medication,
-      recommendations,
-      nextSteps,
-      bookingId,
-      therapistId: booking.therapistId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  })
-
-  // Send email to parent
-  try {
-    await sendSessionReportEmail(booking.parent.user.email, booking.child.name, report, booking.therapist.name)
-  } catch (error) {
-    console.error('Failed to send email:', error)
-    // Don't throw error - report creation should succeed even if email fails
-  }
-
-  return report
+  // This endpoint is deprecated - redirect to use the new therapy notes API
+  throw new Error(
+    'This endpoint is deprecated. Please use the new Therapy Notes API at /api/v1/therapy-notes/therapist/session-report. ' +
+    'The new system supports monthly goals, session details, and home tasks with better structure.'
+  )
 }
 
 export const updateConsent = async (input: UpdateConsentInput) => {
@@ -250,42 +190,5 @@ const updateTherapistRating = async (therapistId: string) => {
   }
 }
 
-const sendSessionReportEmail = async (parentEmail: string, childName: string, report: any, therapistName: string) => {
-  const emailContent = `
-    <h2>Session Report for ${childName}</h2>
-    <p>Dear Parent,</p>
-    <p>Dr. ${therapistName} has completed the session report for ${childName}. Here are the details:</p>
-    
-    <h3>Session Experience</h3>
-    <p>${report.sessionExperience}</p>
-    
-    ${report.childPerformance ? `
-    <h3>Child Performance</h3>
-    <p>${report.childPerformance}</p>
-    ` : ''}
-    
-    ${report.improvements ? `
-    <h3>Improvements</h3>
-    <p>${report.improvements}</p>
-    ` : ''}
-    
-    ${report.medication ? `
-    <h3>Medication Notes</h3>
-    <p>${report.medication}</p>
-    ` : ''}
-    
-    ${report.recommendations ? `
-    <h3>Recommendations</h3>
-    <p>${report.recommendations}</p>
-    ` : ''}
-    
-    ${report.nextSteps ? `
-    <h3>Next Steps</h3>
-    <p>${report.nextSteps}</p>
-    ` : ''}
-    
-    <p>Best regards,<br>Therabee Team</p>
-  `
-
-  await sendemail(parentEmail, `Session Report for ${childName} - Therabee  ${emailContent}`)
-}
+// Deprecated - old email template no longer used
+// New therapy notes system has its own email logic

@@ -44,6 +44,7 @@ const TherapistDashboard: React.FC = () => {
   const [isMandatoryModal, setIsMandatoryModal] = useState(false)
   const [showRequestLeaveModal, setShowRequestLeaveModal] = useState(false)
   const [joiningId, setJoiningId] = useState<string | null>(null)
+  const [slotsConfigured, setSlotsConfigured] = useState(false) // Track if slots were just configured
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -70,16 +71,24 @@ const TherapistDashboard: React.FC = () => {
     }
   )
 
-  // Automatically show modal if therapist has no active slots
+  // Automatically show modal if therapist has no active slots (only on initial load)
   useEffect(() => {
     console.log('[TherapistDashboard] Effect triggered:', { 
       checkingSlots, 
       hasActiveSlotsData, 
       checkError,
-      profile: !!profile 
+      profile: !!profile,
+      slotsConfigured,
+      showCreateSlotsModal
     })
     
-    if (!checkingSlots && hasActiveSlotsData !== undefined) {
+    // Only show modal if:
+    // 1. Not currently checking slots
+    // 2. Data is available
+    // 3. No active slots exist
+    // 4. Slots haven't just been configured
+    // 5. Modal is not already showing
+    if (!checkingSlots && hasActiveSlotsData !== undefined && !slotsConfigured && !showCreateSlotsModal) {
       console.log('[TherapistDashboard] Checking if modal should show:', hasActiveSlotsData.hasActiveSlots)
       if (!hasActiveSlotsData.hasActiveSlots) {
         console.log('[TherapistDashboard] Showing mandatory modal')
@@ -87,7 +96,7 @@ const TherapistDashboard: React.FC = () => {
         setShowCreateSlotsModal(true)
       }
     }
-  }, [hasActiveSlotsData, checkingSlots, checkError, profile])
+  }, [hasActiveSlotsData, checkingSlots, checkError, profile, slotsConfigured, showCreateSlotsModal])
 
   const { data: bookings = [], isLoading: bookingsLoading, refetch: refetchBookings } = useQuery(
     'therapistBookings',
@@ -476,15 +485,21 @@ const TherapistDashboard: React.FC = () => {
         <CreateTimeSlotsModal
           isMandatory={isMandatoryModal}
           onClose={() => {
-            if (!isMandatoryModal && !hasActiveSlotsData?.hasActiveSlots) {
+            if (!isMandatoryModal) {
               setShowCreateSlotsModal(false)
             }
           }}
           onSuccess={() => {
-            queryClient.invalidateQueries('therapistProfile')
-            queryClient.invalidateQueries('therapistHasActiveSlots')
+            console.log('[TherapistDashboard] Slots configured successfully')
+            setSlotsConfigured(true) // Mark slots as configured to prevent re-showing
             setShowCreateSlotsModal(false)
             setIsMandatoryModal(false)
+            
+            // Invalidate queries after a short delay to ensure state updates first
+            setTimeout(() => {
+              queryClient.invalidateQueries('therapistProfile')
+              queryClient.invalidateQueries('therapistHasActiveSlots')
+            }, 100)
           }}
         />
       )}
