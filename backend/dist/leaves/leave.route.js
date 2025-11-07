@@ -26,6 +26,11 @@ therapistRouter.post('/leaves', (0, validate_middleware_1.validate)({ body: leav
  * Get all leave requests for the therapist
  */
 therapistRouter.get('/leaves', leave_controller_1.getTherapistLeavesHandler);
+/**
+ * GET /api/therapist/leaves/balance
+ * Get current leave balance for the therapist
+ */
+therapistRouter.get('/leaves/balance', leave_controller_1.getTherapistLeaveBalanceHandler);
 // ============================================
 // ADMIN ROUTES
 // ============================================
@@ -49,4 +54,4 @@ adminRouter.get('/leaves/:leaveId', (0, validate_middleware_1.validate)({ params
  * Approve or reject a leave request
  * Body: { action: "APPROVE" | "REJECT", adminNotes?: "..." }
  */
-adminRouter.put('/leaves/:leaveId', (0, validate_middleware_1.validate)({ body: leave_validation_1.processLeaveSchema.shape.body }), leave_controller_1.processLeaveHandler);
+adminRouter.put('/leaves/:leaveId', (0, validate_middleware_1.validate)({ params: leave_validation_1.processLeaveParamsSchema, body: leave_validation_1.processLeaveBodySchema }), leave_controller_1.processLeaveHandler);

@@ -45,7 +45,7 @@ const LandingPage: React.FC = () => {
             </span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-            TheraConnect bridges the gap between families seeking quality therapy and professional therapists, making mental health support accessible and convenient.
+            Therabee bridges the gap between families seeking quality therapy and professional therapists, making mental health support accessible and convenient.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
@@ -73,7 +73,7 @@ const LandingPage: React.FC = () => {
       <section id="features" className="relative py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-            Why Choose TheraConnect?
+            Why Choose Therabee?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
             A comprehensive platform that makes therapy accessible, convenient, and effective.
@@ -118,7 +118,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
-            Getting started with TheraConnect is simple and straightforward
+            Getting started with Therabee is simple and straightforward
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {['Sign Up', 'Connect', 'Thrive'].map((step, i) => (
@@ -165,12 +165,12 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
-            Real stories from families and therapists who trust TheraConnect
+            Real stories from families and therapists who trust Therabee
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {[
-              { name: 'Sarah Johnson', role: 'Parent', text: 'TheraConnect made it so easy to find the right therapist for my daughter.' },
-              { name: 'Dr. Michael Chen', role: 'Child Psychologist', text: 'As a therapist, TheraConnect has helped me grow my practice significantly.' },
+              { name: 'Sarah Johnson', role: 'Parent', text: 'Therabee made it so easy to find the right therapist for my daughter.' },
+              { name: 'Dr. Michael Chen', role: 'Child Psychologist', text: 'As a therapist, Therabee has helped me grow my practice significantly.' },
               { name: 'Emily Rodriguez', role: 'Parent', text: 'The convenience of online sessions and the quality of therapists has been life-changing.' }
             ].map((t, i) => (
               <div key={i} className="bg-gray-100 dark:bg-black dark:border dark:border-gray-700 p-6 rounded-lg hover:shadow-lg transition-all">
@@ -191,7 +191,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of families who trust TheraConnect for their therapy needs
+            Join thousands of families who trust Therabee for their therapy needs
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             {/* Registration removed: OAuth-only sign-in */}
@@ -211,7 +211,7 @@ const LandingPage: React.FC = () => {
                 <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
                   <Heart className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">TheraConnect</span>
+                <span className="text-xl font-bold">Therabee</span>
               </div>
               <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
                 Connecting families with qualified therapists for accessible, convenient, and effective mental health support.
@@ -240,7 +240,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="border-t border-gray-200 dark:border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-600 dark:text-gray-400 text-sm">
-            <span>© {new Date().getFullYear()} TheraConnect. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} Therabee. All rights reserved.</span>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="hover:text-primary-600 dark:hover:text-white">Privacy Policy</a>
               <a href="#" className="hover:text-primary-600 dark:hover:text-white">Terms of Service</a>

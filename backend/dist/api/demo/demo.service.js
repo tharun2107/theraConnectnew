@@ -379,7 +379,7 @@ function getAdminDemoSlots(month, year) {
             include: {
                 _count: {
                     select: {
-                        demoBookings: {
+                        bookings: {
                             where: {
                                 status: {
                                     not: DemoBookingStatus.CANCELLED,

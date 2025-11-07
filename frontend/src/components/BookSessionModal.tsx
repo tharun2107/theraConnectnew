@@ -357,14 +357,14 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
                 <div className="grid grid-cols-2 gap-3">
                   {availableSlots.map((slot) => {
                     // Extract UTC time and display as local time
-                    // Slots are stored in UTC with literal hours/minutes (e.g., 12:00 UTC means display as 12:00 locally)
+                    // Use the local time representation directly from the Date object
+                    // JavaScript Date automatically converts UTC to local time when we call getHours() and getMinutes()
                     const slotDate = new Date(slot.startTime)
-                    const utcHours = slotDate.getUTCHours()
-                    const utcMinutes = slotDate.getUTCMinutes()
+                    const localHours = slotDate.getHours()
+                    const localMinutes = slotDate.getMinutes()
                     
-                    // Create a date with UTC hours/minutes to display in local time
-                    // This ensures 12:00 UTC displays as 12:00 in any timezone
-                    const displayDate = new Date(2000, 0, 1, utcHours, utcMinutes)
+                    // Create a date with local hours/minutes to display correctly
+                    const displayDate = new Date(2000, 0, 1, localHours, localMinutes)
                     const displayTime = displayDate.toLocaleTimeString([], { 
                       hour: '2-digit', 
                       minute: '2-digit',

@@ -64,7 +64,7 @@ const NewLandingPage: React.FC = () => {
                 <Stethoscope className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 text-white" />
               </motion.div>
               <span className="text-sm sm:text-base md:text-lg lg:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
-                TheraConnect
+                Therabee
               </span>
             </div>
 
@@ -308,7 +308,7 @@ const NewLandingPage: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                Book a demo session with our team and discover how TheraConnect can help your family.
+                Book a demo session with our team and discover how Therabee can help your family.
               </motion.p>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

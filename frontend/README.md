@@ -1,6 +1,6 @@
-# TheraConnect Frontend
+# Therabee Frontend
 
-A modern React frontend for the TheraConnect therapy booking platform, built with TypeScript, Vite, and Tailwind CSS.
+A modern React frontend for the Therabee therapy booking platform, built with TypeScript, Vite, and Tailwind CSS.
 
 ## Features
 
@@ -30,7 +30,7 @@ A modern React frontend for the TheraConnect therapy booking platform, built wit
 
 - Node.js 18+ 
 - npm or yarn
-- TheraConnect backend running on port 3000
+- Therabee backend running on port 3000
 
 ### Installation
 
@@ -119,7 +119,7 @@ frontend/
 
 ## API Integration
 
-The frontend integrates with the TheraConnect backend API:
+The frontend integrates with the Therabee backend API:
 
 - **Authentication**: `/api/v1/auth/*`
 - **Parent Management**: `/api/v1/parents/*`
@@ -165,4 +165,4 @@ The frontend integrates with the TheraConnect backend API:
 
 ## License
 
-This project is part of the TheraConnect platform.
+This project is part of the Therabee platform.

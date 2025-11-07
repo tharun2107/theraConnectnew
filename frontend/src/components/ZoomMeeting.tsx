@@ -67,7 +67,7 @@ const ZoomMeeting: React.FC<Props> = ({ bookingId }) => {
           sdkKey: data.sdkKey,
           meetingNumber: data.meetingNumber,
           password: data.password,
-          userName: 'TheraConnect User',
+          userName: 'Therabee User',
         })
         console.log('[ZoomMeeting] join success')
       } catch (e: any) {

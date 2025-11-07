@@ -97,7 +97,7 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
             <Heart className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">TheraConnect</h1>
+            <h1 className="text-xl font-bold text-white">Therabee</h1>
             <p className="text-sm text-slate-400">Professional Therapy</p>
           </div>
         </motion.div>

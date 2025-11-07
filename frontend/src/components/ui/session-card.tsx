@@ -104,8 +104,8 @@ export const SessionCard: React.FC<SessionCardProps> = ({
           <div className="flex items-center space-x-2 text-sm text-[#4D4D4D]">
             <Clock className="h-4 w-4" />
             <span>
-              {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
-              {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })} - {' '}
+              {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
             </span>
           </div>
           

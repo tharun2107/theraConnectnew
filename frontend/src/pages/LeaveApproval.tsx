@@ -18,6 +18,7 @@ import { Badge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
 import { LoadingSpinner } from '../components/ui/loading-spinner'
 import toast from 'react-hot-toast'
+import { formatDateString, formatDateSimple } from '../utils/dateUtils'
 
 interface Leave {
   id: string
@@ -39,6 +40,7 @@ interface LeaveDetailsModalProps {
   onClose: () => void
   onApprove: (leaveId: string, adminNotes?: string) => void
   onReject: (leaveId: string, adminNotes?: string) => void
+  isLoading?: boolean
 }
 
 const LeaveDetailsModal: React.FC<LeaveDetailsModalProps> = ({ 
@@ -46,21 +48,20 @@ const LeaveDetailsModal: React.FC<LeaveDetailsModalProps> = ({
   isOpen, 
   onClose, 
   onApprove, 
-  onReject 
+  onReject,
+  isLoading = false
 }) => {
   const [adminNotes, setAdminNotes] = useState('')
-  const [action, setAction] = useState<'APPROVE' | 'REJECT' | null>(null)
 
   if (!isOpen || !leave) return null
 
-  const handleSubmit = () => {
+  const handleSubmit = (action: 'APPROVE' | 'REJECT') => {
     if (action === 'APPROVE') {
       onApprove(leave.id, adminNotes || undefined)
     } else if (action === 'REJECT') {
       onReject(leave.id, adminNotes || undefined)
     }
     setAdminNotes('')
-    setAction(null)
   }
 
   return (
@@ -99,12 +100,7 @@ const LeaveDetailsModal: React.FC<LeaveDetailsModalProps> = ({
               <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 <span className="text-gray-900 dark:text-white">
-                  {new Date(leave.date).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
+                  {formatDateString(leave.date)}
                 </span>
               </div>
             </div>
@@ -155,25 +151,21 @@ const LeaveDetailsModal: React.FC<LeaveDetailsModalProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => {
-                setAction('REJECT')
-                handleSubmit()
-              }}
-              className="btn flex-1 bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => handleSubmit('REJECT')}
+              disabled={isLoading}
+              className="btn flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <XCircle className="h-4 w-4 mr-2" />
-              Reject
+              {isLoading ? 'Processing...' : 'Reject'}
             </button>
             <button
               type="button"
-              onClick={() => {
-                setAction('APPROVE')
-                handleSubmit()
-              }}
-              className="btn flex-1 bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => handleSubmit('APPROVE')}
+              disabled={isLoading}
+              className="btn flex-1 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
-              Approve
+              {isLoading ? 'Processing...' : 'Approve'}
             </button>
           </div>
         </div>
@@ -195,6 +187,11 @@ const LeaveApproval: React.FC = () => {
       return adminAPI.getAllLeaves(statusFilter === 'ALL' ? undefined : statusFilter)
     },
     {
+      refetchOnWindowFocus: false,
+      refetchOnMount: 'always',
+      refetchOnReconnect: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes - keep in cache for 10 minutes
       select: (response) => {
         console.log('[LeaveApproval] API Response:', response)
         console.log('[LeaveApproval] Response data:', response.data)
@@ -239,17 +236,34 @@ const LeaveApproval: React.FC = () => {
   console.log('[LeaveApproval] Error:', error)
 
   const processMutation = useMutation(
-    ({ leaveId, action, adminNotes }: { leaveId: string; action: 'APPROVE' | 'REJECT'; adminNotes?: string }) =>
-      adminAPI.processLeave(leaveId, { action, adminNotes }),
+    ({ leaveId, action, adminNotes }: { leaveId: string; action: 'APPROVE' | 'REJECT'; adminNotes?: string }) => {
+      console.log('[LeaveApproval] Processing leave:', { leaveId, action, adminNotes })
+      return adminAPI.processLeave(leaveId, { action, adminNotes })
+    },
     {
-      onSuccess: (_, variables) => {
+      onSuccess: (response, variables) => {
+        console.log('[LeaveApproval] Leave processed successfully:', response)
         toast.success(`Leave request ${variables.action === 'APPROVE' ? 'approved' : 'rejected'} successfully`)
         queryClient.invalidateQueries('adminLeaves')
         setShowDetailsModal(false)
         setSelectedLeave(null)
       },
       onError: (error: any) => {
-        toast.error(error.response?.data?.message || 'Failed to process leave request')
+        console.error('[LeaveApproval] Error processing leave:', error)
+        console.error('[LeaveApproval] Error response:', error.response)
+        console.error('[LeaveApproval] Error data:', error.response?.data)
+        console.error('[LeaveApproval] Error details:', error.response?.data?.errors)
+        
+        // Show detailed validation errors if available
+        if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+          const errorMessages = error.response.data.errors.map((err: any) => 
+            `${err.field}: ${err.message}`
+          ).join(', ')
+          toast.error(`Validation failed: ${errorMessages}`)
+        } else {
+          const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to process leave request'
+          toast.error(errorMessage)
+        }
       },
     }
   )
@@ -400,34 +414,74 @@ const LeaveApproval: React.FC = () => {
         <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant={statusFilter === 'ALL' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('ALL')}
-                size="sm"
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (statusFilter !== 'ALL') {
+                    setStatusFilter('ALL')
+                  }
+                }}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === 'ALL' 
+                    ? 'bg-black hover:bg-gray-900 text-white dark:bg-black dark:hover:bg-gray-900 dark:text-white' 
+                    : 'bg-transparent border border-gray-300 dark:bg-black dark:hover:bg-gray-900 dark:text-white dark:border-gray-700 text-gray-700 dark:text-white'
+                }`}
               >
                 All ({leaves.length})
-              </Button>
-              <Button
-                variant={statusFilter === 'PENDING' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('PENDING')}
-                size="sm"
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (statusFilter !== 'PENDING') {
+                    setStatusFilter('PENDING')
+                  }
+                }}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === 'PENDING' 
+                    ? 'bg-black hover:bg-gray-900 text-white dark:bg-black dark:hover:bg-gray-900 dark:text-white' 
+                    : 'bg-transparent border border-gray-300 dark:bg-black dark:hover:bg-gray-900 dark:text-white dark:border-gray-700 text-gray-700 dark:text-white'
+                }`}
               >
                 Pending ({pendingCount})
-              </Button>
-              <Button
-                variant={statusFilter === 'APPROVED' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('APPROVED')}
-                size="sm"
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (statusFilter !== 'APPROVED') {
+                    setStatusFilter('APPROVED')
+                  }
+                }}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === 'APPROVED' 
+                    ? 'bg-black hover:bg-gray-900 text-white dark:bg-black dark:hover:bg-gray-900 dark:text-white' 
+                    : 'bg-transparent border border-gray-300 dark:bg-black dark:hover:bg-gray-900 dark:text-white dark:border-gray-700 text-gray-700 dark:text-white'
+                }`}
               >
                 Approved ({approvedCount})
-              </Button>
-              <Button
-                variant={statusFilter === 'REJECTED' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('REJECTED')}
-                size="sm"
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (statusFilter !== 'REJECTED') {
+                    setStatusFilter('REJECTED')
+                  }
+                }}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === 'REJECTED' 
+                    ? 'bg-black hover:bg-gray-900 text-white dark:bg-black dark:hover:bg-gray-900 dark:text-white' 
+                    : 'bg-transparent border border-gray-300 dark:bg-black dark:hover:bg-gray-900 dark:text-white dark:border-gray-700 text-gray-700 dark:text-white'
+                }`}
               >
                 Rejected ({rejectedCount})
-              </Button>
+              </button>
             </div>
           </CardContent>
         </Card>
@@ -469,7 +523,7 @@ const LeaveApproval: React.FC = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                      className="bg-gradient-to-r from-gray-50 to-gray-100 dark:bg-black dark:from-black dark:to-black dark:border-gray-700 p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                     >
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex-1">
@@ -490,12 +544,7 @@ const LeaveApproval: React.FC = () => {
                           </div>
                           <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-1">
                             <Calendar className="h-4 w-4 mr-2" />
-                            <span>{new Date(leave.date).toLocaleDateString('en-US', { 
-                              weekday: 'long', 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}</span>
+                            <span>{formatDateString(leave.date)}</span>
                           </div>
                           {leave.reason && (
                             <div className="flex items-start text-sm text-gray-600 dark:text-gray-400 mt-2">
@@ -504,7 +553,7 @@ const LeaveApproval: React.FC = () => {
                             </div>
                           )}
                           <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                            Requested on {new Date(leave.createdAt).toLocaleDateString()}
+                            Requested on {formatDateSimple(leave.createdAt)}
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -542,6 +591,7 @@ const LeaveApproval: React.FC = () => {
           }}
           onApprove={handleApprove}
           onReject={handleReject}
+          isLoading={processMutation.isLoading}
         />
       )}
     </div>

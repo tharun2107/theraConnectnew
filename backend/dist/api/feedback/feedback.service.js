@@ -264,7 +264,7 @@ const sendSessionReportEmail = (parentEmail, childName, report, therapistName) =
     <p>${report.nextSteps}</p>
     ` : ''}
     
-    <p>Best regards,<br>TheraConnect Team</p>
+    <p>Best regards,<br>Therabee Team</p>
   `;
-    yield (0, email_services_1.sendemail)(parentEmail, `Session Report for ${childName} - TheraConnect  ${emailContent}`);
+    yield (0, email_services_1.sendemail)(parentEmail, `Session Report for ${childName} - Therabee  ${emailContent}`);
 });

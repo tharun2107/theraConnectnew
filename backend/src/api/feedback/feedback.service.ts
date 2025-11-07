@@ -284,8 +284,8 @@ const sendSessionReportEmail = async (parentEmail: string, childName: string, re
     <p>${report.nextSteps}</p>
     ` : ''}
     
-    <p>Best regards,<br>TheraConnect Team</p>
+    <p>Best regards,<br>Therabee Team</p>
   `
 
-  await sendemail(parentEmail, `Session Report for ${childName} - TheraConnect  ${emailContent}`)
+  await sendemail(parentEmail, `Session Report for ${childName} - Therabee  ${emailContent}`)
 }

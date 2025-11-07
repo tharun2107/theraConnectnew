@@ -19,7 +19,7 @@ const LandingNavbar: React.FC = () => {
             <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
               <Heart className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">TheraConnect</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">Therabee</span>
           </div>
 
           {/* Desktop Navigation */}

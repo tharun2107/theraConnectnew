@@ -18,7 +18,7 @@ export const sendemail = async (email: string, message: string, html?: string, s
     const mailOptions: any = {
       from: process.env.EMAIL_USER,
       to: email,   
-      subject: subject || "Welcome to TheraConnect - Start Your Wellness Journey",
+      subject: subject || "Welcome to Therabee - Start Your Wellness Journey",
       text: message
     };
 

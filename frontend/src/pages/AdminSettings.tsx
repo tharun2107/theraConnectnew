@@ -186,7 +186,7 @@ const AdminSettings: React.FC = () => {
                       id="platformName"
                       {...register('platformName', { required: 'Platform name is required' })}
                       className="mt-1"
-                      placeholder="TheraConnect"
+                      placeholder="Therabee"
                     />
                     {errors.platformName && (
                       <p className="text-sm text-red-600 dark:text-red-400 mt-1">
@@ -203,7 +203,7 @@ const AdminSettings: React.FC = () => {
                       type="email"
                       {...register('platformEmail', { required: 'Platform email is required' })}
                       className="mt-1"
-                      placeholder="admin@theraconnect.com"
+                      placeholder="admin@therabee.com"
                     />
                     {errors.platformEmail && (
                       <p className="text-sm text-red-600 dark:text-red-400 mt-1">

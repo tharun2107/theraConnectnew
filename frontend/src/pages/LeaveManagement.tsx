@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import { motion } from 'framer-motion'
 import { therapistAPI } from '../lib/api'
 import { 
@@ -16,6 +16,7 @@ import { LoadingSpinner } from '../components/ui/loading-spinner'
 import RequestLeaveModal from '../components/RequestLeaveModal'
 import { Button } from '../components/ui/button'
 import { Plus } from 'lucide-react'
+import { formatDateString, formatDateSimple } from '../utils/dateUtils'
 
 interface Leave {
   id: string
@@ -30,8 +31,17 @@ interface Leave {
   optionalRemaining?: number
 }
 
+interface LeaveBalance {
+  casualRemaining: number
+  sickRemaining: number
+  festiveRemaining: number
+  optionalRemaining: number
+  optionalUsedThisMonth: boolean
+}
+
 const LeaveManagement: React.FC = () => {
   const [showRequestModal, setShowRequestModal] = useState(false)
+  const queryClient = useQueryClient()
 
   const { data: leavesData, isLoading, refetch, error } = useQuery(
     'therapistLeaves',
@@ -75,6 +85,26 @@ const LeaveManagement: React.FC = () => {
       }
     }
   )
+
+  const { data: balanceData, isLoading: balanceLoading } = useQuery(
+    'therapistLeaveBalance',
+    therapistAPI.getLeaveBalance,
+    {
+      select: (response) => {
+        console.log('[LeaveManagement] Balance API Response:', response)
+        console.log('[LeaveManagement] Response.data:', response.data)
+        console.log('[LeaveManagement] Response.data.data:', response.data?.data)
+        const balance = response.data?.data || response.data
+        console.log('[LeaveManagement] Extracted balance data:', balance)
+        return balance
+      },
+      onError: (error: any) => {
+        console.error('[LeaveManagement] Error fetching leave balance:', error)
+      }
+    }
+  )
+
+  console.log('[LeaveManagement] Balance data after select:', balanceData)
 
   console.log('[LeaveManagement] Leaves data after select:', leavesData)
   console.log('[LeaveManagement] Is loading:', isLoading)
@@ -165,11 +195,68 @@ const LeaveManagement: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Stats */}
+      {/* Leave Balance - Always show with default values if loading */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <Calendar className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+              Remaining Leaves
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            {balanceLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mb-1 font-medium">Casual</p>
+                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                    {balanceData?.casualRemaining !== undefined ? balanceData.casualRemaining : 5}
+                  </p>
+                  <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">per year</p>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-600 dark:text-red-400 mb-1 font-medium">Sick</p>
+                  <p className="text-2xl font-bold text-red-700 dark:text-red-300">
+                    {balanceData?.sickRemaining !== undefined ? balanceData.sickRemaining : 5}
+                  </p>
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">per year</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <p className="text-sm text-purple-600 dark:text-purple-400 mb-1 font-medium">Festive</p>
+                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                    {balanceData?.festiveRemaining !== undefined ? balanceData.festiveRemaining : 5}
+                  </p>
+                  <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">per year</p>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
+                  <p className="text-sm text-orange-600 dark:text-orange-400 mb-1 font-medium">Optional</p>
+                  <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                    {balanceData?.optionalRemaining !== undefined ? balanceData.optionalRemaining : (balanceData?.optionalUsedThisMonth ? 0 : 1)}
+                  </p>
+                  <p className="text-xs text-orange-500 dark:text-orange-400 mt-1">per month</p>
+                  {balanceData?.optionalUsedThisMonth && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 font-medium">✓ Used this month</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
         className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"
       >
         <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
@@ -248,7 +335,7 @@ const LeaveManagement: React.FC = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                      className="bg-gradient-to-r from-gray-50 to-gray-100 dark:bg-black dark:from-black dark:to-black dark:border-gray-700 p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                     >
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex-1">
@@ -265,12 +352,7 @@ const LeaveManagement: React.FC = () => {
                           </div>
                           <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-1">
                             <Calendar className="h-4 w-4 mr-2" />
-                            <span>{new Date(leave.date).toLocaleDateString('en-US', { 
-                              weekday: 'long', 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}</span>
+                            <span>{formatDateString(leave.date)}</span>
                           </div>
                           {leave.reason && (
                             <div className="flex items-start text-sm text-gray-600 dark:text-gray-400 mt-2">
@@ -279,7 +361,7 @@ const LeaveManagement: React.FC = () => {
                             </div>
                           )}
                           <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                            Requested on {new Date(leave.createdAt).toLocaleDateString()}
+                            Requested on {formatDateSimple(leave.createdAt)}
                           </div>
                         </div>
                       </div>
@@ -297,6 +379,8 @@ const LeaveManagement: React.FC = () => {
           onClose={() => setShowRequestModal(false)}
           onSuccess={() => {
             refetch()
+            // Refetch leave balance as well
+            queryClient.invalidateQueries('therapistLeaveBalance')
             setShowRequestModal(false)
           }}
         />

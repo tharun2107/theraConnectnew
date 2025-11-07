@@ -20,7 +20,7 @@ export const createMeetingForBooking = async (req: Request, res: Response) => {
 
     const startTimeIso = booking.timeSlot.startTime.toISOString()
     const duration = Math.max(15, Math.round((booking.timeSlot.endTime.getTime() - booking.timeSlot.startTime.getTime()) / 60000))
-    const topic = `TheraConnect Session - ${booking.id}`
+    const topic = `Therabee Session - ${booking.id}`
     const meeting = await createRealMeeting({ topic, startTimeIso, durationMinutes: duration })
 
     const updated = await prisma.booking.update({

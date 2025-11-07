@@ -68,7 +68,7 @@ const TherapistRegister: React.FC = () => {
           data.experience,
           data.baseCostPerSession
         )
-        toast.success('Account created successfully! Welcome to TheraConnect!')
+        toast.success('Account created successfully! Welcome to Therabee!')
       }
     } catch (error: any) {
       const status = error?.response?.status

@@ -48,6 +48,7 @@ export const listActiveTherapists = async () => {
             experience: true,
             baseCostPerSession: true,
             averageRating: true,
+            availableSlotTimes: true, // Include available slot times for booking
         },
         orderBy: { name: 'asc' },
     });

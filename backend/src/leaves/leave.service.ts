@@ -64,10 +64,23 @@ export class LeaveService {
    * Check if optional leave has been used this month
    */
   private async hasUsedOptionalThisMonth(therapistId: string, leaveDate: Date): Promise<boolean> {
-    const monthStart = startOfMonth(leaveDate);
-    const monthEnd = endOfMonth(leaveDate);
+    // Get the start and end of the current month
+    // Use startOfDay to ensure we're comparing dates correctly
+    const monthStart = startOfDay(startOfMonth(leaveDate));
+    const monthEnd = startOfDay(endOfMonth(leaveDate));
 
-    const optionalLeaveThisMonth = await prisma.therapistLeave.findFirst({
+    console.log('[hasUsedOptionalThisMonth] Checking for optional leave:', {
+      therapistId,
+      monthStart: monthStart.toISOString(),
+      monthEnd: monthEnd.toISOString(),
+      currentDate: leaveDate.toISOString(),
+      month: leaveDate.getMonth() + 1,
+      year: leaveDate.getFullYear()
+    });
+
+    // Query for approved optional leaves in this month
+    // Since date field is @db.Date (date-only), Prisma will handle the comparison correctly
+    const optionalLeavesThisMonth = await prisma.therapistLeave.findMany({
       where: {
         therapistId: therapistId,
         type: LeaveType.OPTIONAL,
@@ -76,10 +89,27 @@ export class LeaveService {
           gte: monthStart,
           lte: monthEnd
         }
+      },
+      select: {
+        id: true,
+        date: true,
+        type: true,
+        status: true
       }
     });
 
-    return !!optionalLeaveThisMonth;
+    console.log('[hasUsedOptionalThisMonth] Found optional leaves this month:', optionalLeavesThisMonth.length);
+    if (optionalLeavesThisMonth.length > 0) {
+      console.log('[hasUsedOptionalThisMonth] Leave details:', optionalLeavesThisMonth.map(l => ({
+        id: l.id,
+        date: l.date,
+        dateString: l.date.toISOString().split('T')[0],
+        type: l.type,
+        status: l.status
+      })));
+    }
+
+    return optionalLeavesThisMonth.length > 0;
   }
 
   /**
@@ -108,10 +138,16 @@ export class LeaveService {
     }
 
     const therapistProfile = therapist.therapistProfile;
-    const leaveDate = startOfDay(new Date(leaveData.date));
+    
+    // Parse date string (YYYY-MM-DD) as local date to avoid timezone issues
+    // When you do new Date("2025-11-09"), it's interpreted as UTC midnight
+    // We need to parse it as local date instead
+    const [year, month, day] = leaveData.date.split('-').map(Number);
+    const leaveDate = startOfDay(new Date(year, month - 1, day));
 
     // Validate leave date is in future
-    if (leaveDate < startOfDay(new Date())) {
+    const today = startOfDay(new Date());
+    if (leaveDate < today) {
       throw new Error('Cannot request leave for past dates');
     }
 
@@ -272,6 +308,11 @@ export class LeaveService {
 
   /**
    * Get current leave balances for a therapist
+   * Calculates remaining leaves based on actual usage according to leave policy:
+   * - Casual: 5 per year
+   * - Sick: 5 per year
+   * - Festive: 5 per year
+   * - Optional: 1 per month
    */
   async getTherapistLeaveBalance(therapistUserId: string) {
     const therapist = await prisma.user.findUnique({
@@ -288,16 +329,85 @@ export class LeaveService {
     }
 
     const now = new Date();
-    const balances = await this.getLeaveBalances(therapist.therapistProfile.id, now);
+    const therapistId = therapist.therapistProfile.id;
     
+    // Get current year start and end for annual leaves (Casual, Sick, Festive)
+    const yearStart = startOfYear(now);
+    const yearEnd = endOfYear(now);
+    
+    // Get current month start and end for optional leaves
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+
+    // Count approved leaves in current year for annual leave types
+    const [casualCount, sickCount, festiveCount] = await Promise.all([
+      // Count approved casual leaves this year
+      prisma.therapistLeave.count({
+        where: {
+          therapistId: therapistId,
+          type: LeaveType.CASUAL,
+          status: LeaveStatus.APPROVED,
+          date: {
+            gte: yearStart,
+            lte: yearEnd
+          }
+        }
+      }),
+      // Count approved sick leaves this year
+      prisma.therapistLeave.count({
+        where: {
+          therapistId: therapistId,
+          type: LeaveType.SICK,
+          status: LeaveStatus.APPROVED,
+          date: {
+            gte: yearStart,
+            lte: yearEnd
+          }
+        }
+      }),
+      // Count approved festive leaves this year
+      prisma.therapistLeave.count({
+        where: {
+          therapistId: therapistId,
+          type: LeaveType.FESTIVE,
+          status: LeaveStatus.APPROVED,
+          date: {
+            gte: yearStart,
+            lte: yearEnd
+          }
+        }
+      })
+    ]);
+
     // Check if optional leave used this month
-    const optionalUsedThisMonth = await this.hasUsedOptionalThisMonth(
-      therapist.therapistProfile.id, 
-      now
-    );
+    const optionalUsedThisMonth = await this.hasUsedOptionalThisMonth(therapistId, now);
+
+    // Calculate remaining leaves based on leave policy
+    // Annual leaves: 5 per year
+    const casualRemaining = Math.max(0, 5 - casualCount);
+    const sickRemaining = Math.max(0, 5 - sickCount);
+    const festiveRemaining = Math.max(0, 5 - festiveCount);
+    
+    // Optional leaves: 1 per month
+    // If one was used this month, remaining is 0, otherwise 1
+    const optionalRemaining = optionalUsedThisMonth ? 0 : 1;
+
+    console.log('[getTherapistLeaveBalance] Calculated balances:', {
+      casualRemaining,
+      sickRemaining,
+      festiveRemaining,
+      optionalRemaining,
+      optionalUsedThisMonth,
+      casualCount,
+      sickCount,
+      festiveCount
+    });
 
     return {
-      ...balances,
+      casualRemaining,
+      sickRemaining,
+      festiveRemaining,
+      optionalRemaining,
       optionalUsedThisMonth
     };
   }
@@ -340,16 +450,11 @@ export class LeaveService {
     approvalData: LeaveApprovalInput
   ): Promise<TherapistLeave> {
     
-    // Verify admin
-    const admin = await prisma.user.findUnique({
-      where: { id: adminUserId },
-      include: { adminProfile: true }
-    });
-
-    if (!admin || !admin.adminProfile) {
-      throw new Error('Admin profile not found');
-    }
-
+    // No need to verify admin - authorize middleware already ensures:
+    // 1. User is authenticated
+    // 2. User has ADMIN role
+    // 3. User exists in database
+    
     // Get leave request
     const leave = await prisma.therapistLeave.findUnique({
       where: { id: approvalData.leaveId },
@@ -357,7 +462,7 @@ export class LeaveService {
         therapist: {
           include: {
             user: {
-              select: { email: true }
+              select: { id: true, email: true }
             }
           }
         }
@@ -378,11 +483,21 @@ export class LeaveService {
     if (!isApproved) {
       const rejectedLeave = await prisma.therapistLeave.update({
         where: { id: approvalData.leaveId },
-        data: { status: LeaveStatus.REJECTED }
+        data: { status: LeaveStatus.REJECTED },
+        include: {
+          therapist: {
+            include: {
+              user: {
+                select: { id: true, email: true }
+              }
+            }
+          }
+        }
       });
 
       await this.notifyTherapistLeaveRejected(
-        leave.therapist.user.email!,
+        rejectedLeave.therapist.user.id,
+        rejectedLeave.therapist.user.email!,
         rejectedLeave,
         approvalData.adminNotes
       );
@@ -510,11 +625,12 @@ export class LeaveService {
       include: { user: true }
     });
 
-    if (!therapist || !therapist.user?.email) {
-      throw new Error("Therapist email not found");
+    if (!therapist || !therapist.user?.email || !therapist.user?.id) {
+      throw new Error("Therapist email or userId not found");
     }
         
     await this.notifyTherapistLeaveApproved(
+      therapist.user.id,
       therapist.user.email,
       updatedLeave
     );
@@ -621,29 +737,53 @@ export class LeaveService {
    * Notify therapist that leave was approved
    */
   private async notifyTherapistLeaveApproved(
+    therapistUserId: string,
     therapistEmail: string,
     leave: TherapistLeave
   ): Promise<void> {
+    const message = `Your leave request for ${format(leave.date, 'MMMM dd, yyyy')} has been approved.\n\nType: ${leave.type}\n\nRemaining Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nAll your sessions for this date have been cancelled and affected parents have been notified.`;
     
-    await sendemail(
-      therapistEmail,
-      `Your leave request for ${format(leave.date, 'MMMM dd, yyyy')} has been approved.\n\nType: ${leave.type}\n\nRemaining Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nAll your sessions for this date have been cancelled and affected parents have been notified.`
-    );
+    // Create in-app notification
+    await prisma.notification.create({
+      data: {
+        userId: therapistUserId,
+        message: message,
+        type: NotificationType.LEAVE_REQUEST_APPROVED,
+        channel: 'EMAIL',
+        status: 'PENDING',
+        sendAt: new Date()
+      }
+    });
+
+    // Send email notification
+    await sendemail(therapistEmail, message);
   }
 
   /**
    * Notify therapist that leave was rejected
    */
   private async notifyTherapistLeaveRejected(
+    therapistUserId: string,
     therapistEmail: string,
     leave: TherapistLeave,
     adminNotes?: string
   ): Promise<void> {
+    const message = `Your leave request for ${format(leave.date, 'MMMM dd, yyyy')} has been rejected.\n\nType: ${leave.type}\n${adminNotes ? `\nAdmin Notes: ${adminNotes}` : ''}\n\nPlease contact admin if you have any questions.`;
     
-    await sendemail(
-      therapistEmail,
-      `Your leave request for ${format(leave.date, 'MMMM dd, yyyy')} has been rejected.\n\nType: ${leave.type}\n${adminNotes ? `\nAdmin Notes: ${adminNotes}` : ''}\n\nPlease contact admin if you have any questions.`
-    );
+    // Create in-app notification
+    await prisma.notification.create({
+      data: {
+        userId: therapistUserId,
+        message: message,
+        type: NotificationType.LEAVE_REQUEST_REJECTED,
+        channel: 'EMAIL',
+        status: 'PENDING',
+        sendAt: new Date()
+      }
+    });
+
+    // Send email notification
+    await sendemail(therapistEmail, message);
   }
 }
 

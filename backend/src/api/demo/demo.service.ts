@@ -422,7 +422,7 @@ export async function getAdminDemoSlots(month?: number, year?: number) {
     include: {
       _count: {
         select: {
-          demoBookings: {
+          bookings: {
             where: {
               status: {
                 not: DemoBookingStatus.CANCELLED,

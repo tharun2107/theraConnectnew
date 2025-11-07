@@ -58,6 +58,7 @@ const listActiveTherapists = () => __awaiter(void 0, void 0, void 0, function* (
             experience: true,
             baseCostPerSession: true,
             averageRating: true,
+            availableSlotTimes: true, // Include available slot times for booking
         },
         orderBy: { name: 'asc' },
     });

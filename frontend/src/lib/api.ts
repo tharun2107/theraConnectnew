@@ -154,6 +154,14 @@ export const therapistAPI = {
       throw error
     })
   },
+  getLeaveBalance: () => {
+    return api.get('/therapist/leaves/balance').then(response => {
+      return response
+    }).catch(error => {
+      console.error('[therapistAPI.getLeaveBalance] Error:', error)
+      throw error
+    })
+  },
 }
 
 // Admin API

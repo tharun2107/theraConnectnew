@@ -110,7 +110,7 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ darkMode = false 
                 backgroundSize: "200% 200%"
               }}
             >
-              TheraConnect
+              Therabee
             </motion.span> Works
           </h2>
           <p className={`text-base sm:text-lg md:text-xl max-w-2xl mx-auto px-4 ${
@@ -240,7 +240,7 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ darkMode = false 
             <p className={`text-sm sm:text-base mb-6 ${
               darkMode ? 'text-gray-300' : 'text-gray-600'
             }`}>
-              Join thousands of families who have found the right therapeutic support through TheraConnect.
+              Join thousands of families who have found the right therapeutic support through Therabee.
             </p>
             <motion.div
               whileHover={{ scale: 1.05, y: -2 }}

@@ -20,7 +20,7 @@ import { StatsCard } from '../components/ui/stats-card'
 import { LoadingSpinner } from '../components/ui/loading-spinner'
 import { GradientText } from '../components/ui/gradient-text'
 import AddChildModal from '../components/AddChildModal'
-import BookSessionModal from '../components/BookSessionModal'
+import BookMonthlySessionModal from '../components/BookMonthlySessionModal'
 import CurrentSessions from '../components/CurrentSessions'
 import SessionDetails from '../components/SessionDetails'
 import ParentConsentManagement from '../components/ParentConsentManagement'
@@ -224,7 +224,7 @@ const ParentDashboard: React.FC = () => {
                 className="bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300"
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                Book Session
+                Book Monthly Sessions
               </Button>
             </div>
           </div>
@@ -278,7 +278,7 @@ const ParentDashboard: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Upcoming Sessions */}
+      {/* Upcoming Sessions - Show only next 5 */}
       {bookings.filter((booking: Booking) => 
         new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
       ).length > 0 && (
@@ -291,7 +291,7 @@ const ParentDashboard: React.FC = () => {
             <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
-                Upcoming Sessions
+                Upcoming Sessions (Next 5)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -303,6 +303,7 @@ const ParentDashboard: React.FC = () => {
                   .sort((a: Booking, b: Booking) => 
                     new Date(a.timeSlot.startTime).getTime() - new Date(b.timeSlot.startTime).getTime()
                   )
+                  .slice(0, 5) // Show only next 5 sessions
                   .map((booking: Booking) => (
                     <SessionDetails
                       key={booking.id}
@@ -310,6 +311,15 @@ const ParentDashboard: React.FC = () => {
                       userRole="PARENT"
                     />
                   ))}
+                {bookings.filter((booking: Booking) => 
+                  new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
+                ).length > 5 && (
+                  <div className="text-center pt-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Showing next 5 sessions. View all sessions in your bookings page.
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -472,7 +482,7 @@ const ParentDashboard: React.FC = () => {
       )}
 
       {showBookSessionModal && (
-        <BookSessionModal
+        <BookMonthlySessionModal
           onClose={() => setShowBookSessionModal(false)}
           onSuccess={() => {
             setShowBookSessionModal(false)

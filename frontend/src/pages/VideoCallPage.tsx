@@ -116,7 +116,7 @@ const VideoCallPage: React.FC = () => {
             sdkKey: data.sdkKey,
             meetingNumber: data.meetingNumber,
             password: data.password || '',
-            userName: 'TheraConnect User',
+            userName: 'Therabee User',
           })
         } catch (e: any) {
           if (e?.type === 'INVALID_OPERATION' && e?.reason?.toLowerCase().includes('duplicated')) {
@@ -340,7 +340,7 @@ const VideoCallPage: React.FC = () => {
             <AvatarFallback className="text-xs sm:text-sm">TC</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h1 className="font-semibold text-xs sm:text-sm truncate">TheraConnect Session</h1>
+            <h1 className="font-semibold text-xs sm:text-sm truncate">Therabee Session</h1>
             <p className="text-xs text-gray-400 truncate">
               {meetingStarted ? 'Session Active' : 'Connecting...'}
             </p>

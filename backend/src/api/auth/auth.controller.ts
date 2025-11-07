@@ -106,14 +106,14 @@ export const registerParentHandler = async (req: Request, res: Response) => {
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">TheraConnect</div>
+            <div class="logo">Therabee</div>
             <h1 style="margin: 0; font-size: 28px;">Welcome to Your Wellness Journey!</h1>
         </div>
         
         <div class="content">
             <div class="greeting">Hi ${finduser?.parentProfile?.name || "there"},</div>
             
-            <p class="welcome-text">Welcome to TheraConnect — we're absolutely delighted to have you on board!</p>
+            <p class="welcome-text">Welcome to Therabee — we're absolutely delighted to have you on board!</p>
             
             <p class="welcome-text">Your registration has been successfully completed, and you're now part of our trusted platform designed to help you connect with certified therapists and access personalized consultation experiences with ease.</p>
             
@@ -133,12 +133,12 @@ export const registerParentHandler = async (req: Request, res: Response) => {
         </div>
         
         <div class="footer">
-            <p style="margin: 0 0 15px 0;"><strong>The TheraConnect Team</strong></p>
+            <p style="margin: 0 0 15px 0;"><strong>The Therabee Team</strong></p>
             <p style="margin: 0 0 10px 0; font-size: 13px; color: #888;">
                 Dedicated to your mental wellness journey
             </p>
             <p style="margin: 0; font-size: 12px; color: #999;">
-                If you have any questions, please contact our support team at support@theraconnect.com
+                If you have any questions, please contact our support team at support@therabee.com
             </p>
         </div>
     </div>
@@ -148,9 +148,9 @@ export const registerParentHandler = async (req: Request, res: Response) => {
   const welcomeText = `
 Hi ${finduser?.parentProfile?.name || "there"},
 
-Welcome to TheraConnect — we're delighted to have you on board!
+Welcome to Therabee — we're delighted to have you on board!
 
-Your registration has been successfully completed. TheraConnect is a trusted platform designed to help you connect with certified therapists and access personalized consultation experiences with ease.
+Your registration has been successfully completed. Therabee is a trusted platform designed to help you connect with certified therapists and access personalized consultation experiences with ease.
 
 WHAT YOU CAN DO NEXT:
 • Explore therapist profiles and choose the right expert for your needs
@@ -163,9 +163,9 @@ We're committed to supporting you at every step of your wellness journey. Your m
 Begin your journey today by exploring our platform.
 
 Warm regards,
-The TheraConnect Team
+The Therabee Team
 
-If you have any questions, please contact our support team at support@theraconnect.com
+If you have any questions, please contact our support team at support@therabee.com
   `.trim();
 
     // Send Notification
@@ -199,7 +199,7 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to TheraConnect</title>
+    <title>Welcome to Therabee</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -441,7 +441,7 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
 <body>
     <div class="email-container">
         <div class="header">
-            <div class="logo">TheraConnect</div>
+            <div class="logo">Therabee</div>
             <div class="tagline">Connecting Therapists with Those Who Need Care</div>
             <div class="welcome-badge">Professional Portal</div>
         </div>
@@ -450,7 +450,7 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
             <div class="greeting">Welcome, Dr. ${finduser?.therapistProfile?.name || "there"}! 👋</div>
             
             <p class="message">
-                We're thrilled to welcome you to TheraConnect's professional community! Your profile registration has been successfully completed, and you're now part of a network dedicated to making quality mental health care accessible.
+                We're thrilled to welcome you to Therabee's professional community! Your profile registration has been successfully completed, and you're now part of a network dedicated to making quality mental health care accessible.
             </p>
             
             <p class="message">
@@ -498,7 +498,7 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
         </div>
         
         <div class="footer">
-            <div class="footer-logo">TheraConnect</div>
+            <div class="footer-logo">Therabee</div>
             <p style="color: #cbd5e0; margin-bottom: 20px;">Building bridges to better mental health</p>
             
             <div class="social-links">
@@ -508,7 +508,7 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
             </div>
             
             <div class="contact-info">
-                Need help? Contact our therapist support team at therapists@theraconnect.com
+                Need help? Contact our therapist support team at therapists@therabee.com
             </div>
         </div>
     </div>
@@ -516,11 +516,11 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
 </html>
 `.trim();
      const therapistWelcomeText = `
-WELCOME TO THERACONNECT - PROFESSIONAL PORTAL
+WELCOME TO THERABEE - PROFESSIONAL PORTAL
 
 Dear Dr. ${finduser?.therapistProfile?.name || "there"},
 
-We're excited to welcome you to TheraConnect's professional community! Your profile registration has been successfully completed, and you're now part of a network dedicated to making quality mental health care accessible.
+We're excited to welcome you to Therabee's professional community! Your profile registration has been successfully completed, and you're now part of a network dedicated to making quality mental health care accessible.
 
 As a certified therapist on our platform, you'll connect with parents seeking expert guidance and make a meaningful impact on children's mental wellness journeys.
 
@@ -551,9 +551,9 @@ Get started by completing your profile setup to begin receiving consultation req
 Thank you for joining our mission to provide accessible, quality mental health care.
 
 Warm regards,
-The TheraConnect Team
+The Therabee Team
 
-Need help? Contact our therapist support team at therapists@theraconnect.com
+Need help? Contact our therapist support team at therapists@therabee.com
 `.trim();
               
               
@@ -797,7 +797,7 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
                         <div class="email-container">
                             <div class="header">
                                 <div class="admin-badge">Administrator Access</div>
-                                <div class="logo">TheraConnect</div>
+                                <div class="logo">Therabee</div>
                                 <div class="tagline">Platform Administration Portal</div>
                             </div>
                             
@@ -805,7 +805,7 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
                                 <div class="greeting">Admin Access Granted, ${user?.email?.split('@')[0].trim() || "there"}! 🔐</div>
                                 
                                 <p class="message">
-                                    Your administrator privileges have been successfully activated. You now have full control over the TheraConnect platform and its operations.
+                                    Your administrator privileges have been successfully activated. You now have full control over the Therabee platform and its operations.
                                 </p>
                                 
                                 <div class="admin-features">
@@ -857,12 +857,12 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
                             </div>
                             
                             <div class="footer">
-                                <div class="footer-logo">TheraConnect</div>
+                                <div class="footer-logo">Therabee</div>
                                 <p style="color: #cbd5e0; margin-bottom: 20px;">Secure Platform Administration</p>
                                 
                                 <div class="admin-contact">
                                     <div class="contact-title">Administrative Support</div>
-                                    <a href="mailto:admin@theraconnect.com" class="contact-email">admin@theraconnect.com</a>
+                                    <a href="mailto:admin@therabee.com" class="contact-email">admin@therabee.com</a>
                                 </div>
                                 
                                 <div style="margin-top: 25px; font-size: 12px; color: #a0aec0;">
@@ -875,11 +875,11 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
                     `.trim();
 
                     const adminWelcomeText = `
-                  ADMINISTRATOR ACCESS GRANTED - THERACONNECT PLATFORM
+                  ADMINISTRATOR ACCESS GRANTED - THERABEE PLATFORM
 
                   Hello ${user?.email?.split('@')[0].trim() || "there"},
 
-                  Your administrator privileges have been successfully activated for the TheraConnect platform.
+                  Your administrator privileges have been successfully activated for the Therabee platform.
 
                   You now have full control to manage:
                   • User accounts and profiles
@@ -900,12 +900,12 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
 
                   Remember: You are responsible for maintaining the integrity and security of our mental health platform.
 
-                  Administrative support: admin@theraconnect.com
+                  Administrative support: admin@therabee.com
 
                   This is an automated message for authorized personnel only.
 
                   Warm regards,
-                  The TheraConnect Team
+                  The Therabee Team
                   `.trim();
               // Send Notification
       await sendNotificationAfterAnEvent({

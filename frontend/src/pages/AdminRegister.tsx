@@ -69,7 +69,7 @@ const AdminRegister: React.FC = () => {
               Admin Registration
             </h2>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-6">
-              Create an administrative account for TheraConnect
+              Create an administrative account for Therabee
             </p>
             <div className="flex justify-center space-x-4 text-sm">
               <Link

@@ -116,7 +116,7 @@ const Footer: React.FC<FooterProps> = ({ darkMode = false }) => {
           {/* Company Info */}
           <div className="space-y-6">
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">TheraConnect</h3>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Therabee</h3>
               <p className="text-gray-300 leading-relaxed">
                 Connecting children with trusted therapists through secure, 
                 accessible, and innovative technology solutions.
@@ -127,7 +127,7 @@ const Footer: React.FC<FooterProps> = ({ darkMode = false }) => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-cyan-400" />
-                <span className="text-gray-300 text-sm">hello@theraconnect.com</span>
+                <span className="text-gray-300 text-sm">hello@therabee.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-cyan-400" />
@@ -235,7 +235,7 @@ const Footer: React.FC<FooterProps> = ({ darkMode = false }) => {
         {/* Bottom Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 text-gray-300 text-xs sm:text-sm">
-            <span>© {currentYear} TheraConnect. All Rights Reserved.</span>
+            <span>© {currentYear} Therabee. All Rights Reserved.</span>
             <span className="hidden sm:inline">•</span>
             <span className="flex items-center space-x-1">
               <span>Made with</span>

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.processLeaveHandler = exports.getLeaveDetailsHandler = exports.getAllLeavesHandler = exports.getTherapistLeavesHandler = exports.requestLeaveHandler = void 0;
+exports.processLeaveHandler = exports.getLeaveDetailsHandler = exports.getAllLeavesHandler = exports.getTherapistLeaveBalanceHandler = exports.getTherapistLeavesHandler = exports.requestLeaveHandler = void 0;
 const leave_service_1 = require("./leave.service");
 // ============================================
 // THERAPIST CONTROLLERS
@@ -23,12 +23,19 @@ const requestLeaveHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
         const userId = req.user.userId;
         const leaveData = req.body;
         const leave = yield leave_service_1.leaveService.requestLeave(userId, leaveData);
+        // Format date as YYYY-MM-DD to avoid timezone issues
+        // Extract date components directly to avoid timezone conversion
+        const dateObj = new Date(leave.date);
+        const year = dateObj.getUTCFullYear();
+        const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getUTCDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
         return res.status(201).json({
             success: true,
             message: 'Leave request submitted successfully. Admin will review your request.',
             data: {
                 leaveId: leave.id,
-                date: leave.date,
+                date: formattedDate,
                 type: leave.type,
                 status: leave.status
             }
@@ -75,12 +82,22 @@ const getTherapistLeavesHandler = (req, res) => __awaiter(void 0, void 0, void 0
         const leaves = yield leave_service_1.leaveService.getTherapistLeaveRequests(userId);
         console.log('[LeaveController.getTherapistLeavesHandler] Found leaves:', leaves.length);
         console.log('[LeaveController.getTherapistLeavesHandler] Leaves data:', leaves);
+        // Format dates as YYYY-MM-DD to avoid timezone issues
+        // Extract date components directly to avoid timezone conversion
+        const formattedLeaves = leaves.map(leave => {
+            const dateObj = new Date(leave.date);
+            const year = dateObj.getUTCFullYear();
+            const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getUTCDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            return Object.assign(Object.assign({}, leave), { date: formattedDate, createdAt: leave.createdAt });
+        });
         return res.status(200).json({
             success: true,
             message: 'Leave requests retrieved successfully',
             data: {
-                totalLeaves: leaves.length,
-                leaves: leaves
+                totalLeaves: formattedLeaves.length,
+                leaves: formattedLeaves
             }
         });
     }
@@ -94,6 +111,36 @@ const getTherapistLeavesHandler = (req, res) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.getTherapistLeavesHandler = getTherapistLeavesHandler;
+/**
+ * GET /api/therapist/leaves/balance
+ * Get current leave balance for the therapist
+ */
+const getTherapistLeaveBalanceHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.userId;
+        const balance = yield leave_service_1.leaveService.getTherapistLeaveBalance(userId);
+        return res.status(200).json({
+            success: true,
+            message: 'Leave balance retrieved successfully',
+            data: balance
+        });
+    }
+    catch (error) {
+        console.error('[LeaveController.getTherapistLeaveBalanceHandler] Error fetching leave balance:', error);
+        if (error instanceof Error && error.message.includes('not found')) {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to retrieve leave balance',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+exports.getTherapistLeaveBalanceHandler = getTherapistLeaveBalanceHandler;
 // ============================================
 // ADMIN CONTROLLERS
 // ============================================
@@ -107,12 +154,22 @@ const getAllLeavesHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
         console.log('[LeaveController.getAllLeavesHandler] Request received:', { status, query: req.query });
         const leaves = yield leave_service_1.leaveService.getAllLeaveRequests(status);
         console.log('[LeaveController.getAllLeavesHandler] Returning leaves:', leaves.length);
+        // Format dates as YYYY-MM-DD to avoid timezone issues
+        // Extract date components directly to avoid timezone conversion
+        const formattedLeaves = leaves.map(leave => {
+            const dateObj = new Date(leave.date);
+            const year = dateObj.getUTCFullYear();
+            const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getUTCDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            return Object.assign(Object.assign({}, leave), { date: formattedDate, createdAt: leave.createdAt });
+        });
         return res.status(200).json({
             success: true,
             message: 'Leave requests retrieved successfully',
             data: {
-                totalLeaves: leaves.length,
-                leaves: leaves
+                totalLeaves: formattedLeaves.length,
+                leaves: formattedLeaves
             }
         });
     }
@@ -162,8 +219,19 @@ exports.getLeaveDetailsHandler = getLeaveDetailsHandler;
  */
 const processLeaveHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log('[processLeaveHandler] Request received:', {
+            params: req.params,
+            body: req.body,
+            userId: req.user.userId
+        });
         const userId = req.user.userId;
-        const approvalData = Object.assign({ leaveId: req.body.leaveId }, req.body);
+        const { leaveId } = req.params;
+        const approvalData = {
+            leaveId: leaveId,
+            action: req.body.action,
+            adminNotes: req.body.adminNotes
+        };
+        console.log('[processLeaveHandler] Approval data:', approvalData);
         const leave = yield leave_service_1.leaveService.processLeaveRequest(userId, approvalData);
         const isApproved = approvalData.action === 'APPROVE';
         return res.status(200).json({
@@ -180,9 +248,9 @@ const processLeaveHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
         });
     }
     catch (error) {
-        console.error('Error processing leave:', error);
+        console.error('[processLeaveHandler] Error processing leave:', error);
         if (error instanceof Error) {
-            if (error.message.includes('not found')) {
+            if (error.message.includes('not found') || error.message.includes('Admin user not found')) {
                 return res.status(404).json({
                     success: false,
                     message: error.message
@@ -190,6 +258,12 @@ const processLeaveHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
             }
             if (error.message.includes('already been processed')) {
                 return res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            if (error.message.includes('not an admin')) {
+                return res.status(403).json({
                     success: false,
                     message: error.message
                 });

@@ -89,9 +89,9 @@ const registerAdmin = (input) => __awaiter(void 0, void 0, void 0, function* () 
     const hashedPassword = yield (0, password_1.hashPassword)(password);
     return prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         const user = yield tx.user.create({
-            data: { email, password: hashedPassword, role: client_1.Role.ADMIN },
+            data: { email, password: hashedPassword, role: client_1.Role.ADMIN, name },
         });
-        yield tx.adminProfile.create({ data: { userId: user.id, name } });
+        yield tx.adminProfile.create({ data: { userId: user.id } });
         return user;
     }));
 });
@@ -100,6 +100,8 @@ const changePassword = (_a) => __awaiter(void 0, [_a], void 0, function* ({ emai
     const user = yield prisma_1.default.user.findUnique({ where: { email } });
     if (!user)
         throw new Error('No account found with this email');
+    if (!user.password)
+        throw new Error('No password set for this account');
     const isValid = yield (0, password_1.comparePassword)(currentPassword, user.password);
     if (!isValid)
         throw new Error('Current password is incorrect');
@@ -112,6 +114,8 @@ const login = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = input;
     const user = yield prisma_1.default.user.findUnique({ where: { email } });
     if (!user)
+        throw new Error('Invalid email or password');
+    if (!user.password)
         throw new Error('Invalid email or password');
     const isPasswordValid = yield (0, password_1.comparePassword)(password, user.password);
     if (!isPasswordValid)

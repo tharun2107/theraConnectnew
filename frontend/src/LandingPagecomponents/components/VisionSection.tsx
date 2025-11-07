@@ -141,7 +141,7 @@ const VisionSection: React.FC<VisionSectionProps> = ({ darkMode = false }) => {
               <p className={`text-base sm:text-lg leading-relaxed ${
                 darkMode ? 'text-gray-300' : 'text-gray-600'
               }`}>
-                At TheraConnect, we aim to make therapy accessible, secure, and seamless 
+                At Therabee, we aim to make therapy accessible, secure, and seamless 
                 for every child. We believe that mental health support should be available 
                 when and where families need it most.
               </p>

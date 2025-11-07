@@ -14,8 +14,25 @@ const zod_1 = require("zod");
 const validate = (schemas) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const validatedData = {};
-        if (schemas.body)
-            validatedData.body = yield schemas.body.parseAsync(req.body);
+        // Log incoming data for debugging
+        console.log('[validate] Incoming request:', {
+            method: req.method,
+            url: req.url,
+            params: req.params,
+            body: req.body,
+            query: req.query
+        });
+        if (schemas.body) {
+            console.log('[validate] Validating body:', req.body);
+            try {
+                validatedData.body = yield schemas.body.parseAsync(req.body);
+                console.log('[validate] Body validation passed:', validatedData.body);
+            }
+            catch (e) {
+                console.error('[validate.body][ERROR]', e.issues || e);
+                throw e;
+            }
+        }
         if (schemas.query) {
             // Debug log for query validation
             // eslint-disable-next-line no-console
@@ -30,8 +47,17 @@ const validate = (schemas) => (req, res, next) => __awaiter(void 0, void 0, void
             // eslint-disable-next-line no-console
             console.log('[validate] validated query=', validatedData.query);
         }
-        if (schemas.params)
-            validatedData.params = yield schemas.params.parseAsync(req.params);
+        if (schemas.params) {
+            console.log('[validate] Validating params:', req.params);
+            try {
+                validatedData.params = yield schemas.params.parseAsync(req.params);
+                console.log('[validate] Params validation passed:', validatedData.params);
+            }
+            catch (e) {
+                console.error('[validate.params][ERROR]', e.issues || e);
+                throw e;
+            }
+        }
         // Apply only body (safe to overwrite). For query/params, avoid assignment
         // because in Express 5 these are readonly accessors and reassigning throws.
         if (validatedData.body)
@@ -47,6 +73,10 @@ const validate = (schemas) => (req, res, next) => __awaiter(void 0, void 0, void
                 field: err.path.join('.') || 'body',
                 message: err.message,
             }));
+            console.error('[validate] Validation failed:', {
+                errors: formattedErrors,
+                issues: error.issues
+            });
             return res.status(400).json({
                 status: 'error',
                 message: 'Invalid request data. Please check the following fields.',

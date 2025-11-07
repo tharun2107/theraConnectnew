@@ -14,21 +14,21 @@ const testimonials = [
   {
     name: "Sarah Johnson",
     role: "Parent",
-    content: "TheraConnect transformed how we approach my daughter's therapy. The convenience of home sessions and the quality of therapists exceeded our expectations.",
+    content: "Therabee transformed how we approach my daughter's therapy. The convenience of home sessions and the quality of therapists exceeded our expectations.",
     rating: 5,
     avatar: "SJ"
   },
   {
     name: "Dr. Michael Chen",
     role: "Licensed Therapist",
-    content: "As a therapist, I love how TheraConnect streamlines my practice. The scheduling, payments, and progress tracking tools are incredibly intuitive.",
+    content: "As a therapist, I love how Therabee streamlines my practice. The scheduling, payments, and progress tracking tools are incredibly intuitive.",
     rating: 5,
     avatar: "MC"
   },
   {
     name: "Emma Rodriguez",
     role: "Parent",
-    content: "Finding the right therapist for my son was always challenging. TheraConnect made it simple, and the results have been amazing.",
+    content: "Finding the right therapist for my son was always challenging. Therabee made it simple, and the results have been amazing.",
     rating: 5,
     avatar: "ER"
   },
@@ -136,7 +136,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ darkMode = fa
             darkMode ? 'text-gray-300' : 'text-gray-600'
           }`}>
             Hear from families and therapists who have experienced the difference 
-            that TheraConnect makes in their therapy journey.
+            that Therabee makes in their therapy journey.
           </p>
           <motion.div 
             className="w-24 h-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full mx-auto mt-6"

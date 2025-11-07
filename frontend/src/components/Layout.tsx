@@ -110,7 +110,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <span className="text-white font-bold text-sm">TC</span>
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg sm:text-xl font-bold text-[#1A1A1A] dark:text-white">TheraConnect</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-[#1A1A1A] dark:text-white">Therabee</h1>
                 <p className="text-xs text-[#4D4D4D] dark:text-gray-400">Professional Therapy</p>
               </div>
             </div>

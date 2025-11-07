@@ -109,15 +109,16 @@ export const getProfile = async (userId: string) => {
 };
 
 export const updateProfile = async (userId: string, data: any) => {
-  const updatedAdmin = await prisma.adminProfile.update({
-    where: { userId },
+  // Update the user's name, not the admin profile (AdminProfile doesn't have a name field)
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
     data: {
       name: data.name,
     },
-    include: { user: true },
+    include: { adminProfile: true },
   });
 
-  return updatedAdmin;
+  return updatedUser;
 };
 
 export const getPlatformSettings = async () => {
@@ -125,8 +126,8 @@ export const getPlatformSettings = async () => {
   // In a real app, you'd store these in a database table
   return {
     id: '1',
-    platformName: 'TheraConnect',
-    platformEmail: 'admin@theraconnect.com',
+    platformName: 'Therabee',
+    platformEmail: 'admin@therabee.com',
     platformPhone: '+1 (555) 123-4567',
     maintenanceMode: false,
     allowNewRegistrations: true,

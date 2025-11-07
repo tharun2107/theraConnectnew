@@ -267,43 +267,48 @@ const TherapistDashboard: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Upcoming Sessions */}
-      {bookings.filter((booking: Booking) => 
-        new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
-      ).length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
-                Upcoming Sessions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {bookings
-                  .filter((booking: Booking) => 
-                    new Date(booking.timeSlot.startTime) > new Date() && booking.status === 'SCHEDULED'
-                  )
-                  .sort((a: Booking, b: Booking) => 
-                    new Date(a.timeSlot.startTime).getTime() - new Date(b.timeSlot.startTime).getTime()
-                  )
-                  .map((booking: Booking) => (
+      {/* Upcoming Sessions - Next 2 Days */}
+      {(() => {
+        const now = new Date()
+        const twoDaysLater = new Date(now)
+        twoDaysLater.setDate(twoDaysLater.getDate() + 2)
+        twoDaysLater.setHours(23, 59, 59, 999)
+        
+        const nextTwoDaysBookings = bookings.filter((booking: Booking) => {
+          const startTime = new Date(booking.timeSlot.startTime)
+          return startTime > now && startTime <= twoDaysLater && booking.status === 'SCHEDULED'
+        }).sort((a: Booking, b: Booking) => 
+          new Date(a.timeSlot.startTime).getTime() - new Date(b.timeSlot.startTime).getTime()
+        )
+        
+        return nextTwoDaysBookings.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+              <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
+                  Upcoming Sessions (Next 2 Days)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {nextTwoDaysBookings.map((booking: Booking) => (
                     <SessionDetails
                       key={booking.id}
                       booking={booking}
                       userRole="THERAPIST"
                     />
                   ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )
+      })()}
 
       {/* My Children */}
       <motion.div
@@ -328,7 +333,7 @@ const TherapistDashboard: React.FC = () => {
       </motion.div>
 
       {/* My Slots Section */}
-      {hasActiveSlotsData?.hasActiveSlots && profile?.availableSlotTimes && profile.availableSlotTimes.length > 0 && (
+      {!profileLoading && profile && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -338,48 +343,72 @@ const TherapistDashboard: React.FC = () => {
             <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <Clock className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
-                My Slots
+                My Time Slots
               </CardTitle>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                Your available time slots that apply to all future dates. These slots are locked and cannot be changed.
+                {profile.availableSlotTimes && profile.availableSlotTimes.length > 0
+                  ? 'Your available time slots that apply to all future dates. These slots are locked and cannot be changed.'
+                  : 'Set up your available time slots to allow parents to book sessions with you.'}
               </p>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-                {profile.availableSlotTimes.sort().map((time: string) => {
-                  const [hours, minutes] = time.split(':').map(Number)
-                  const endHour = (hours + 1) % 24
-                  
-                  // Use local time for display (treating the time string as local time)
-                  const time12h = new Date(2000, 0, 1, hours, minutes).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                  })
-                  const endTime12h = new Date(2000, 0, 1, endHour, 0).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                  })
-                  
-                  return (
-                    <div
-                      key={time}
-                      className="flex flex-col items-center justify-center p-4 border-2 border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
-                    >
-                      <div className="text-lg font-semibold text-primary-700 dark:text-primary-400 mb-1">
-                        {time12h}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        to {endTime12h}
-                      </div>
-                      <div className="mt-2 px-2 py-1 bg-primary-100 dark:bg-primary-900/40 rounded text-xs text-primary-700 dark:text-primary-400 font-medium">
-                        1 Hour
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+              {profile.availableSlotTimes && profile.availableSlotTimes.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                  {profile.availableSlotTimes.sort().map((time: string) => {
+                    const [hours, minutes] = time.split(':').map(Number)
+                    const endHour = (hours + 1) % 24
+                    
+                    // Use local time for display (treating the time string as local time)
+                    const time12h = new Date(2000, 0, 1, hours, minutes).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: true 
+                    })
+                    const endTime12h = new Date(2000, 0, 1, endHour, 0).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: true 
+                    })
+                    
+                    return (
+                      <motion.div
+                        key={time}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="group relative flex flex-col items-center justify-center p-5 border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-purple-500/10"
+                      >
+                        <div className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1 text-center">
+                          {time12h}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2 text-center">
+                          to {endTime12h}
+                        </div>
+                        <div className="mt-1 px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-400 font-medium">
+                          1 Hour
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="h-16 w-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    No Time Slots Configured
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    You haven't set up your available time slots yet. Click the button below to create your time slots. These will apply to all future dates.
+                  </p>
+                  <Button
+                    onClick={() => setShowCreateSlotsModal(true)}
+                    className="btn btn-primary"
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Create Time Slots
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

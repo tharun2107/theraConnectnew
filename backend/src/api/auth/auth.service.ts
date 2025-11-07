@@ -81,10 +81,10 @@ export const registerAdmin = async (input: RegisterAdminInput) => {
   return prisma.$transaction(async (tx) => {
     
     const user = await tx.user.create({
-      data: { email, password: hashedPassword, role: Role.ADMIN},
+      data: { email, password: hashedPassword, role: Role.ADMIN, name },
     });
  
-    await tx.adminProfile.create({ data: { userId: user.id, name} });
+    await tx.adminProfile.create({ data: { userId: user.id } });
     return user;
   });
 };
@@ -92,6 +92,7 @@ export const registerAdmin = async (input: RegisterAdminInput) => {
 export const changePassword = async ({ email, currentPassword, newPassword }: ChangePasswordInput) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error('No account found with this email');
+  if (!user.password) throw new Error('No password set for this account');
 
   const isValid = await comparePassword(currentPassword, user.password);
   if (!isValid) throw new Error('Current password is incorrect');
@@ -105,6 +106,7 @@ export const login = async (input: LoginInput) => {
   const { email, password } = input;
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error('Invalid email or password');
+  if (!user.password) throw new Error('Invalid email or password');
 
   const isPasswordValid = await comparePassword(password, user.password);
   if (!isPasswordValid) throw new Error('Invalid email or password');

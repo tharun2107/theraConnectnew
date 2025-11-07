@@ -69,7 +69,7 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
                 <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Session Completed - TheraConnect</title>
+                    <title>Session Completed - Therabee</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
                         
@@ -259,7 +259,7 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
                 <body>
                     <div class="email-container">
                         <div class="header">
-                            <div class="logo">TheraConnect</div>
+                            <div class="logo">Therabee</div>
                             <div class="completion-badge">Session Successfully Completed</div>
                         </div>
                         
@@ -314,10 +314,10 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
                         </div>
                         
                         <div class="footer">
-                            <div class="footer-logo">TheraConnect</div>
+                            <div class="footer-logo">Therabee</div>
                             <p style="color: #cbd5e0; margin-bottom: 20px;">Supporting your mental wellness journey</p>
                             <p style="color: #a0aec0; font-size: 14px;">
-                                Need assistance? Contact our support team at help@theraconnect.com
+                                Need assistance? Contact our support team at help@therabee.com
                             </p>
                         </div>
                     </div>
@@ -325,7 +325,7 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
                 </html>
                 `.trim();
         const sessionCompletedText = `
-                SESSION COMPLETED - THERACONNECT
+                SESSION COMPLETED - THERABEE
 
                 Your recent therapy session has been successfully completed.
 
@@ -334,7 +334,7 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
                 NEXT STEPS:
 
                 1. REVIEW SESSION INSIGHTS
-                - Access detailed notes and recommendations in your TheraConnect account
+                - Access detailed notes and recommendations in your Therabee account
                 - Review any exercises or techniques discussed
 
                 2. PRACTICE TECHNIQUES
@@ -345,16 +345,16 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
                 - Book your next session to maintain progress
                 - Continue your wellness journey
 
-                You can view complete session details and any recommendations in your TheraConnect account.
+                You can view complete session details and any recommendations in your Therabee account.
 
                 Remember: Progress, not perfection. Every session brings you closer to your goals.
 
                 Thank you for trusting us with your wellness journey. Your commitment to growth is inspiring.
 
                 Best regards,
-                TheraConnect Team
+                Therabee Team
 
-                Need assistance? Contact our support team at help@theraconnect.com
+                Need assistance? Contact our support team at help@therabee.com
                 `.trim();
         yield (0, notification_service_1.sendNotificationAfterAnEventSessionCompleted)({
             userId: parentId.parentId,
@@ -436,7 +436,7 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             <head>
                             <meta charset="utf-8">
                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>Booking Confirmed - TheraConnect</title>
+                            <title>Booking Confirmed - Therabee</title>
                             <style>
                             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -640,7 +640,7 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             <body>
                             <div class="email-container">
                             <div class="header">
-                                <div class="logo">TheraConnect</div>
+                                <div class="logo">Therabee</div>
                                 <div class="confirmation-badge">Booking Confirmed Successfully</div>
                             </div>
 
@@ -681,7 +681,7 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                                         How to Join Your Session
                                     </div>
                                     
-                                    <div class="instruction-step">1. Log in to your TheraConnect account 10 minutes before the session</div>
+                                    <div class="instruction-step">1. Log in to your Therabee account 10 minutes before the session</div>
                                     <div class="instruction-step">2. Go to "My Sessions" in your dashboard</div>
                                     <div class="instruction-step">3. Click "Join Session" when the button becomes active</div>
                                     <div class="instruction-step">4. Ensure you have a stable internet connection</div>
@@ -707,10 +707,10 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             </div>
 
                             <div class="footer">
-                                <div class="footer-logo">TheraConnect</div>
+                                <div class="footer-logo">Therabee</div>
                                 <p style="color: #cbd5e0; margin-bottom: 20px;">Your partner in mental wellness</p>
                                 <p style="color: #a0aec0; font-size: 14px;">
-                                    Questions about your booking? Contact support@theraconnect.com
+                                    Questions about your booking? Contact support@therabee.com
                                 </p>
                             </div>
                             </div>
@@ -718,7 +718,7 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             </html>
                             `.trim();
         const parentText = `
-                            BOOKING CONFIRMED - THERACONNECT
+                            BOOKING CONFIRMED - THERABEE
 
                             Hi ${parent.name || 'there'}!
 
@@ -731,21 +731,21 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             • Status: Confirmed ✅
 
                             HOW TO JOIN YOUR SESSION:
-                            1. Log in to your TheraConnect account 10 minutes before the session
+                            1. Log in to your Therabee account 10 minutes before the session
                             2. Go to "My Sessions" in your dashboard
                             3. Click "Join Session" when the button becomes active
                             4. Ensure you have a stable internet connection
 
                             REMINDER: We'll send you a notification 1 hour before your session starts.
 
-                            You can view and manage your session details in your TheraConnect dashboard.
+                            You can view and manage your session details in your Therabee dashboard.
 
                             We look forward to helping you on your wellness journey!
 
                             Warm regards,
-                            The TheraConnect Team
+                            The Therabee Team
 
-                            Questions about your booking? Contact support@theraconnect.com
+                            Questions about your booking? Contact support@therabee.com
                             `.trim();
         // ==================== THERAPIST EMAIL ====================
         const therapistHTML = `
@@ -754,7 +754,7 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             <head>
                             <meta charset="utf-8">
                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>New Session Booking - TheraConnect</title>
+                            <title>New Session Booking - Therabee</title>
                             <style>
                             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -974,7 +974,7 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             <body>
                             <div class="email-container">
                             <div class="header">
-                                <div class="logo">TheraConnect</div>
+                                <div class="logo">Therabee</div>
                                 <div class="notification-badge">New Session Booking</div>
                             </div>
 
@@ -1052,10 +1052,10 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             </div>
 
                             <div class="footer">
-                                <div class="footer-logo">TheraConnect</div>
+                                <div class="footer-logo">Therabee</div>
                                 <p style="color: #cbd5e0; margin-bottom: 20px;">Professional Therapy Platform</p>
                                 <p style="color: #a0aec0; font-size: 14px;">
-                                    Therapist support: therapists@theraconnect.com
+                                    Therapist support: therapists@therabee.com
                                 </p>
                             </div>
                             </div>
@@ -1063,7 +1063,7 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             </html>
                             `.trim();
         const therapistText = `
-                            NEW SESSION BOOKING - THERACONNECT
+                            NEW SESSION BOOKING - THERABEE
 
                             Hi Dr. ${findTimeSlot.therapist.name || 'there'}!
 
@@ -1086,9 +1086,9 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                             Thank you for providing your expertise and support to our clients.
 
                             Best regards,
-                            TheraConnect Team
+                            Therabee Team
 
-                            Therapist support: therapists@theraconnect.com
+                            Therapist support: therapists@therabee.com
                             `.trim();
         yield (0, notification_service_1.sendNotificationToTherapistSessionBooked)({
             userId: findTimeSlot.therapist.userId,

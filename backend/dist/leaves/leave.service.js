@@ -58,9 +58,21 @@ class LeaveService {
      */
     hasUsedOptionalThisMonth(therapistId, leaveDate) {
         return __awaiter(this, void 0, void 0, function* () {
-            const monthStart = (0, date_fns_1.startOfMonth)(leaveDate);
-            const monthEnd = (0, date_fns_1.endOfMonth)(leaveDate);
-            const optionalLeaveThisMonth = yield prisma_1.default.therapistLeave.findFirst({
+            // Get the start and end of the current month
+            // Use startOfDay to ensure we're comparing dates correctly
+            const monthStart = (0, date_fns_1.startOfDay)((0, date_fns_1.startOfMonth)(leaveDate));
+            const monthEnd = (0, date_fns_1.startOfDay)((0, date_fns_1.endOfMonth)(leaveDate));
+            console.log('[hasUsedOptionalThisMonth] Checking for optional leave:', {
+                therapistId,
+                monthStart: monthStart.toISOString(),
+                monthEnd: monthEnd.toISOString(),
+                currentDate: leaveDate.toISOString(),
+                month: leaveDate.getMonth() + 1,
+                year: leaveDate.getFullYear()
+            });
+            // Query for approved optional leaves in this month
+            // Since date field is @db.Date (date-only), Prisma will handle the comparison correctly
+            const optionalLeavesThisMonth = yield prisma_1.default.therapistLeave.findMany({
                 where: {
                     therapistId: therapistId,
                     type: client_1.LeaveType.OPTIONAL,
@@ -69,9 +81,25 @@ class LeaveService {
                         gte: monthStart,
                         lte: monthEnd
                     }
+                },
+                select: {
+                    id: true,
+                    date: true,
+                    type: true,
+                    status: true
                 }
             });
-            return !!optionalLeaveThisMonth;
+            console.log('[hasUsedOptionalThisMonth] Found optional leaves this month:', optionalLeavesThisMonth.length);
+            if (optionalLeavesThisMonth.length > 0) {
+                console.log('[hasUsedOptionalThisMonth] Leave details:', optionalLeavesThisMonth.map(l => ({
+                    id: l.id,
+                    date: l.date,
+                    dateString: l.date.toISOString().split('T')[0],
+                    type: l.type,
+                    status: l.status
+                })));
+            }
+            return optionalLeavesThisMonth.length > 0;
         });
     }
     /**
@@ -95,9 +123,14 @@ class LeaveService {
                 throw new Error('Therapist profile not found');
             }
             const therapistProfile = therapist.therapistProfile;
-            const leaveDate = (0, date_fns_1.startOfDay)(new Date(leaveData.date));
+            // Parse date string (YYYY-MM-DD) as local date to avoid timezone issues
+            // When you do new Date("2025-11-09"), it's interpreted as UTC midnight
+            // We need to parse it as local date instead
+            const [year, month, day] = leaveData.date.split('-').map(Number);
+            const leaveDate = (0, date_fns_1.startOfDay)(new Date(year, month - 1, day));
             // Validate leave date is in future
-            if (leaveDate < (0, date_fns_1.startOfDay)(new Date())) {
+            const today = (0, date_fns_1.startOfDay)(new Date());
+            if (leaveDate < today) {
                 throw new Error('Cannot request leave for past dates');
             }
             // Check if leave already exists for this date
@@ -238,6 +271,11 @@ class LeaveService {
     }
     /**
      * Get current leave balances for a therapist
+     * Calculates remaining leaves based on actual usage according to leave policy:
+     * - Casual: 5 per year
+     * - Sick: 5 per year
+     * - Festive: 5 per year
+     * - Optional: 1 per month
      */
     getTherapistLeaveBalance(therapistUserId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -253,10 +291,79 @@ class LeaveService {
                 throw new Error('Therapist profile not found');
             }
             const now = new Date();
-            const balances = yield this.getLeaveBalances(therapist.therapistProfile.id, now);
+            const therapistId = therapist.therapistProfile.id;
+            // Get current year start and end for annual leaves (Casual, Sick, Festive)
+            const yearStart = (0, date_fns_1.startOfYear)(now);
+            const yearEnd = (0, date_fns_1.endOfYear)(now);
+            // Get current month start and end for optional leaves
+            const monthStart = (0, date_fns_1.startOfMonth)(now);
+            const monthEnd = (0, date_fns_1.endOfMonth)(now);
+            // Count approved leaves in current year for annual leave types
+            const [casualCount, sickCount, festiveCount] = yield Promise.all([
+                // Count approved casual leaves this year
+                prisma_1.default.therapistLeave.count({
+                    where: {
+                        therapistId: therapistId,
+                        type: client_1.LeaveType.CASUAL,
+                        status: client_1.LeaveStatus.APPROVED,
+                        date: {
+                            gte: yearStart,
+                            lte: yearEnd
+                        }
+                    }
+                }),
+                // Count approved sick leaves this year
+                prisma_1.default.therapistLeave.count({
+                    where: {
+                        therapistId: therapistId,
+                        type: client_1.LeaveType.SICK,
+                        status: client_1.LeaveStatus.APPROVED,
+                        date: {
+                            gte: yearStart,
+                            lte: yearEnd
+                        }
+                    }
+                }),
+                // Count approved festive leaves this year
+                prisma_1.default.therapistLeave.count({
+                    where: {
+                        therapistId: therapistId,
+                        type: client_1.LeaveType.FESTIVE,
+                        status: client_1.LeaveStatus.APPROVED,
+                        date: {
+                            gte: yearStart,
+                            lte: yearEnd
+                        }
+                    }
+                })
+            ]);
             // Check if optional leave used this month
-            const optionalUsedThisMonth = yield this.hasUsedOptionalThisMonth(therapist.therapistProfile.id, now);
-            return Object.assign(Object.assign({}, balances), { optionalUsedThisMonth });
+            const optionalUsedThisMonth = yield this.hasUsedOptionalThisMonth(therapistId, now);
+            // Calculate remaining leaves based on leave policy
+            // Annual leaves: 5 per year
+            const casualRemaining = Math.max(0, 5 - casualCount);
+            const sickRemaining = Math.max(0, 5 - sickCount);
+            const festiveRemaining = Math.max(0, 5 - festiveCount);
+            // Optional leaves: 1 per month
+            // If one was used this month, remaining is 0, otherwise 1
+            const optionalRemaining = optionalUsedThisMonth ? 0 : 1;
+            console.log('[getTherapistLeaveBalance] Calculated balances:', {
+                casualRemaining,
+                sickRemaining,
+                festiveRemaining,
+                optionalRemaining,
+                optionalUsedThisMonth,
+                casualCount,
+                sickCount,
+                festiveCount
+            });
+            return {
+                casualRemaining,
+                sickRemaining,
+                festiveRemaining,
+                optionalRemaining,
+                optionalUsedThisMonth
+            };
         });
     }
     /**
@@ -292,15 +399,11 @@ class LeaveService {
      */
     processLeaveRequest(adminUserId, approvalData) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            // Verify admin
-            const admin = yield prisma_1.default.user.findUnique({
-                where: { id: adminUserId },
-                include: { adminProfile: true }
-            });
-            if (!admin || !admin.adminProfile) {
-                throw new Error('Admin profile not found');
-            }
+            // No need to verify admin - authorize middleware already ensures:
+            // 1. User is authenticated
+            // 2. User has ADMIN role
+            // 3. User exists in database
+            var _a, _b;
             // Get leave request
             const leave = yield prisma_1.default.therapistLeave.findUnique({
                 where: { id: approvalData.leaveId },
@@ -308,7 +411,7 @@ class LeaveService {
                     therapist: {
                         include: {
                             user: {
-                                select: { email: true }
+                                select: { id: true, email: true }
                             }
                         }
                     }
@@ -325,9 +428,18 @@ class LeaveService {
             if (!isApproved) {
                 const rejectedLeave = yield prisma_1.default.therapistLeave.update({
                     where: { id: approvalData.leaveId },
-                    data: { status: client_1.LeaveStatus.REJECTED }
+                    data: { status: client_1.LeaveStatus.REJECTED },
+                    include: {
+                        therapist: {
+                            include: {
+                                user: {
+                                    select: { id: true, email: true }
+                                }
+                            }
+                        }
+                    }
                 });
-                yield this.notifyTherapistLeaveRejected(leave.therapist.user.email, rejectedLeave, approvalData.adminNotes);
+                yield this.notifyTherapistLeaveRejected(rejectedLeave.therapist.user.id, rejectedLeave.therapist.user.email, rejectedLeave, approvalData.adminNotes);
                 return rejectedLeave;
             }
             // --- APPROVAL CASE ---
@@ -433,10 +545,10 @@ class LeaveService {
                 where: { id: updatedLeave.therapistId },
                 include: { user: true }
             });
-            if (!therapist || !((_a = therapist.user) === null || _a === void 0 ? void 0 : _a.email)) {
-                throw new Error("Therapist email not found");
+            if (!therapist || !((_a = therapist.user) === null || _a === void 0 ? void 0 : _a.email) || !((_b = therapist.user) === null || _b === void 0 ? void 0 : _b.id)) {
+                throw new Error("Therapist email or userId not found");
             }
-            yield this.notifyTherapistLeaveApproved(therapist.user.email, updatedLeave);
+            yield this.notifyTherapistLeaveApproved(therapist.user.id, therapist.user.email, updatedLeave);
             if (notificationPayloads.length > 0) {
                 yield this.sendParentCancellationNotifications(notificationPayloads);
             }
@@ -513,17 +625,43 @@ class LeaveService {
     /**
      * Notify therapist that leave was approved
      */
-    notifyTherapistLeaveApproved(therapistEmail, leave) {
+    notifyTherapistLeaveApproved(therapistUserId, therapistEmail, leave) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield (0, email_services_1.sendemail)(therapistEmail, `Your leave request for ${(0, date_fns_1.format)(leave.date, 'MMMM dd, yyyy')} has been approved.\n\nType: ${leave.type}\n\nRemaining Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nAll your sessions for this date have been cancelled and affected parents have been notified.`);
+            const message = `Your leave request for ${(0, date_fns_1.format)(leave.date, 'MMMM dd, yyyy')} has been approved.\n\nType: ${leave.type}\n\nRemaining Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nAll your sessions for this date have been cancelled and affected parents have been notified.`;
+            // Create in-app notification
+            yield prisma_1.default.notification.create({
+                data: {
+                    userId: therapistUserId,
+                    message: message,
+                    type: client_1.NotificationType.LEAVE_REQUEST_APPROVED,
+                    channel: 'EMAIL',
+                    status: 'PENDING',
+                    sendAt: new Date()
+                }
+            });
+            // Send email notification
+            yield (0, email_services_1.sendemail)(therapistEmail, message);
         });
     }
     /**
      * Notify therapist that leave was rejected
      */
-    notifyTherapistLeaveRejected(therapistEmail, leave, adminNotes) {
+    notifyTherapistLeaveRejected(therapistUserId, therapistEmail, leave, adminNotes) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield (0, email_services_1.sendemail)(therapistEmail, `Your leave request for ${(0, date_fns_1.format)(leave.date, 'MMMM dd, yyyy')} has been rejected.\n\nType: ${leave.type}\n${adminNotes ? `\nAdmin Notes: ${adminNotes}` : ''}\n\nPlease contact admin if you have any questions.`);
+            const message = `Your leave request for ${(0, date_fns_1.format)(leave.date, 'MMMM dd, yyyy')} has been rejected.\n\nType: ${leave.type}\n${adminNotes ? `\nAdmin Notes: ${adminNotes}` : ''}\n\nPlease contact admin if you have any questions.`;
+            // Create in-app notification
+            yield prisma_1.default.notification.create({
+                data: {
+                    userId: therapistUserId,
+                    message: message,
+                    type: client_1.NotificationType.LEAVE_REQUEST_REJECTED,
+                    channel: 'EMAIL',
+                    status: 'PENDING',
+                    sendAt: new Date()
+                }
+            });
+            // Send email notification
+            yield (0, email_services_1.sendemail)(therapistEmail, message);
         });
     }
 }

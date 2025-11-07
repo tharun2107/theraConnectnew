@@ -22,14 +22,26 @@ body : z.object({
 });
 
 /**
- * Validation schema for processing leave (admin)
+ * Validation schema for processing leave params (admin)
  */
-export const processLeaveSchema = z.object({
-   body : z.object({
-    leaveId: z.string().min(1, "Leave ID is required"),
+export const processLeaveParamsSchema = z.object({
+  leaveId: z.string().min(1, "Leave ID is required")
+});
+
+/**
+ * Validation schema for processing leave body (admin)
+ */
+export const processLeaveBodySchema = z.object({
   action: z.enum(['APPROVE', 'REJECT']).describe("Action must be either APPROVE or REJECT"),
   adminNotes: z.string().max(500, "Admin notes cannot exceed 500 characters").optional()
-   })
+});
+
+/**
+ * Validation schema for processing leave (admin) - combined for type inference
+ */
+export const processLeaveSchema = z.object({
+   params: processLeaveParamsSchema,
+   body: processLeaveBodySchema
 });
 
 /**

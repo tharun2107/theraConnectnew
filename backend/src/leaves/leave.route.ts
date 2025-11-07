@@ -4,13 +4,14 @@ import { authorize } from '../middleware/auth.middleware';
 import {
   requestLeaveHandler,
   getTherapistLeavesHandler,
+  getTherapistLeaveBalanceHandler,
   getAllLeavesHandler,
   getLeaveDetailsHandler,
   processLeaveHandler
 } from '../leaves/leave.controller';
 import { Role } from '@prisma/client';
 import { validate } from '../middleware/validate.middleware';
-import { getLeaveByIdSchema, getLeaveRequestsSchema, processLeaveSchema, requestLeaveSchema } from './leave.validation';
+import { getLeaveByIdSchema, getLeaveRequestsSchema, processLeaveParamsSchema, processLeaveBodySchema, requestLeaveSchema } from './leave.validation';
 
 // ============================================
 // THERAPIST ROUTES
@@ -39,6 +40,15 @@ therapistRouter.post(
 therapistRouter.get(
   '/leaves',
   getTherapistLeavesHandler
+);
+
+/**
+ * GET /api/therapist/leaves/balance
+ * Get current leave balance for the therapist
+ */
+therapistRouter.get(
+  '/leaves/balance',
+  getTherapistLeaveBalanceHandler
 );
 
 // ============================================
@@ -78,7 +88,7 @@ adminRouter.get(
  */
 adminRouter.put(
   '/leaves/:leaveId',
-  validate({ body: processLeaveSchema.shape.body }),
+  validate({ params: processLeaveParamsSchema, body: processLeaveBodySchema }),
   processLeaveHandler
 );
 

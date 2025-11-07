@@ -32,7 +32,7 @@ const createMeetingForBooking = (req, res) => __awaiter(void 0, void 0, void 0, 
         }
         const startTimeIso = booking.timeSlot.startTime.toISOString();
         const duration = Math.max(15, Math.round((booking.timeSlot.endTime.getTime() - booking.timeSlot.startTime.getTime()) / 60000));
-        const topic = `TheraConnect Session - ${booking.id}`;
+        const topic = `Therabee Session - ${booking.id}`;
         const meeting = yield (0, zoom_service_1.createRealMeeting)({ topic, startTimeIso, durationMinutes: duration });
         const updated = yield prisma_1.default.booking.update({
             where: { id: booking.id },

@@ -114,14 +114,15 @@ const getProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getProfile = getProfile;
 const updateProfile = (userId, data) => __awaiter(void 0, void 0, void 0, function* () {
-    const updatedAdmin = yield prisma_1.default.adminProfile.update({
-        where: { userId },
+    // Update the user's name, not the admin profile (AdminProfile doesn't have a name field)
+    const updatedUser = yield prisma_1.default.user.update({
+        where: { id: userId },
         data: {
             name: data.name,
         },
-        include: { user: true },
+        include: { adminProfile: true },
     });
-    return updatedAdmin;
+    return updatedUser;
 });
 exports.updateProfile = updateProfile;
 const getPlatformSettings = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -129,8 +130,8 @@ const getPlatformSettings = () => __awaiter(void 0, void 0, void 0, function* ()
     // In a real app, you'd store these in a database table
     return {
         id: '1',
-        platformName: 'TheraConnect',
-        platformEmail: 'admin@theraconnect.com',
+        platformName: 'Therabee',
+        platformEmail: 'admin@therabee.com',
         platformPhone: '+1 (555) 123-4567',
         maintenanceMode: false,
         allowNewRegistrations: true,

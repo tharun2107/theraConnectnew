@@ -38,7 +38,7 @@ const ParentRegister: React.FC = () => {
     setIsLoading(true)
     try {
       await registerUser(data.email, data.password, data.name, data.phone, 'PARENT')
-      toast.success('Account created successfully! Welcome to TheraConnect!')
+      toast.success('Account created successfully! Welcome to Therabee!')
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Registration failed')
     } finally {

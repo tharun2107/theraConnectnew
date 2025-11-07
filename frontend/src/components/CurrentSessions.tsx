@@ -24,6 +24,8 @@ interface CurrentSessionProps {
     id: string
     status: string
     meetingId?: string
+    meetingPassword?: string
+    zoomLink?: string
     hostStarted?: boolean
     child?: {
       id: string
@@ -178,15 +180,14 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
   }
 
   const formatTime = (dateString: string) => {
-    // Extract UTC time and display as local time
-    // Slots are stored in UTC with literal hours/minutes (e.g., 12:00 UTC means display as 12:00 locally)
+    // Use the local time representation directly from the Date object
+    // JavaScript Date automatically converts UTC to local time when we call getHours() and getMinutes()
     const slotDate = new Date(dateString)
-    const utcHours = slotDate.getUTCHours()
-    const utcMinutes = slotDate.getUTCMinutes()
+    const localHours = slotDate.getHours()
+    const localMinutes = slotDate.getMinutes()
     
-    // Create a date with UTC hours/minutes to display in local time
-    // This ensures 12:00 UTC displays as 12:00 in any timezone
-    const displayDate = new Date(2000, 0, 1, utcHours, utcMinutes)
+    // Create a date with local hours/minutes to display correctly
+    const displayDate = new Date(2000, 0, 1, localHours, localMinutes)
     return displayDate.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit',
@@ -342,6 +343,56 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
             </Button>
           </div>
 
+          {/* Zoom Link - Always show if available */}
+          {(booking.zoomLink || booking.meetingId) && (
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-3">
+              <div className="flex items-center space-x-2 mb-3">
+                <Video className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-semibold text-blue-900 dark:text-blue-200">Join Meeting</span>
+              </div>
+              {booking.zoomLink ? (
+                <div className="space-y-2">
+                  <a
+                    href={booking.zoomLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Click to Join Zoom Meeting
+                  </a>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 break-all">
+                    {booking.zoomLink}
+                  </p>
+                </div>
+              ) : booking.meetingId ? (
+                <div className="space-y-3">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Meeting ID:
+                    </p>
+                    <p className="text-base font-mono text-gray-900 dark:text-white">
+                      {booking.meetingId}
+                    </p>
+                    {booking.meetingPassword && (
+                      <>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 mb-1">
+                          Password:
+                        </p>
+                        <p className="text-base font-mono text-gray-900 dark:text-white">
+                          {booking.meetingPassword}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Use these credentials to join the meeting in Zoom app or web client.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          )}
+
           {/* Additional Details */}
           {showDetails && (
             <motion.div
@@ -353,18 +404,18 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center space-x-2 text-sm">
                   <User className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-600">Session ID: {booking.id.slice(-8)}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Session ID: {booking.id.slice(-8)}</span>
                 </div>
                 {booking.meetingId && (
                   <div className="flex items-center space-x-2 text-sm">
                     <Users className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-600">Meeting: {booking.meetingId}</span>
+                    <span className="text-gray-600 dark:text-gray-400">Meeting: {booking.meetingId}</span>
                   </div>
                 )}
               </div>
               
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-sm text-yellow-800">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
                 <strong>Note:</strong> You can join the session 15 minutes before the scheduled time. 
                 {userRole === 'THERAPIST' 
                   ? ' As the therapist, you can start the session anytime within the window.'
@@ -392,7 +443,7 @@ const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSessi
   console.log('[CurrentSessions] Bookings data:', bookings)
   
   // Find current/upcoming sessions that can be joined
-  // Slots are stored in UTC with literal hours/minutes (e.g., 13:00 UTC means 1:00 PM display time)
+  // Slots are stored in UTC with literal hours/minutes (e.g., 19:00 UTC means 7:00 PM display time)
   // We need to extract UTC hours/minutes and create local dates for comparison
   const currentSessions = bookings.filter((booking: any) => {
     if (!booking.timeSlot || !booking.timeSlot.startTime || !booking.timeSlot.endTime) {
@@ -402,37 +453,50 @@ const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSessi
     
     const now = new Date()
     
-    // Extract UTC hours/minutes from stored slot (slots are stored with literal display times in UTC)
+    // Parse the slot times - they are stored in the database as DateTime
+    // For recurring bookings: slots are created with setHours (local server time, then stored as UTC)
+    // For regular bookings: slots are created with Date.UTC (UTC time with literal hours)
+    // We need to use the local time representation directly from the Date object
     const slotStartUTC = new Date(booking.timeSlot.startTime)
     const slotEndUTC = new Date(booking.timeSlot.endTime)
     
-    // Get UTC hours/minutes (these represent the literal display time)
-    const startUTCHours = slotStartUTC.getUTCHours()
-    const startUTCMinutes = slotStartUTC.getUTCMinutes()
-    const endUTCHours = slotEndUTC.getUTCHours()
-    const endUTCMinutes = slotEndUTC.getUTCMinutes()
+    // Use the local time representation directly - JavaScript Date automatically converts UTC to local
+    // This handles both cases: if stored as UTC, it converts to local; if stored as local, it's already local
+    const startTimeLocal = new Date(slotStartUTC)
+    const endTimeLocal = new Date(slotEndUTC)
     
-    // Get the date from the slot (year, month, day)
-    const slotDate = slotStartUTC
-    const year = slotDate.getUTCFullYear()
-    const month = slotDate.getUTCMonth()
-    const day = slotDate.getUTCDate()
+    // Get the date components from the local time representation
+    const year = startTimeLocal.getFullYear()
+    const month = startTimeLocal.getMonth()
+    const day = startTimeLocal.getDate()
     
-    // Create local dates with the UTC hours/minutes (treating them as local time)
-    // This ensures 13:00 UTC is treated as 1:00 PM local time
-    const startTimeLocal = new Date(year, month, day, startUTCHours, startUTCMinutes, 0, 0)
-    const endTimeLocal = new Date(year, month, day, endUTCHours, endUTCMinutes, 0, 0)
+    // Create new Date objects with just the date and time (no timezone conversion)
+    // This ensures we're working with the local time representation
+    const startTime = new Date(year, month, day, startTimeLocal.getHours(), startTimeLocal.getMinutes(), 0, 0)
+    const endTime = new Date(year, month, day, endTimeLocal.getHours(), endTimeLocal.getMinutes(), 0, 0)
     
-    // Calculate session window (15 minutes before start to end time)
-    const sessionWindowStart = new Date(startTimeLocal.getTime() - 15 * 60 * 1000) // 15 min before
+    // Check if session is today - compare dates only (ignore time)
+    // Normalize both dates to midnight for accurate comparison
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+    const sessionDateMidnight = new Date(year, month, day, 0, 0, 0, 0)
+    const isToday = todayMidnight.getTime() === sessionDateMidnight.getTime()
+    
+    // Calculate session window (10 minutes before start to end time)
+    const sessionWindowStart = new Date(startTime.getTime() - 10 * 60 * 1000) // 10 minutes before
     
     // Check if current time is within the session window (using local time)
     const nowTime = now.getTime()
     const windowStartTime = sessionWindowStart.getTime()
-    const endTimeTime = endTimeLocal.getTime()
+    const endTimeTime = endTime.getTime()
     
+    // Show session if:
+    // 1. It's scheduled for today
+    // 2. Status is SCHEDULED
+    // 3. Current time is within the window (10 minutes before start to end time)
     const isWithinWindow = nowTime >= windowStartTime && nowTime <= endTimeTime
     const isScheduled = booking.status === 'SCHEDULED'
+    
+    const willInclude = isToday && isScheduled && isWithinWindow
     
     // Debug logging for all bookings (not just scheduled)
     console.log('[CurrentSessions] Checking booking:', {
@@ -441,19 +505,28 @@ const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSessi
       now: now.toLocaleString(),
       nowISO: now.toISOString(),
       slotStartUTC: slotStartUTC.toISOString(),
-      slotStartLocal: startTimeLocal.toLocaleString(),
-      slotEndLocal: endTimeLocal.toLocaleString(),
+      slotStartLocal: startTime.toLocaleString(),
+      slotEndLocal: endTime.toLocaleString(),
       windowStart: sessionWindowStart.toLocaleString(),
       windowStartISO: sessionWindowStart.toISOString(),
+      todayDate: todayMidnight.toLocaleDateString(),
+      sessionDateStr: sessionDateMidnight.toLocaleDateString(),
+      todayTime: todayMidnight.getTime(),
+      sessionDateTime: sessionDateMidnight.getTime(),
+      isToday,
       isWithinWindow,
       isScheduled,
-      willInclude: isWithinWindow && isScheduled,
+      willInclude,
+      nowTime,
+      windowStartTime,
+      endTimeTime,
       timeDiffMinutes: Math.round((nowTime - windowStartTime) / 60000),
-      minutesUntilStart: Math.round((startTimeLocal.getTime() - nowTime) / 60000),
-      minutesUntilEnd: Math.round((endTimeTime - nowTime) / 60000)
+      minutesUntilStart: Math.round((startTime.getTime() - nowTime) / 60000),
+      minutesUntilEnd: Math.round((endTime.getTime() - nowTime) / 60000)
     })
     
-    return isWithinWindow && isScheduled
+    // Show if it's scheduled for today and within the 10-minute window
+    return willInclude
   }).sort((a: any, b: any) => {
     // Sort by local start time (extracting UTC hours/minutes and treating as local)
     const aStartUTC = new Date(a.timeSlot.startTime)

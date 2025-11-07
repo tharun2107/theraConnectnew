@@ -107,9 +107,9 @@ export const createDemoBookingHandler = async (req: Request, res: Response) => {
     // Send confirmation email to user
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #4F46E5;">Demo Session Confirmed - TheraConnect</h2>
+        <h2 style="color: #4F46E5;">Demo Session Confirmed - Therabee</h2>
         <p>Dear ${name},</p>
-        <p>Thank you for booking a demo session with TheraConnect!</p>
+        <p>Thank you for booking a demo session with Therabee!</p>
         <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0;">Your Demo Session Details:</h3>
           <p><strong>Date:</strong> ${new Date(slotDate).toLocaleDateString()}</p>
@@ -118,18 +118,18 @@ export const createDemoBookingHandler = async (req: Request, res: Response) => {
         </div>
         <p>We will send you a Zoom link closer to your scheduled time.</p>
         <p>If you have any questions, please don't hesitate to contact us.</p>
-        <p>Best regards,<br>TheraConnect Team</p>
+        <p>Best regards,<br>Therabee Team</p>
       </div>
     `
 
-    await sendemail(email, 'Demo Session Confirmation', emailHtml, 'Demo Session Confirmation - TheraConnect')
+    await sendemail(email, 'Demo Session Confirmation', emailHtml, 'Demo Session Confirmation - Therabee')
 
     // Send notification email to admin
     const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER
     if (adminEmail) {
       const adminEmailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5;">New Demo Booking - TheraConnect</h2>
+          <h2 style="color: #4F46E5;">New Demo Booking - Therabee</h2>
           <p>A new demo session has been booked:</p>
           <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Booking Details:</h3>
@@ -143,7 +143,7 @@ export const createDemoBookingHandler = async (req: Request, res: Response) => {
           <p>Please log in to the admin dashboard to manage this booking.</p>
         </div>
       `
-      await sendemail(adminEmail, 'New Demo Booking', adminEmailHtml, 'New Demo Booking - TheraConnect')
+      await sendemail(adminEmail, 'New Demo Booking', adminEmailHtml, 'New Demo Booking - Therabee')
     }
 
     res.status(201).json(booking)
@@ -209,7 +209,7 @@ export const createDemoZoomMeetingHandler = async (req: Request, res: Response) 
     const finalDateTime = new Date(slotDateTime.getTime() - offset)
 
     const meeting = await createRealMeeting({
-      topic: `TheraConnect Demo Session - ${booking.name}`,
+      topic: `Therabee Demo Session - ${booking.name}`,
       startTimeIso: finalDateTime.toISOString(),
       durationMinutes: 60, // 1 hour demo
     })
@@ -230,9 +230,9 @@ export const createDemoZoomMeetingHandler = async (req: Request, res: Response) 
     // Send Zoom link email to user
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #4F46E5;">Your Demo Session Zoom Link - TheraConnect</h2>
+        <h2 style="color: #4F46E5;">Your Demo Session Zoom Link - Therabee</h2>
         <p>Dear ${booking.name},</p>
-        <p>Your demo session with TheraConnect is ready!</p>
+        <p>Your demo session with Therabee is ready!</p>
         <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0;">Session Details:</h3>
           <p><strong>Date:</strong> ${new Date(booking.slotDate).toLocaleDateString()}</p>
@@ -246,11 +246,11 @@ export const createDemoZoomMeetingHandler = async (req: Request, res: Response) 
           </a>
         </div>
         <p>Click the button above or use this link: <a href="${meeting.joinUrl}">${meeting.joinUrl}</a></p>
-        <p>Best regards,<br>TheraConnect Team</p>
+        <p>Best regards,<br>Therabee Team</p>
       </div>
     `
 
-    await sendemail(booking.email, 'Your Demo Session Zoom Link', emailHtml, 'Your Demo Session Zoom Link - TheraConnect')
+    await sendemail(booking.email, 'Your Demo Session Zoom Link', emailHtml, 'Your Demo Session Zoom Link - Therabee')
 
     res.status(201).json({
       meetingId: updated.meetingId,

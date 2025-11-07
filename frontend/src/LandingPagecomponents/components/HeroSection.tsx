@@ -219,7 +219,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ darkMode = false, onBookDemoC
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              TheraConnect helps families find verified therapists, book secure sessions, 
+              Therabee helps families find verified therapists, book secure sessions, 
               and track progress — all in one place.
             </motion.p>
           </motion.div>

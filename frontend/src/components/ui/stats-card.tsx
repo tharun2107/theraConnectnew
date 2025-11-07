@@ -54,8 +54,8 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         className
       )}
     >
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#F9F9F9] to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      {/* Background gradient - white on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:group-hover:opacity-100" />
       
       <div className="relative z-10">
         {/* Icon */}
@@ -88,7 +88,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: delay + 0.3, duration: 0.5 }}
-            className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] dark:text-white"
+            className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] dark:text-white group-hover:text-[#1A1A1A] dark:group-hover:text-[#1A1A1A]"
           >
             <AnimatedCounter value={value} />
           </motion.div>
@@ -99,14 +99,14 @@ export const StatsCard: React.FC<StatsCardProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: delay + 0.4, duration: 0.5 }}
-          className="text-sm font-medium text-[#4D4D4D] dark:text-gray-300"
+          className="text-sm font-medium text-[#4D4D4D] dark:text-gray-300 group-hover:text-[#1A1A1A] dark:group-hover:text-[#1A1A1A]"
         >
           {title}
         </motion.p>
       </div>
 
-      {/* Hover effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#F9F9F9]/50 to-[#F9F9F9]/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      {/* Hover effect - white background on hover */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:group-hover:opacity-100" />
     </motion.div>
   )
 }
