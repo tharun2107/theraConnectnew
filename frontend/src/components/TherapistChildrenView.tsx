@@ -99,26 +99,15 @@ const TherapistChildrenView: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex-1">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-blue-600" />
-            My Children
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
-            Children you've worked with and their consent status
-          </p>
+      {/* Status Indicators */}
+      <div className="flex items-center justify-end space-x-3 sm:space-x-4 text-sm flex-wrap gap-2">
+        <div className="flex items-center text-green-600">
+          <CheckCircle className="h-4 w-4 mr-1" />
+          {childrenWithAccess.length} with access
         </div>
-        <div className="flex items-center space-x-3 sm:space-x-4 text-sm flex-wrap gap-2">
-          <div className="flex items-center text-green-600">
-            <CheckCircle className="h-4 w-4 mr-1" />
-            {childrenWithAccess.length} with access
-          </div>
-          <div className="flex items-center text-orange-600">
-            <AlertCircle className="h-4 w-4 mr-1" />
-            {childrenWithoutAccess.length} limited access
-          </div>
+        <div className="flex items-center text-orange-600">
+          <AlertCircle className="h-4 w-4 mr-1" />
+          {childrenWithoutAccess.length} limited access
         </div>
       </div>
 

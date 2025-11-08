@@ -668,13 +668,14 @@ export class LeaveService {
         })
       );
 
+      // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
       // Send email
-      if (payload.parentEmail) {
-        const emailBody = `Dear Parent,\n\n${message}\n\nPlease book another available slot.\n\nWe apologize for the inconvenience.`;
-        notificationPromises.push(
-          sendemail(payload.parentEmail, emailBody)
-        );
-      }
+      // if (payload.parentEmail) {
+      //   const emailBody = `Dear Parent,\n\n${message}\n\nPlease book another available slot.\n\nWe apologize for the inconvenience.`;
+      //   notificationPromises.push(
+      //     sendemail(payload.parentEmail, emailBody)
+      //   );
+      // }
     }
 
     try {
@@ -710,12 +711,13 @@ export class LeaveService {
         }
       });
 
-      if (admin.email) {
-        await sendemail(
-          admin.email,
-          `Therapist: ${therapistName}\nDate: ${format(leave.date, 'MMMM dd, yyyy')}\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nCurrent Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nPlease review and approve/reject this request in the admin dashboard.`
-        );
-      }
+      // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+      // if (admin.email) {
+      //   await sendemail(
+      //     admin.email,
+      //     `Therapist: ${therapistName}\nDate: ${format(leave.date, 'MMMM dd, yyyy')}\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nCurrent Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nPlease review and approve/reject this request in the admin dashboard.`
+      //   );
+      // }
     }
   }
 
@@ -726,11 +728,11 @@ export class LeaveService {
     therapistEmail: string,
     leave: TherapistLeave
   ): Promise<void> {
-    
-    await sendemail(
-      therapistEmail,
-      `Your leave request for ${format(leave.date, 'MMMM dd, yyyy')} has been submitted successfully.\n\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nYou will be notified once the admin reviews your request.`
-    );
+    // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+    // await sendemail(
+    //   therapistEmail,
+    //   `Your leave request for ${format(leave.date, 'MMMM dd, yyyy')} has been submitted successfully.\n\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nYou will be notified once the admin reviews your request.`
+    // );
   }
 
   /**
@@ -755,8 +757,9 @@ export class LeaveService {
       }
     });
 
+    // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
     // Send email notification
-    await sendemail(therapistEmail, message);
+    // await sendemail(therapistEmail, message);
   }
 
   /**
@@ -782,8 +785,9 @@ export class LeaveService {
       }
     });
 
+    // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
     // Send email notification
-    await sendemail(therapistEmail, message);
+    // await sendemail(therapistEmail, message);
   }
 }
 

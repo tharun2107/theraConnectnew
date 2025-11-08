@@ -79,6 +79,12 @@ export const getAvailableSlots = async (therapistId: string, date: string) => {
         throw new Error(`Invalid date: ${date}`);
     }
     
+    // Check if date is a weekend (Saturday or Sunday)
+    const dayOfWeek = testDate.getUTCDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+        throw new Error('Bookings are not available on weekends (Saturday and Sunday)');
+    }
+    
     // Ensure year is reasonable (2000-2099)
     const year = parseInt(date.substring(0, 4), 10);
     if (year < 2000 || year > 2099) {
@@ -183,6 +189,13 @@ export const createBooking = async (parentId: string, input: CreateBookingInput)
     if (!timeSlot) throw new Error('This time slot is not available.');
     if (timeSlot.therapist.status !== TherapistStatus.ACTIVE) {
         throw new Error('This therapist is not available for booking.');
+    }
+
+    // Check if the booking date is a weekend (Saturday or Sunday)
+    const bookingDate = new Date(timeSlot.startTime);
+    const dayOfWeek = bookingDate.getUTCDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+        throw new Error('Bookings are not available on weekends (Saturday and Sunday)');
     }
 
     const child = await prisma.child.findFirst({
@@ -405,158 +418,210 @@ export class RecurringBookingService {
    * Generate individual bookings from a recurring booking
    */
   private async generateBookingsForRecurring(recurringBookingId: string) {
-    const recurring = await prisma.recurringBooking.findUnique({
-      where: { id: recurringBookingId },
-      include: {
-        parent: true,
-        child: true,
-        therapist: { include: { user: true } }
+    try {
+      const recurring = await prisma.recurringBooking.findUnique({
+        where: { id: recurringBookingId },
+        include: {
+          parent: true,
+          child: true,
+          therapist: { include: { user: true } }
+        }
+      });
+
+      if (!recurring || !recurring.isActive) {
+        throw new Error('Recurring booking not found or inactive');
       }
-    });
 
-    if (!recurring || !recurring.isActive) {
-      throw new Error('Recurring booking not found or inactive');
-    }
+      if (!recurring.therapist) {
+        throw new Error('Therapist not found for recurring booking');
+      }
 
-    const startDate = new Date(recurring.startDate);
-    const endDate = new Date(recurring.endDate);
-    const today = startOfDay(new Date());
+      if (!recurring.therapist.baseCostPerSession) {
+        throw new Error('Therapist base cost per session is not set');
+      }
 
-    // Generate dates based on recurrence pattern
-    const dates: Date[] = [];
-    
-    if (recurring.recurrencePattern === RecurrencePattern.DAILY) {
-      // Generate all dates in range (excluding weekends)
-      const allDays = eachDayOfInterval({ start: startDate, end: endDate });
-      dates.push(...allDays.filter(day => !isWeekend(day) && day >= today));
-    } else if (recurring.recurrencePattern === RecurrencePattern.WEEKLY && recurring.dayOfWeek) {
-      // Generate dates for specific day of week
-      const dayOfWeekMap: { [key in DayOfWeek]: number } = {
-        MONDAY: 1,
-        TUESDAY: 2,
-        WEDNESDAY: 3,
-        THURSDAY: 4,
-        FRIDAY: 5,
-        SATURDAY: 6
-      };
-      const targetDay = dayOfWeekMap[recurring.dayOfWeek];
+      const startDate = new Date(recurring.startDate);
+      const endDate = new Date(recurring.endDate);
+      const today = startOfDay(new Date());
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid start or end date');
+      }
+
+      // Generate dates based on recurrence pattern
+      const dates: Date[] = [];
       
-      let currentDate = new Date(startDate);
-      while (currentDate <= endDate) {
-        if (currentDate.getDay() === targetDay && currentDate >= today) {
-          dates.push(new Date(currentDate));
-        }
-        currentDate = addDays(currentDate, 1);
-      }
-    }
-
-    // Parse slot time (HH:mm)
-    const [hours, minutes] = recurring.slotTime.split(':').map(Number);
-    const slotDurationMinutes = recurring.therapist.slotDurationInMinutes || 60;
-
-    // Create bookings for each date in a transaction
-    const finalFee = recurring.parent.customFee ?? recurring.therapist.baseCostPerSession;
-    const bookingsToCreate = [];
-
-    for (const date of dates) {
-      // Check if therapist has leave on this date
-      const hasLeave = await prisma.therapistLeave.findFirst({
-        where: {
-          therapistId: recurring.therapistId,
-          date: date,
-          status: 'APPROVED'
-        }
-      });
-      if (hasLeave) continue;
-
-      // Create time slot
-      const slotStart = new Date(date);
-      slotStart.setHours(hours, minutes, 0, 0);
-      const slotEnd = new Date(slotStart.getTime() + slotDurationMinutes * 60000);
-
-      // Check if slot already exists
-      const existingSlot = await prisma.timeSlot.findFirst({
-        where: {
-          therapistId: recurring.therapistId,
-          startTime: slotStart,
-          endTime: slotEnd
-        }
-      });
-
-      if (existingSlot && existingSlot.isBooked) {
-        continue; // Skip if already booked
-      }
-
-      // Create booking in transaction
-      const result = await prisma.$transaction(async (tx) => {
-        const timeSlot = existingSlot || await tx.timeSlot.create({
-          data: {
-            therapistId: recurring.therapistId,
-            startTime: slotStart,
-            endTime: slotEnd,
-            isActive: true,
-            isBooked: false
+      if (recurring.recurrencePattern === RecurrencePattern.DAILY) {
+        // Generate all dates in range (excluding weekends)
+        const allDays = eachDayOfInterval({ start: startDate, end: endDate });
+        dates.push(...allDays.filter(day => !isWeekend(day) && day >= today));
+      } else if (recurring.recurrencePattern === RecurrencePattern.WEEKLY && recurring.dayOfWeek) {
+        // Generate dates for specific day of week
+        const dayOfWeekMap: { [key in DayOfWeek]: number } = {
+          MONDAY: 1,
+          TUESDAY: 2,
+          WEDNESDAY: 3,
+          THURSDAY: 4,
+          FRIDAY: 5,
+          SATURDAY: 6
+        };
+        const targetDay = dayOfWeekMap[recurring.dayOfWeek];
+        
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+          if (currentDate.getDay() === targetDay && currentDate >= today) {
+            dates.push(new Date(currentDate));
           }
-        });
+          currentDate = addDays(currentDate, 1);
+        }
+      }
 
-        // Check if booking already exists
-        const existingBooking = await tx.booking.findFirst({
+      // Validate slot time format
+      if (!recurring.slotTime || !recurring.slotTime.includes(':')) {
+        throw new Error(`Invalid slot time format: ${recurring.slotTime}. Expected format: HH:mm`);
+      }
+
+      // Parse slot time (HH:mm)
+      const timeParts = recurring.slotTime.split(':');
+      if (timeParts.length !== 2) {
+        throw new Error(`Invalid slot time format: ${recurring.slotTime}. Expected format: HH:mm`);
+      }
+
+      const hours = parseInt(timeParts[0], 10);
+      const minutes = parseInt(timeParts[1], 10);
+
+      if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        throw new Error(`Invalid slot time values: ${recurring.slotTime}. Hours must be 0-23, minutes must be 0-59`);
+      }
+
+      const slotDurationMinutes = recurring.therapist.slotDurationInMinutes || 60;
+
+      // Create bookings for each date in a transaction
+      const finalFee = recurring.parent.customFee ?? recurring.therapist.baseCostPerSession;
+      
+      if (!finalFee || finalFee <= 0) {
+        throw new Error('Invalid fee amount. Fee must be greater than 0');
+      }
+
+      const bookingsToCreate = [];
+
+      for (const date of dates) {
+        // Check if therapist has leave on this date
+        const hasLeave = await prisma.therapistLeave.findFirst({
           where: {
-            recurringBookingId: recurringBookingId,
-            timeSlotId: timeSlot.id
-          }
-        });
-
-        if (existingBooking) return null;
-
-        // Create booking
-        const booking = await tx.booking.create({
-          data: {
-            parentId: recurring.parentId,
-            childId: recurring.childId,
             therapistId: recurring.therapistId,
-            timeSlotId: timeSlot.id,
-            recurringBookingId: recurringBookingId
+            date: date,
+            status: 'APPROVED'
           }
         });
+        if (hasLeave) continue;
 
-        // Mark slot as booked
-        await tx.timeSlot.update({
-          where: { id: timeSlot.id },
-          data: { isBooked: true }
-        });
+        try {
+          // Create time slot
+          const slotStart = new Date(date);
+          slotStart.setHours(hours, minutes, 0, 0);
+          slotStart.setSeconds(0, 0); // Ensure seconds and milliseconds are 0
+          const slotEnd = new Date(slotStart.getTime() + slotDurationMinutes * 60000);
 
-        // Create payment
-        await tx.payment.create({
-          data: {
-            bookingId: booking.id,
-            parentId: recurring.parentId,
-            therapistId: recurring.therapistId,
-            amount: finalFee
+          // Validate slot times
+          if (isNaN(slotStart.getTime()) || isNaN(slotEnd.getTime())) {
+            console.error(`[RecurringBooking] Invalid slot times for date ${date.toISOString()}`);
+            continue;
           }
-        });
 
-        // Create data access permission
-        await tx.dataAccessPermission.create({
-          data: {
-            bookingId: booking.id,
-            childId: recurring.childId,
-            therapistId: recurring.therapistId,
-            canViewDetails: false,
-            accessStartTime: slotStart,
-            accessEndTime: slotEnd
+          // Check if slot already exists
+          const existingSlot = await prisma.timeSlot.findFirst({
+            where: {
+              therapistId: recurring.therapistId,
+              startTime: slotStart,
+              endTime: slotEnd
+            }
+          });
+
+          if (existingSlot && existingSlot.isBooked) {
+            continue; // Skip if already booked
           }
-        });
 
-        return booking;
-      });
+          // Create booking in transaction
+          const result = await prisma.$transaction(async (tx) => {
+            const timeSlot = existingSlot || await tx.timeSlot.create({
+              data: {
+                therapistId: recurring.therapistId,
+                startTime: slotStart,
+                endTime: slotEnd,
+                isActive: true,
+                isBooked: false
+              }
+            });
 
-      if (result) {
-        bookingsToCreate.push(result);
+            // Check if booking already exists
+            const existingBooking = await tx.booking.findFirst({
+              where: {
+                recurringBookingId: recurringBookingId,
+                timeSlotId: timeSlot.id
+              }
+            });
+
+            if (existingBooking) return null;
+
+            // Create booking
+            const booking = await tx.booking.create({
+              data: {
+                parentId: recurring.parentId,
+                childId: recurring.childId,
+                therapistId: recurring.therapistId,
+                timeSlotId: timeSlot.id,
+                recurringBookingId: recurringBookingId
+              }
+            });
+
+            // Mark slot as booked
+            await tx.timeSlot.update({
+              where: { id: timeSlot.id },
+              data: { isBooked: true }
+            });
+
+            // Create payment
+            await tx.payment.create({
+              data: {
+                bookingId: booking.id,
+                parentId: recurring.parentId,
+                therapistId: recurring.therapistId,
+                amount: finalFee
+              }
+            });
+
+            // Create data access permission
+            await tx.dataAccessPermission.create({
+              data: {
+                bookingId: booking.id,
+                childId: recurring.childId,
+                therapistId: recurring.therapistId,
+                canViewDetails: false,
+                accessStartTime: slotStart,
+                accessEndTime: slotEnd
+              }
+            });
+
+            return booking;
+          });
+
+          if (result) {
+            bookingsToCreate.push(result);
+          }
+        } catch (bookingError: any) {
+          console.error(`[RecurringBooking] Error creating booking for date ${date.toISOString()}:`, bookingError);
+          // Continue with other dates even if one fails
+          continue;
+        }
       }
-    }
 
     return bookingsToCreate;
+    } catch (error: any) {
+      console.error('[RecurringBooking] Error in generateBookingsForRecurring:', error);
+      throw error;
+    }
   }
 
   /**

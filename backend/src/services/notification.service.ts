@@ -28,7 +28,8 @@ export const sendNotificationToTherapist = async (input: NotificationInput) => {
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email, input.message);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email, input.message);
 };
 
 export const sendNotificationToTherapistSessionBooked = async (input: NotificationInput) => {
@@ -46,7 +47,8 @@ export const sendNotificationToTherapistSessionBooked = async (input: Notificati
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email, input.message);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email, input.message);
 };
 
 export const sendNotificationAfterAnEvent = async (input: NotificationInput) => {
@@ -66,7 +68,8 @@ export const sendNotificationAfterAnEvent = async (input: NotificationInput) => 
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email,'', input.welcomeHtml);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email,'', input.welcomeHtml);
 };
 
 export const sendNotification = async (input: NotificationInput) => {
@@ -84,7 +87,8 @@ export const sendNotification = async (input: NotificationInput) => {
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email, input.message);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email, input.message);
 };
 
 export const sendNotificationBookingCancelled= async (input: NotificationInput) => {
@@ -102,7 +106,8 @@ export const sendNotificationBookingCancelled= async (input: NotificationInput) 
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email, input.message);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email, input.message);
 };
 
 
@@ -121,7 +126,8 @@ export const sendNotificationAfterAnEventSessionCompleted = async (input: Notifi
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email, input.message);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email, input.message);
 }
 
 
@@ -140,7 +146,8 @@ export const sendNotificationBookingConfirmed = async (input: NotificationInput)
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email, input.message);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email, input.message);
 }
 
 
@@ -159,5 +166,6 @@ export const therapistAccountApproved = async(input:NotificationInput)=>{
   if (!user?.email) {
     throw new Error("User email not found");
   }
-  await sendemail(user.email, input.message);
+  // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+  // await sendemail(user.email, input.message);
 }

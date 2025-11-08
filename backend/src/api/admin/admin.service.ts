@@ -96,29 +96,59 @@ export const getAllBookings = async () => {
 };
 
 export const getProfile = async (userId: string) => {
-  const admin = await prisma.adminProfile.findUnique({
+  let admin = await prisma.adminProfile.findUnique({
     where: { userId },
     include: { user: true },
   });
 
+  // If admin profile doesn't exist, create it (for existing admins)
   if (!admin) {
-    throw new Error('Admin profile not found');
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || user.role !== 'ADMIN') {
+      throw new Error('Admin profile not found');
+    }
+
+    // Create the admin profile
+    admin = await prisma.adminProfile.create({
+      data: { userId },
+      include: { user: true },
+    });
   }
 
-  return admin;
+  // Return a flattened structure matching what the frontend expects
+  return {
+    id: admin.id,
+    name: admin.user.name || '',
+    email: admin.user.email,
+    phone: admin.user.phone || '',
+    role: admin.user.role,
+    createdAt: admin.user.createdAt,
+  };
 };
 
 export const updateProfile = async (userId: string, data: any) => {
-  // Update the user's name, not the admin profile (AdminProfile doesn't have a name field)
+  // Update the user's name and phone, not the admin profile (AdminProfile doesn't have these fields)
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
       name: data.name,
+      phone: data.phone,
     },
     include: { adminProfile: true },
   });
 
-  return updatedUser;
+  // Return a flattened structure matching what the frontend expects
+  return {
+    id: updatedUser.adminProfile?.id || '',
+    name: updatedUser.name || '',
+    email: updatedUser.email,
+    phone: updatedUser.phone || '',
+    role: updatedUser.role,
+    createdAt: updatedUser.createdAt,
+  };
 };
 
 export const getPlatformSettings = async () => {

@@ -10,7 +10,6 @@ import {
   Stethoscope,
   Star,
   Plus,
-  Settings,
   Calendar,
   History,
   FileText
@@ -152,44 +151,39 @@ const AdminDashboard: React.FC = () => {
                 Manage your therapy platform and support your team.
               </p>
             </div>
-            <div className="hidden md:flex items-center space-x-4">
-              <Link to="/admin/create-therapist">
-                <Button className="bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 md:gap-3 w-full lg:w-auto">
+              <Link to="/admin/create-therapist" className="w-full">
+                <Button className="w-full bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300 text-sm sm:text-sm md:text-base">
                   <Stethoscope className="h-4 w-4 mr-2" />
-                  Create Therapist
+                  <span className="hidden sm:inline">Create Therapist</span>
+                  <span className="sm:hidden">Create</span>
                 </Button>
               </Link>
-              <Link to="/admin/demo-slots">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+              <Link to="/admin/demo-slots" className="w-full">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-sm md:text-base">
                   <Calendar className="h-4 w-4 mr-2" />
-                  Manage Demo Slots
+                  <span className="hidden sm:inline">Manage Demo Slots</span>
+                  <span className="sm:hidden">Demo Slots</span>
                 </Button>
               </Link>
-              <Link to="/admin/demo-history">
+              <Link to="/admin/demo-history" className="w-full">
                 <Button
                   variant="outline"
-                  className="border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9]"
+                  className="w-full border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9] text-sm sm:text-sm md:text-base"
                 >
                   <History className="h-4 w-4 mr-2" />
-                  Demo History
+                  <span className="hidden sm:inline">Demo History</span>
+                  <span className="sm:hidden">History</span>
                 </Button>
               </Link>
-              <Link to="/admin/leaves">
+              <Link to="/admin/leaves" className="w-full">
                 <Button
                   variant="outline"
-                  className="border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9]"
+                  className="w-full border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9] text-sm sm:text-sm md:text-base"
                 >
                   <FileText className="h-4 w-4 mr-2" />
-                  Leave Approval
-                </Button>
-              </Link>
-              <Link to="/admin/settings">
-                <Button
-                  variant="outline"
-                  className="border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9]"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
+                  <span className="hidden sm:inline">Leave Approval</span>
+                  <span className="sm:hidden">Leaves</span>
                 </Button>
               </Link>
             </div>
@@ -202,7 +196,7 @@ const AdminDashboard: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4 md:gap-6"
       >
         {stats.map((stat, index) => (
           <StatsCard
@@ -220,21 +214,21 @@ const AdminDashboard: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.4 }}
       >
         <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <Users className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+          <CardHeader className="p-4 sm:p-5 md:p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-3 md:gap-4">
+              <CardTitle className="text-lg sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <Users className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-2 text-blue-600 dark:text-blue-400" />
                 Therapists Management
               </CardTitle>
-              <Link to="/admin/create-therapist">
-                <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+              <Link to="/admin/create-therapist" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-sm sm:text-sm md:text-base">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Therapist
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {therapists.length === 0 ? (
               <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -257,52 +251,54 @@ const AdminDashboard: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                    className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 sm:p-5 md:p-6 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white font-semibold">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div className="flex items-center space-x-3 sm:space-x-3 md:space-x-4 flex-1 min-w-0 w-full md:w-auto">
+                        <Avatar className="h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 flex-shrink-0">
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white font-semibold text-sm sm:text-sm md:text-base">
                             {therapist.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">
                             {therapist.name}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate">
                             {therapist.specialization} • {therapist.experience} years experience
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-500 truncate">
                             {therapist.user.email} • Joined {new Date(therapist.user.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                              {therapist.averageRating.toFixed(1)}
-                            </span>
+                      <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center md:items-end lg:items-center gap-3 sm:gap-3 md:gap-3 lg:gap-4 w-full md:w-auto">
+                        <div className="flex items-center space-x-3 sm:space-x-3 md:space-x-2 lg:space-x-4 w-full sm:w-auto md:w-full lg:w-auto">
+                          <div className="text-left sm:text-right md:text-left lg:text-right">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                {therapist.averageRating.toFixed(1)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              ${therapist.baseCostPerSession}/session
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            ${therapist.baseCostPerSession}/session
-                          </p>
+                          
+                          <Badge className={`${getStatusColor(therapist.status)} whitespace-nowrap`}>
+                            {therapist.status.replace('_', ' ')}
+                          </Badge>
                         </div>
                         
-                        <Badge className={`${getStatusColor(therapist.status)}`}>
-                          {therapist.status.replace('_', ' ')}
-                        </Badge>
-                        
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap sm:flex-nowrap md:flex-wrap lg:flex-nowrap gap-2 w-full sm:w-auto md:w-full lg:w-auto">
                           {therapist.status === 'PENDING_VERIFICATION' && (
                             <>
                               <Button
                                 size="sm"
                                 onClick={() => handleStatusUpdate(therapist.id, 'ACTIVE')}
-                                className="bg-green-600 hover:bg-green-700 text-white"
+                                className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none md:flex-1 lg:flex-none"
                                 disabled={updateStatusMutation.isLoading}
                               >
                                 <UserCheck className="h-4 w-4 mr-1" />
@@ -312,7 +308,7 @@ const AdminDashboard: React.FC = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleStatusUpdate(therapist.id, 'SUSPENDED')}
-                                className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 flex-1 sm:flex-none md:flex-1 lg:flex-none"
                                 disabled={updateStatusMutation.isLoading}
                               >
                                 <UserX className="h-4 w-4 mr-1" />
@@ -326,7 +322,7 @@ const AdminDashboard: React.FC = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleStatusUpdate(therapist.id, 'INACTIVE')}
-                              className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/20"
+                              className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/20 w-full sm:w-auto md:w-full lg:w-auto"
                               disabled={updateStatusMutation.isLoading}
                             >
                               <UserX className="h-4 w-4 mr-1" />
@@ -338,7 +334,7 @@ const AdminDashboard: React.FC = () => {
                             <Button
                               size="sm"
                               onClick={() => handleStatusUpdate(therapist.id, 'ACTIVE')}
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto md:w-full lg:w-auto"
                               disabled={updateStatusMutation.isLoading}
                             >
                               <UserCheck className="h-4 w-4 mr-1" />

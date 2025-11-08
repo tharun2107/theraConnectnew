@@ -78,6 +78,13 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
     if (therapistId) setSelectedTherapist(therapistId)
   }, [therapistId])
 
+  // Helper function to check if a date is a weekend (Saturday or Sunday)
+  const isWeekend = (dateString: string): boolean => {
+    const date = new Date(dateString + 'T00:00:00')
+    const dayOfWeek = date.getDay()
+    return dayOfWeek === 0 || dayOfWeek === 6 // 0 = Sunday, 6 = Saturday
+  }
+
   const fetchAvailableSlots = async (therapistId: string, date: string) => {
     if (!therapistId || !date) return
     
@@ -93,6 +100,11 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/
       if (!dateRegex.test(ymd)) {
         throw new Error(`Invalid date format: ${ymd}. Expected YYYY-MM-DD`)
+      }
+      
+      // Check if date is a weekend
+      if (isWeekend(ymd)) {
+        throw new Error('Bookings are not available on weekends (Saturday and Sunday)')
       }
       
       console.log('[BookSessionModal] fetching slots', { therapistId, date: ymd })
@@ -323,6 +335,16 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
                 const value = e.target.value
                 console.log('[BookSessionModal] Date input changed:', value)
                 if (value) {
+                  // Check if selected date is a weekend
+                  const date = new Date(value + 'T00:00:00')
+                  const dayOfWeek = date.getDay()
+                  if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    toast.error('Bookings are not available on weekends (Saturday and Sunday). Please select a weekday.')
+                    setSelectedDate('')
+                    setValue('date', '')
+                    setAvailableSlots([])
+                    return
+                  }
                   handleDateChange(value)
                 } else {
                   setSelectedDate('')

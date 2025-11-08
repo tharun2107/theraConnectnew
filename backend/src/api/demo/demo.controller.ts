@@ -122,29 +122,31 @@ export const createDemoBookingHandler = async (req: Request, res: Response) => {
       </div>
     `
 
-    await sendemail(email, 'Demo Session Confirmation', emailHtml, 'Demo Session Confirmation - Therabee')
+    // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+    // await sendemail(email, 'Demo Session Confirmation', emailHtml, 'Demo Session Confirmation - Therabee')
 
     // Send notification email to admin
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER
-    if (adminEmail) {
-      const adminEmailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5;">New Demo Booking - Therabee</h2>
-          <p>A new demo session has been booked:</p>
-          <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Booking Details:</h3>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Mobile:</strong> ${mobile}</p>
-            <p><strong>Date:</strong> ${new Date(slotDate).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> ${formatTime12Hour(slotTimeString)}</p>
-            <p><strong>Reason:</strong> ${reason}</p>
-          </div>
-          <p>Please log in to the admin dashboard to manage this booking.</p>
-        </div>
-      `
-      await sendemail(adminEmail, 'New Demo Booking', adminEmailHtml, 'New Demo Booking - Therabee')
-    }
+    // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+    // const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER
+    // if (adminEmail) {
+    //   const adminEmailHtml = `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    //       <h2 style="color: #4F46E5;">New Demo Booking - Therabee</h2>
+    //       <p>A new demo session has been booked:</p>
+    //       <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    //         <h3 style="margin-top: 0;">Booking Details:</h3>
+    //         <p><strong>Name:</strong> ${name}</p>
+    //         <p><strong>Email:</strong> ${email}</p>
+    //         <p><strong>Mobile:</strong> ${mobile}</p>
+    //         <p><strong>Date:</strong> ${new Date(slotDate).toLocaleDateString()}</p>
+    //         <p><strong>Time:</strong> ${formatTime12Hour(slotTimeString)}</p>
+    //         <p><strong>Reason:</strong> ${reason}</p>
+    //       </div>
+    //       <p>Please log in to the admin dashboard to manage this booking.</p>
+    //     </div>
+    //   `
+    //   await sendemail(adminEmail, 'New Demo Booking', adminEmailHtml, 'New Demo Booking - Therabee')
+    // }
 
     res.status(201).json(booking)
   } catch (error: any) {
@@ -250,7 +252,8 @@ export const createDemoZoomMeetingHandler = async (req: Request, res: Response) 
       </div>
     `
 
-    await sendemail(booking.email, 'Your Demo Session Zoom Link', emailHtml, 'Your Demo Session Zoom Link - Therabee')
+    // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+    // await sendemail(booking.email, 'Your Demo Session Zoom Link', emailHtml, 'Your Demo Session Zoom Link - Therabee')
 
     res.status(201).json({
       meetingId: updated.meetingId,

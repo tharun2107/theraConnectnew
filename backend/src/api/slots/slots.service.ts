@@ -154,6 +154,13 @@ export const bookSlot = async (parentId: string, childId: string, timeSlotId: st
       throw new Error('Bookings are allowed only within the next 30 days.');
     }
 
+    // Check if the booking date is a weekend (Saturday or Sunday)
+    const bookingDate = new Date(slot.startTime);
+    const dayOfWeek = bookingDate.getUTCDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      throw new Error('Bookings are not available on weekends (Saturday and Sunday)');
+    }
+
     // Step 2: Mark the slot as booked
     await tx.timeSlot.update({
       where: { id: timeSlotId },

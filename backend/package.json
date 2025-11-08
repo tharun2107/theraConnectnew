@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.18.0",
+    "@prisma/client": "^6.19.0",
     "@zoom/meetingsdk": "^3.13.2",
     "@zoomus/websdk": "^2.18.3",
     "axios": "^1.12.2",
@@ -32,7 +32,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.2",
     "concurrently": "^9.2.1",
-    "prisma": "^6.18.0",
+    "prisma": "^6.19.0",
     "typescript": "^5.9.2"
   }
 }

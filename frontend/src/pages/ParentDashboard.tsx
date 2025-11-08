@@ -475,13 +475,17 @@ const ParentDashboard: React.FC = () => {
       >
         <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
-              Consent Management
-            </CardTitle>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage which therapists can access your children's detailed information
-            </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex-1">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+                  Consent Management
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Manage which therapists can access your children's detailed information
+                </p>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-6">
             <ParentConsentManagement />

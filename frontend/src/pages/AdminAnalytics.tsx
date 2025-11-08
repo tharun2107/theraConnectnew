@@ -1,6 +1,7 @@
 import React from 'react'
 import { useQuery } from 'react-query'
 import { motion } from 'framer-motion'
+import { useTheme } from '../contexts/ThemeContext'
 import { adminAPI } from '../lib/api'
 import { 
   BarChart3, 
@@ -46,6 +47,9 @@ interface TherapistStats {
 }
 
 const AdminAnalytics: React.FC = () => {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
   const { data: therapists = [], isLoading: therapistsLoading } = useQuery(
     'allTherapists',
     adminAPI.getAllTherapists,
@@ -298,7 +302,7 @@ const AdminAnalytics: React.FC = () => {
         >
           <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-lg font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-lg font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <Award className="h-5 w-5 mr-2 text-yellow-600 dark:text-yellow-400" />
                 Top Rated Therapists
               </CardTitle>
@@ -312,13 +316,13 @@ const AdminAnalytics: React.FC = () => {
                         {index + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-[#1A1A1A]">{therapist.name}</p>
+                        <p className="font-medium text-[#1A1A1A] dark:text-white">{therapist.name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{therapist.specialization}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="font-semibold text-[#1A1A1A]">
+                      <span className="font-semibold text-[#1A1A1A] dark:text-white">
                         {therapist.averageRating.toFixed(1)}
                       </span>
                     </div>
@@ -337,7 +341,7 @@ const AdminAnalytics: React.FC = () => {
         >
           <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-lg font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-lg font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <Activity className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                 Most Active Therapists
               </CardTitle>
@@ -351,12 +355,12 @@ const AdminAnalytics: React.FC = () => {
                         {index + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-[#1A1A1A]">{therapist.name}</p>
+                        <p className="font-medium text-[#1A1A1A] dark:text-white">{therapist.name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{therapist.specialization}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-[#1A1A1A]">
+                      <p className="font-semibold text-[#1A1A1A] dark:text-white">
                         {therapist.totalSessions}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">sessions</p>
@@ -376,7 +380,7 @@ const AdminAnalytics: React.FC = () => {
         >
           <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-lg font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-lg font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <DollarSign className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
                 Top Earning Therapists
               </CardTitle>
@@ -390,12 +394,12 @@ const AdminAnalytics: React.FC = () => {
                         {index + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-[#1A1A1A]">{therapist.name}</p>
+                        <p className="font-medium text-[#1A1A1A] dark:text-white">{therapist.name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{therapist.specialization}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-[#1A1A1A]">
+                      <p className="font-semibold text-[#1A1A1A] dark:text-white">
                         ${therapist.totalEarnings.toLocaleString()}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">earned</p>
@@ -418,7 +422,7 @@ const AdminAnalytics: React.FC = () => {
         >
           <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                 Session Trends
               </CardTitle>
@@ -432,10 +436,25 @@ const AdminAnalytics: React.FC = () => {
                       <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <Tooltip />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke={isDark ? '#9CA3AF' : '#6B7280'}
+                    tick={{ fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                  />
+                  <YAxis 
+                    stroke={isDark ? '#9CA3AF' : '#6B7280'}
+                    tick={{ fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#E5E7EB'} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: isDark ? '#1F2937' : '#fff', 
+                      border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
+                      borderRadius: '8px'
+                    }}
+                    labelStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                    itemStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                  />
                   <Area 
                     type="monotone" 
                     dataKey="sessions" 
@@ -457,7 +476,7 @@ const AdminAnalytics: React.FC = () => {
         >
           <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
                 Therapist Performance
               </CardTitle>
@@ -465,10 +484,25 @@ const AdminAnalytics: React.FC = () => {
             <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={therapistPerformanceData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <Tooltip />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke={isDark ? '#9CA3AF' : '#6B7280'}
+                    tick={{ fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                  />
+                  <YAxis 
+                    stroke={isDark ? '#9CA3AF' : '#6B7280'}
+                    tick={{ fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#E5E7EB'} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: isDark ? '#1F2937' : '#fff', 
+                      border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
+                      borderRadius: '8px'
+                    }}
+                    labelStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                    itemStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                  />
                   <Bar dataKey="sessions" fill="#10B981" />
                 </BarChart>
               </ResponsiveContainer>
@@ -484,7 +518,7 @@ const AdminAnalytics: React.FC = () => {
         >
           <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <Target className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
                 Session Status
               </CardTitle>
@@ -499,13 +533,41 @@ const AdminAnalytics: React.FC = () => {
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent, cx, cy, midAngle, innerRadius, outerRadius }) => {
+                      const RADIAN = Math.PI / 180
+                      const radius = innerRadius + (outerRadius - innerRadius) * 0.5
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN)
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN)
+                      
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          fill={isDark ? '#F9FAFB' : '#1A1A1A'}
+                          textAnchor={x > cx ? 'start' : 'end'}
+                          dominantBaseline="central"
+                          fontSize={12}
+                          fontWeight={500}
+                        >
+                          {`${name} ${(percent * 100).toFixed(0)}%`}
+                        </text>
+                      )
+                    }}
+                    labelLine={{ stroke: isDark ? '#9CA3AF' : '#6B7280' }}
                   >
                     {sessionStatusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: isDark ? '#1F2937' : '#fff', 
+                      border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
+                      borderRadius: '8px'
+                    }}
+                    labelStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                    itemStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
@@ -520,7 +582,7 @@ const AdminAnalytics: React.FC = () => {
         >
           <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
             <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+              <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
                 <Users className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
                 Specialization Distribution
               </CardTitle>
@@ -528,10 +590,28 @@ const AdminAnalytics: React.FC = () => {
             <CardContent className="p-4 sm:p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={specializationChartData} layout="horizontal">
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={100} />
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <Tooltip />
+                  <XAxis 
+                    type="number" 
+                    stroke={isDark ? '#9CA3AF' : '#6B7280'}
+                    tick={{ fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                  />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    width={100}
+                    stroke={isDark ? '#9CA3AF' : '#6B7280'}
+                    tick={{ fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#E5E7EB'} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: isDark ? '#1F2937' : '#fff', 
+                      border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
+                      borderRadius: '8px'
+                    }}
+                    labelStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                    itemStyle={{ color: isDark ? '#F9FAFB' : '#1A1A1A' }}
+                  />
                   <Bar dataKey="therapists" fill="#8B5CF6" />
                 </BarChart>
               </ResponsiveContainer>
@@ -548,7 +628,7 @@ const AdminAnalytics: React.FC = () => {
       >
         <Card className="bg-white dark:bg-black shadow-gentle rounded-xl border border-gray-border dark:border-gray-700">
           <CardHeader className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-            <CardTitle className="text-xl font-semibold text-[#1A1A1A] flex items-center">
+            <CardTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white flex items-center">
               <BarChart3 className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
               Platform Overview
             </CardTitle>

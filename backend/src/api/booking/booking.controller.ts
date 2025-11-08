@@ -1107,6 +1107,16 @@ export const createRecurringBookingHandler = async (req: Request, res: Response)
     const userId = req.user!.userId;
     const bookingData: bookingService.RecurringBookingInput = req.body;
 
+    console.log('[createRecurringBooking] Request data:', {
+      userId,
+      childId: bookingData.childId,
+      therapistId: bookingData.therapistId,
+      slotTime: bookingData.slotTime,
+      startDate: bookingData.startDate,
+      endDate: bookingData.endDate,
+      recurrencePattern: bookingData.recurrencePattern
+    });
+
     const recurringBooking = await bookingService.recurringBookingService.createRecurringBooking(
       userId,
       bookingData
@@ -1125,20 +1135,44 @@ export const createRecurringBookingHandler = async (req: Request, res: Response)
     });
 
   } catch (error) {
-    console.error('Error creating recurring booking:', error);
+    console.error('[createRecurringBooking] Error:', error);
     
     if (error instanceof Error) {
+      // Log the full error for debugging
+      console.error('[createRecurringBooking] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+
+      // Handle specific error types
       if (error.message.includes('not found') || error.message.includes('does not belong')) {
         return res.status(404).json({ success: false, message: error.message });
       }
       if (error.message.includes('already have') || error.message.includes('not available')) {
         return res.status(409).json({ success: false, message: error.message });
       }
-      if (error.message.includes('Cannot create') || error.message.includes('Only') || error.message.includes('in the past')) {
+      if (error.message.includes('Cannot create') || 
+          error.message.includes('Only') || 
+          error.message.includes('in the past') ||
+          error.message.includes('Invalid') ||
+          error.message.includes('format') ||
+          error.message.includes('required')) {
         return res.status(400).json({ success: false, message: error.message });
       }
+      
+      // Return the error message for other known errors
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Failed to create recurring booking' 
+      });
     }
-    return res.status(500).json({ success: false, message: 'Failed to create recurring booking' });
+    
+    // Unknown error type
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to create recurring booking. Please try again or contact support.' 
+    });
   }
 };
 

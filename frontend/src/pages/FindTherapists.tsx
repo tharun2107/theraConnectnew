@@ -1,13 +1,27 @@
 import React, { useMemo, useState, memo } from 'react'
 import { useQuery } from 'react-query'
 import { therapistAPI, bookingAPI } from '../lib/api'
-import BookSessionModal from '../components/BookSessionModal'
+import BookMonthlySessionModal from '../components/BookMonthlySessionModal'
 import { Star, Briefcase, DollarSign, User, Stethoscope } from 'lucide-react'
 import { useDebounce } from '../hooks/useDebounce'
+import toast from 'react-hot-toast'
+
+// Helper function to get next weekday (skip weekends)
+const getNextWeekday = (): string => {
+  const today = new Date()
+  let date = new Date(today)
+  
+  // If today is weekend, move to next Monday
+  while (date.getDay() === 0 || date.getDay() === 6) {
+    date.setDate(date.getDate() + 1)
+  }
+  
+  return date.toISOString().slice(0, 10)
+}
 
 const FindTherapists: React.FC = () => {
   const [query, setQuery] = useState('')
-  const [date, setDate] = useState<string>(new Date().toISOString().slice(0,10))
+  const [date, setDate] = useState<string>(getNextWeekday())
   const [timeFilter, setTimeFilter] = useState<string>('') // HH:MM optional
   const [filterByAvailability, setFilterByAvailability] = useState<boolean>(false)
   
@@ -132,7 +146,21 @@ const FindTherapists: React.FC = () => {
             <input
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                if (value) {
+                  // Check if selected date is a weekend
+                  const dateObj = new Date(value + 'T00:00:00')
+                  const dayOfWeek = dateObj.getDay()
+                  if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    toast.error('Bookings are not available on weekends (Saturday and Sunday). Please select a weekday.')
+                    return
+                  }
+                  setDate(value)
+                } else {
+                  setDate(new Date().toISOString().slice(0,10))
+                }
+              }}
               min={new Date().toISOString().split('T')[0]}
               className="input w-full"
             />
@@ -300,7 +328,7 @@ const FindTherapists: React.FC = () => {
       )}
 
       {showBookModal && selectedTherapist && (
-        <BookSessionModal
+        <BookMonthlySessionModal
           onClose={() => { setShowBookModal(false); setSelectedTherapist(null); }}
           onSuccess={() => { setShowBookModal(false); setSelectedTherapist(null); }}
           therapistId={selectedTherapist.id}

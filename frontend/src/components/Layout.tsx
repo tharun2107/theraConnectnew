@@ -4,7 +4,6 @@ import { useTheme } from '../contexts/ThemeContext'
 import { 
   LogOut, 
   Bell, 
-  Settings, 
   Moon, 
   Sun, 
   Menu,
@@ -190,10 +189,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <DropdownMenuItem onClick={() => navigate(user.role === 'ADMIN' ? '/admin/profile' : user.role === 'PARENT' ? '/parent/profile' : '/therapist/profile')}>
                   <User className="h-4 w-4 mr-2" />
                   Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate(user.role === 'ADMIN' ? '/admin/settings' : user.role === 'PARENT' ? '/parent/settings' : '/therapist/settings')}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-[#1A1A1A] dark:text-white hover:bg-[#F9F9F9] dark:hover:bg-gray-900">

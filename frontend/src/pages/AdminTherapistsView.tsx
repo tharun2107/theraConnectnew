@@ -118,21 +118,21 @@ const AdminTherapistsView: React.FC = () => {
     return (
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center md:items-start lg:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center md:items-start lg:items-center gap-3 sm:gap-3 md:gap-3 lg:gap-4">
             <Button
               variant="ghost"
               onClick={handleBackToTherapists}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 w-full sm:w-auto md:w-full lg:w-auto"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Therapists</span>
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl sm:text-xl md:text-2xl lg:text-2xl font-bold text-gray-900 dark:text-white">
                 {selectedTherapist.name}'s Sessions
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-sm sm:text-sm md:text-base lg:text-base text-gray-600 dark:text-gray-400">
                 View all sessions and feedback for this therapist
               </p>
             </div>
@@ -141,32 +141,32 @@ const AdminTherapistsView: React.FC = () => {
 
         {/* Therapist Info Card */}
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xl font-semibold">
+          <CardContent className="p-4 sm:p-5 md:p-6">
+            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center md:items-start lg:items-center gap-4">
+              <Avatar className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 flex-shrink-0">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-lg sm:text-lg md:text-xl font-semibold">
                   {selectedTherapist.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <div className="flex-1 min-w-0 w-full md:w-auto">
+                <h2 className="text-lg sm:text-lg md:text-xl lg:text-xl font-semibold text-gray-900 dark:text-white truncate">
                   {selectedTherapist.name}
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-sm sm:text-sm md:text-base lg:text-base text-gray-600 dark:text-gray-400 truncate">
                   {selectedTherapist.specialization} • {selectedTherapist.experience} years experience
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500">
+                <p className="text-xs sm:text-xs md:text-sm lg:text-sm text-gray-500 dark:text-gray-500 truncate">
                   {selectedTherapist.user.email} • ${selectedTherapist.baseCostPerSession}/session
                 </p>
               </div>
-              <div className="text-right">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div className="flex items-center sm:flex-col sm:items-end md:flex-row md:items-center lg:flex-col lg:items-end gap-3 sm:gap-2 md:gap-3 lg:gap-2 w-full sm:w-auto md:w-full lg:w-auto">
+                <div className="flex items-center space-x-2">
+                  <Star className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 text-yellow-500 fill-current" />
+                  <span className="text-base sm:text-base md:text-lg lg:text-lg font-semibold text-gray-900 dark:text-white">
                     {selectedTherapist.averageRating.toFixed(1)}
                   </span>
                 </div>
-                <Badge className={`${getStatusColor(selectedTherapist.status)}`}>
+                <Badge className={`${getStatusColor(selectedTherapist.status)} whitespace-nowrap`}>
                   {selectedTherapist.status.replace('_', ' ')}
                 </Badge>
               </div>
@@ -243,7 +243,7 @@ const AdminTherapistsView: React.FC = () => {
       </div>
 
       {/* Therapists Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-4 md:gap-6">
         {therapists.map((therapist: Therapist) => (
           <motion.div
             key={therapist.id}

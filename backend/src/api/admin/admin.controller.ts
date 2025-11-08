@@ -50,27 +50,32 @@ export const getAllBookingsHandler = async (req: Request, res: Response) => {
 
 export const getProfileHandler = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
         const profile = await adminService.getProfile(userId);
         res.status(200).json(profile);
     } catch (error: any) {
-        res.status(500).json({ message: 'Failed to retrieve profile' });
+        if (error.message === 'Admin profile not found') {
+            return res.status(404).json({ message: error.message });
+        }
+        console.error('[admin.controller.getProfileHandler] Error:', error);
+        res.status(500).json({ message: error.message || 'Failed to retrieve profile' });
     }
 };
 
 export const updateProfileHandler = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
         const profile = await adminService.updateProfile(userId, req.body);
         res.status(200).json(profile);
     } catch (error: any) {
-        res.status(500).json({ message: 'Failed to update profile' });
+        console.error('[admin.controller.updateProfileHandler] Error:', error);
+        res.status(500).json({ message: error.message || 'Failed to update profile' });
     }
 };
 

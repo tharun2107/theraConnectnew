@@ -6,7 +6,6 @@ import {
   Users, 
   Calendar, 
   UserCheck, 
-  Settings, 
   Clock,
   Heart,
   Shield,
@@ -40,7 +39,6 @@ const Sidebar: React.FC = () => {
           { to: '/admin/therapists', icon: Users, label: 'Therapists' },
           { to: '/admin/bookings', icon: Calendar, label: 'All Bookings' },
           { to: '/admin/leaves', icon: FileText, label: 'Leave Approval' },
-          { to: '/admin/settings', icon: Settings, label: 'Settings' },
         ]
       default:
         return []

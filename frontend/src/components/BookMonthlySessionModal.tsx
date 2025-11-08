@@ -107,6 +107,16 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
       normalized = normalized.slice(0, 10)
     }
     
+    // Check if selected date is a weekend
+    const dateObj = new Date(normalized + 'T00:00:00')
+    const dayOfWeek = dateObj.getDay()
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      toast.error('Bookings cannot start on weekends (Saturday and Sunday). Please select a weekday.')
+      setSelectedStartDate('')
+      setValue('startDate', '')
+      return
+    }
+    
     setSelectedStartDate(normalized)
     setValue('startDate', normalized, { shouldValidate: true })
   }

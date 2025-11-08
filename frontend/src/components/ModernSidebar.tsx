@@ -9,7 +9,6 @@ import {
   Search,
   Heart,
   Bell,
-  Settings,
   LogOut,
   BarChart3,
   User
@@ -183,20 +182,6 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
                   {notifications}
                 </Badge>
               )}
-            </Button>
-          </motion.div>
-          
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.5 }}
-          >
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-12 px-4 text-slate-300 dark:text-gray-300 hover:text-white dark:hover:text-white hover:bg-slate-700 dark:hover:bg-gray-700"
-            >
-              <Settings className="w-5 h-5 mr-3" />
-              <span>Settings</span>
             </Button>
           </motion.div>
           
