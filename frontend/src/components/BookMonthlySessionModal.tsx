@@ -39,8 +39,6 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
   const queryClient = useQueryClient()
   const [selectedTherapist, setSelectedTherapist] = useState<string>(therapistId || '')
   const [selectedStartDate, setSelectedStartDate] = useState<string>('')
-  const [slotAvailability, setSlotAvailability] = useState<{ [slotTime: string]: { booked: number; total: number } }>({})
-  const [checkingAvailability, setCheckingAvailability] = useState(false)
 
   const {
     register,
@@ -57,15 +55,10 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
   const selectedSlotTime = watch('slotTime')
   const selectedChildId = watch('childId')
 
-  const { data: children = [] } = useQuery(
-    'children',
-    parentAPI.getChildren,
-    {
-      select: (response) => response.data,
-    }
-  )
+  // Simple availability check - check a few key dates (same logic as therapist dashboard)
+  const [slotAvailability, setSlotAvailability] = useState<{ [slotTime: string]: boolean }>({})
 
-  // Load ACTIVE therapists from backend
+  // Load ACTIVE therapists from backend (declare before using in useMemo below)
   const { data: therapists = [], isLoading: loadingTherapists } = useQuery(
     'activeTherapists',
     parentAPI.getActiveTherapists,
@@ -85,6 +78,150 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
         })
         return therapistsData
       }
+    }
+  )
+
+  // Find selected therapist data - only after therapists are loaded
+  const selectedTherapistData = React.useMemo(() => {
+    if (!selectedTherapist || !therapists || therapists.length === 0) return null
+    return therapists.find((t: Therapist) => t.id === selectedTherapist) || null
+  }, [selectedTherapist, therapists])
+
+  const availableSlots = selectedTherapistData?.availableSlotTimes || []
+
+  // Calculate end date (exactly one month from start date, minus 1 day)
+  // Example: Nov 7 -> Dec 6 (complete month from booking date)
+  const calculateEndDate = (startDate: string): string => {
+    if (!startDate) return ''
+    const start = new Date(startDate)
+    const end = new Date(start)
+    
+    // Add one month
+    end.setMonth(end.getMonth() + 1)
+    
+    // Subtract one day to get the day before the same date next month
+    // This gives us a complete month: Nov 7 -> Dec 6
+    end.setDate(end.getDate() - 1)
+    
+    return end.toISOString().split('T')[0]
+  }
+
+  // Check slot availability when start date or therapist changes (simple check - 3 key dates)
+  React.useEffect(() => {
+    // Don't check if required data is missing
+    if (!selectedTherapist || !selectedStartDate || !availableSlots || availableSlots.length === 0) {
+      setSlotAvailability({})
+      return
+    }
+
+    // Validate start date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedStartDate)) {
+      setSlotAvailability({})
+      return
+    }
+
+    const checkAvailability = async () => {
+      try {
+        const end = calculateEndDate(selectedStartDate)
+        if (!end) {
+          setSlotAvailability({})
+          return
+        }
+
+        const start = new Date(selectedStartDate + 'T00:00:00')
+        const endDateObj = new Date(end + 'T23:59:59')
+        
+        // Validate dates
+        if (isNaN(start.getTime()) || isNaN(endDateObj.getTime())) {
+          console.error('[BookMonthlySessionModal] Invalid date range')
+          setSlotAvailability({})
+          return
+        }
+        
+        // Check 3 key dates: start, middle, end (much faster than checking all dates)
+        const datesToCheck: string[] = []
+        
+        // Start date
+        datesToCheck.push(selectedStartDate)
+        
+        // Middle date
+        const midDate = new Date(start)
+        midDate.setDate(midDate.getDate() + Math.floor((endDateObj.getTime() - start.getTime()) / (2 * 24 * 60 * 60 * 1000)))
+        // Find next weekday if middle is weekend
+        while (midDate <= endDateObj && (midDate.getDay() === 0 || midDate.getDay() === 6)) {
+          midDate.setDate(midDate.getDate() + 1)
+        }
+        if (midDate <= endDateObj) {
+          datesToCheck.push(midDate.toISOString().split('T')[0])
+        }
+        
+        // End date (if it's a weekday)
+        const endDayOfWeek = endDateObj.getDay()
+        if (endDayOfWeek !== 0 && endDayOfWeek !== 6) {
+          datesToCheck.push(end)
+        }
+
+        // Check each slot time
+        const availabilityMap: { [slotTime: string]: boolean } = {}
+        
+        for (const slotTime of availableSlots) {
+          try {
+            const [hours, minutes] = slotTime.split(':').map(Number)
+            if (isNaN(hours) || isNaN(minutes)) {
+              console.error(`[BookMonthlySessionModal] Invalid slot time format: ${slotTime}`)
+              continue
+            }
+
+            let isBooked = false
+            
+            // Check each date - if ANY date shows booked, mark as unavailable
+            for (const date of datesToCheck) {
+              try {
+                const response = await bookingAPI.getAvailableSlots(selectedTherapist, date)
+                const slots = response.data || []
+                
+                // Find slot for this time
+                const slotForTime = slots.find((s: any) => {
+                  if (!s || !s.startTime) return false
+                  const slotDate = new Date(s.startTime)
+                  if (isNaN(slotDate.getTime())) return false
+                  const slotHours = slotDate.getUTCHours()
+                  const slotMinutes = slotDate.getUTCMinutes()
+                  return slotHours === hours && slotMinutes === minutes
+                })
+                
+                // Check if booked - use isBooked flag or booking relationship
+                if (slotForTime && (slotForTime.isBooked || (slotForTime.booking && slotForTime.booking.id))) {
+                  isBooked = true
+                  break // No need to check other dates if one is booked
+                }
+              } catch (error) {
+                console.error(`[BookMonthlySessionModal] Error checking slot ${slotTime} for ${date}:`, error)
+                // Continue checking other dates even if one fails
+              }
+            }
+            
+            availabilityMap[slotTime] = isBooked
+          } catch (error) {
+            console.error(`[BookMonthlySessionModal] Error processing slot ${slotTime}:`, error)
+          }
+        }
+        
+        setSlotAvailability(availabilityMap)
+      } catch (error) {
+        console.error('[BookMonthlySessionModal] Error in availability check:', error)
+        setSlotAvailability({})
+      }
+    }
+
+    checkAvailability()
+  }, [selectedTherapist, selectedStartDate, availableSlots])
+
+  const { data: children = [] } = useQuery(
+    'children',
+    parentAPI.getChildren,
+    {
+      select: (response) => response.data,
     }
   )
 
@@ -124,97 +261,6 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
     
     setSelectedStartDate(normalized)
     setValue('startDate', normalized, { shouldValidate: true })
-    
-    // Check availability for all slots when date changes
-    if (selectedTherapist && selectedTherapistData?.availableSlotTimes) {
-      selectedTherapistData.availableSlotTimes.forEach((slotTime: string) => {
-        checkSlotAvailability(selectedTherapist, normalized, slotTime)
-      })
-    }
-  }
-
-  // Check slot availability for the date range
-  const checkSlotAvailability = async (therapistId: string, startDate: string, slotTime: string) => {
-    if (!therapistId || !startDate || !slotTime) return
-
-    setCheckingAvailability(true)
-    try {
-      const end = calculateEndDate(startDate)
-      // Check a sample of dates in the range (first, middle, last weekdays)
-      const start = new Date(startDate)
-      const endDateObj = new Date(end)
-      const datesToCheck: string[] = []
-      
-      // Add first weekday
-      let current = new Date(start)
-      while (current <= endDateObj && datesToCheck.length < 1) {
-        const dayOfWeek = current.getDay()
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-          datesToCheck.push(current.toISOString().split('T')[0])
-          break
-        }
-        current.setDate(current.getDate() + 1)
-      }
-
-      // Add a date from the middle
-      const midDate = new Date(start)
-      midDate.setDate(midDate.getDate() + Math.floor((endDateObj.getTime() - start.getTime()) / (2 * 24 * 60 * 60 * 1000)))
-      while (midDate <= endDateObj && datesToCheck.length < 2) {
-        const dayOfWeek = midDate.getDay()
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-          datesToCheck.push(midDate.toISOString().split('T')[0])
-          break
-        }
-        midDate.setDate(midDate.getDate() + 1)
-      }
-
-      // Check slots for sample dates
-      let bookedCount = 0
-      let totalChecked = 0
-      for (const date of datesToCheck) {
-        try {
-          const response = await bookingAPI.getAvailableSlots(therapistId, date)
-          const slots = response.data || []
-          const slotForTime = slots.find((s: any) => {
-            const slotDate = new Date(s.startTime)
-            const [hours, minutes] = slotTime.split(':').map(Number)
-            return slotDate.getHours() === hours && slotDate.getMinutes() === minutes
-          })
-          if (slotForTime && slotForTime.isBooked) {
-            bookedCount++
-          }
-          totalChecked++
-        } catch (error) {
-          console.error(`Error checking slot for ${date}:`, error)
-        }
-      }
-
-      setSlotAvailability(prev => ({
-        ...prev,
-        [slotTime]: { booked: bookedCount, total: totalChecked }
-      }))
-    } catch (error) {
-      console.error('Error checking slot availability:', error)
-    } finally {
-      setCheckingAvailability(false)
-    }
-  }
-
-  // Calculate end date (exactly one month from start date, minus 1 day)
-  // Example: Nov 7 -> Dec 6 (complete month from booking date)
-  const calculateEndDate = (startDate: string): string => {
-    if (!startDate) return ''
-    const start = new Date(startDate)
-    const end = new Date(start)
-    
-    // Add one month
-    end.setMonth(end.getMonth() + 1)
-    
-    // Subtract one day to get the day before the same date next month
-    // This gives us a complete month: Nov 7 -> Dec 6
-    end.setDate(end.getDate() - 1)
-    
-    return end.toISOString().split('T')[0]
   }
 
   const endDate = selectedStartDate ? calculateEndDate(selectedStartDate) : ''
@@ -284,9 +330,6 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
     bookMonthlyMutation.mutate(data)
   }
 
-  const selectedTherapistData = therapists.find((t: Therapist) => t.id === selectedTherapist)
-  const availableSlots = selectedTherapistData?.availableSlotTimes || []
-  
   // Debug logging
   React.useEffect(() => {
     if (selectedTherapist) {
@@ -484,22 +527,20 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
                       hour12: true
                     })
                     
-                    const availability = slotAvailability[time]
-                    const hasBookedSlots = availability && availability.booked > 0
-                    // For recurring bookings, if ANY date is booked, the slot is unavailable
-                    const isUnavailable = hasBookedSlots
+                    // Simple check: if slot is marked as booked in availability map, it's unavailable
+                    const isUnavailable = slotAvailability[time] === true
                     
                     return (
                       <label 
                         key={time} 
-                        className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors relative ${
+                        className={`flex items-center space-x-3 p-3 border rounded-lg transition-all relative ${
                           isUnavailable
-                            ? 'opacity-50 bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 cursor-not-allowed'
-                            : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 cursor-pointer'
+                            ? 'opacity-60 bg-red-50 dark:bg-red-900/30 border-red-400 dark:border-red-600 cursor-not-allowed'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500'
                         }`}
                         title={
                           isUnavailable
-                            ? `This slot has conflicts in the selected date range. For monthly recurring bookings, all dates must be available.`
+                            ? `This slot is already booked for some dates in the selected range. For monthly recurring bookings, all dates must be available.`
                             : 'Available for the complete month'
                         }
                       >
@@ -507,31 +548,33 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
                           {...register('slotTime', { required: 'Please select a time slot' })}
                           type="radio"
                           value={time}
-                          className="text-primary-600 focus:ring-2 focus:ring-primary-500"
+                          className={`text-primary-600 focus:ring-2 focus:ring-primary-500 ${
+                            isUnavailable ? 'cursor-not-allowed opacity-50' : ''
+                          }`}
                           disabled={isUnavailable}
                         />
                         <div className="flex-1">
                           <div className={`text-sm font-medium ${
                             isUnavailable
-                              ? 'text-gray-500 dark:text-gray-400 line-through'
+                              ? 'text-red-700 dark:text-red-300 line-through'
                               : 'text-gray-900 dark:text-white'
                           }`}>
                             {displayTime}
                           </div>
-                          <div className={`text-xs ${
+                          <div className={`text-xs font-medium ${
                             isUnavailable
-                              ? 'text-red-600 dark:text-red-400 font-medium'
+                              ? 'text-red-600 dark:text-red-400'
                               : 'text-gray-500 dark:text-gray-400'
                           }`}>
                             {isUnavailable
-                              ? 'Not Available (Has Conflicts)'
-                              : 'Available for Complete Month'
+                              ? '❌ Already Booked'
+                              : '✅ Available for Complete Month'
                             }
                           </div>
                         </div>
                         {isUnavailable && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs">✕</span>
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 dark:bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+                            <span className="text-white text-xs font-bold">✕</span>
                           </div>
                         )}
                       </label>
