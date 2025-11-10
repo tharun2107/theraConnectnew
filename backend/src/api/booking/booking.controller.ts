@@ -1100,6 +1100,20 @@ export const getMyBookingsHandler = async (req: Request, res: Response) => {
     }
 }
 
+export const getTherapistBookingsHandler = async (req: Request, res: Response) => {
+    try {
+        const { therapistId } = req.params;
+        if (!therapistId) {
+            return res.status(400).json({ message: 'Therapist ID is required' });
+        }
+        const bookings = await bookingService.getTherapistBookings(therapistId);
+        res.status(200).json(bookings);
+    } catch (error: any) {
+        console.error('[booking.getTherapistBookings][ERROR]', error);
+        res.status(500).json({ message: error.message || 'Failed to retrieve therapist bookings' });
+    }
+}
+
 /**
  * POST /api/parent/recurring-bookings
  * Create a recurring booking for a child

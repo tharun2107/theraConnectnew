@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.recurringBookingService = exports.RecurringBookingService = exports.getMyBookings = exports.createBooking = exports.getAvailableSlots = exports.markSessionCompleted = void 0;
+exports.recurringBookingService = exports.RecurringBookingService = exports.getTherapistBookings = exports.getMyBookings = exports.createBooking = exports.getAvailableSlots = exports.markSessionCompleted = void 0;
 const client_1 = require("@prisma/client");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 const markSessionCompleted = (bookingId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -293,6 +293,28 @@ const getMyBookings = (userId, role) => __awaiter(void 0, void 0, void 0, functi
         include: role === client_1.Role.PARENT ? includeForParent : includeForTherapist,
         orderBy: { timeSlot: { startTime: 'desc' } },
     });
+    // Debug logging for parent bookings
+    if (role === client_1.Role.PARENT) {
+        console.log('[booking.service.getMyBookings] Parent userId:', userId);
+        console.log('[booking.service.getMyBookings] Total bookings found:', bookings.length);
+        // Group bookings by child
+        const bookingsByChild = bookings.reduce((acc, booking) => {
+            var _a, _b, _c;
+            const childId = ((_a = booking.child) === null || _a === void 0 ? void 0 : _a.id) || 'unknown';
+            const childName = ((_b = booking.child) === null || _b === void 0 ? void 0 : _b.name) || 'Unknown';
+            if (!acc[childId]) {
+                acc[childId] = { childName, count: 0, bookings: [] };
+            }
+            acc[childId].count++;
+            acc[childId].bookings.push({
+                id: booking.id,
+                status: booking.status,
+                startTime: (_c = booking.timeSlot) === null || _c === void 0 ? void 0 : _c.startTime
+            });
+            return acc;
+        }, {});
+        console.log('[booking.service.getMyBookings] Bookings grouped by child:', JSON.stringify(bookingsByChild, null, 2));
+    }
     // For therapists, filter out child details if consent is not given
     if (role === client_1.Role.THERAPIST) {
         return bookings.map((booking) => {
@@ -311,6 +333,44 @@ const getMyBookings = (userId, role) => __awaiter(void 0, void 0, void 0, functi
     return bookings;
 });
 exports.getMyBookings = getMyBookings;
+/**
+ * Get all bookings for a specific therapist (for parents to check availability)
+ * This allows parents to see which slots are booked for a therapist
+ */
+const getTherapistBookings = (therapistId) => __awaiter(void 0, void 0, void 0, function* () {
+    // Get all bookings for the therapist with SCHEDULED status
+    const bookings = yield prisma_1.default.booking.findMany({
+        where: {
+            therapistId,
+            status: 'SCHEDULED', // Only get scheduled bookings
+        },
+        include: {
+            timeSlot: {
+                select: {
+                    id: true,
+                    startTime: true,
+                    endTime: true,
+                    isBooked: true,
+                }
+            },
+            child: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            },
+            parent: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            },
+        },
+        orderBy: { timeSlot: { startTime: 'asc' } },
+    });
+    return bookings;
+});
+exports.getTherapistBookings = getTherapistBookings;
 // ============================================
 // RECURRING BOOKING SERVICE
 // ============================================

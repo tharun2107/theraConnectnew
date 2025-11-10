@@ -320,6 +320,28 @@ export const getMyBookings = async (userId: string, role: Role) => {
         orderBy: { timeSlot: { startTime: 'desc' } },
     });
 
+    // Debug logging for parent bookings
+    if (role === Role.PARENT) {
+        console.log('[booking.service.getMyBookings] Parent userId:', userId)
+        console.log('[booking.service.getMyBookings] Total bookings found:', bookings.length)
+        // Group bookings by child
+        const bookingsByChild = bookings.reduce((acc: any, booking: any) => {
+            const childId = booking.child?.id || 'unknown'
+            const childName = booking.child?.name || 'Unknown'
+            if (!acc[childId]) {
+                acc[childId] = { childName, count: 0, bookings: [] }
+            }
+            acc[childId].count++
+            acc[childId].bookings.push({
+                id: booking.id,
+                status: booking.status,
+                startTime: booking.timeSlot?.startTime
+            })
+            return acc
+        }, {})
+        console.log('[booking.service.getMyBookings] Bookings grouped by child:', JSON.stringify(bookingsByChild, null, 2))
+    }
+
     // For therapists, filter out child details if consent is not given
     if (role === Role.THERAPIST) {
         return bookings.map((booking: any) => {
@@ -338,6 +360,45 @@ export const getMyBookings = async (userId: string, role: Role) => {
             };
         });
     }
+
+    return bookings;
+};
+
+/**
+ * Get all bookings for a specific therapist (for parents to check availability)
+ * This allows parents to see which slots are booked for a therapist
+ */
+export const getTherapistBookings = async (therapistId: string) => {
+    // Get all bookings for the therapist with SCHEDULED status
+    const bookings = await prisma.booking.findMany({
+        where: {
+            therapistId,
+            status: 'SCHEDULED', // Only get scheduled bookings
+        },
+        include: {
+            timeSlot: {
+                select: {
+                    id: true,
+                    startTime: true,
+                    endTime: true,
+                    isBooked: true,
+                }
+            },
+            child: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            },
+            parent: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            },
+        },
+        orderBy: { timeSlot: { startTime: 'asc' } },
+    });
 
     return bookings;
 };

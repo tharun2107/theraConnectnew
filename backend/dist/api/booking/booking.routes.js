@@ -48,6 +48,8 @@ router.get('/slots', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), (
 router.post('/', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), (0, validate_middleware_1.validate)({ body: booking_validation_1.createBookingSchema.shape.body }), booking_controller_1.createBookingHandler);
 // Both parents and therapists can view their own bookings
 router.get('/me', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), booking_controller_1.getMyBookingsHandler);
+// Parents can view bookings for a specific therapist (to check availability)
+router.get('/therapist/:therapistId', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), booking_controller_1.getTherapistBookingsHandler);
 // Zoom meeting integration
 // Therapist creates a Zoom meeting for a booking (stores meetingId/password)
 router.post('/:bookingId/zoom/create', (0, auth_middleware_1.authorize)([client_1.Role.THERAPIST]), zoomController.createMeetingForBooking);

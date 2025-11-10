@@ -6,6 +6,7 @@ import {
   getAvailableSlotsHandler,
   createBookingHandler,
   getMyBookingsHandler,
+  getTherapistBookingsHandler,
   markSessionCompletedHandler,
   createRecurringBookingHandler,
   getRecurringBookingsHandler,
@@ -31,6 +32,9 @@ router.post('/', authorize([Role.PARENT]), validate({ body: createBookingSchema.
 
 // Both parents and therapists can view their own bookings
 router.get('/me', authorize([Role.PARENT, Role.THERAPIST]), getMyBookingsHandler);
+
+// Parents can view bookings for a specific therapist (to check availability)
+router.get('/therapist/:therapistId', authorize([Role.PARENT]), getTherapistBookingsHandler);
 
 // Zoom meeting integration
 // Therapist creates a Zoom meeting for a booking (stores meetingId/password)

@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelRecurringBookingHandler = exports.getUpcomingSessionsHandler = exports.getRecurringBookingsHandler = exports.createRecurringBookingHandler = exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = exports.markSessionCompletedHandler = void 0;
+exports.cancelRecurringBookingHandler = exports.getUpcomingSessionsHandler = exports.getRecurringBookingsHandler = exports.createRecurringBookingHandler = exports.getTherapistBookingsHandler = exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = exports.markSessionCompletedHandler = void 0;
 const bookingService = __importStar(require("./booking.service"));
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -1133,6 +1133,21 @@ const getMyBookingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.getMyBookingsHandler = getMyBookingsHandler;
+const getTherapistBookingsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { therapistId } = req.params;
+        if (!therapistId) {
+            return res.status(400).json({ message: 'Therapist ID is required' });
+        }
+        const bookings = yield bookingService.getTherapistBookings(therapistId);
+        res.status(200).json(bookings);
+    }
+    catch (error) {
+        console.error('[booking.getTherapistBookings][ERROR]', error);
+        res.status(500).json({ message: error.message || 'Failed to retrieve therapist bookings' });
+    }
+});
+exports.getTherapistBookingsHandler = getTherapistBookingsHandler;
 /**
  * POST /api/parent/recurring-bookings
  * Create a recurring booking for a child
