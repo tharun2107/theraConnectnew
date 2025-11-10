@@ -47,7 +47,9 @@ const TherapistProfile: React.FC = () => {
     (data: any) => therapistAPI.updateProfile(data),
     {
       onSuccess: () => {
+        // Invalidate queries for all dashboards
         queryClient.invalidateQueries('therapistProfile')
+        queryClient.invalidateQueries('allTherapists') // For AdminDashboard/AdminAnalytics
         setIsEditing(false)
         toast.success('Profile updated successfully!')
       },

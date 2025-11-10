@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useQueryClient } from 'react-query'
 import { X, Calendar, Clock, Mail, Phone, User, FileText, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { demoAPI } from '../lib/api'
 import { Button } from './ui/button'
@@ -35,6 +36,7 @@ const formatLocalDate = (date: Date): string => {
 }
 
 const BookDemoModal: React.FC<BookDemoModalProps> = ({ isOpen, onClose }) => {
+  const queryClient = useQueryClient()
   const [step, setStep] = useState<'date' | 'slots' | 'form'>('date')
   const [formData, setFormData] = useState({
     name: '',
@@ -137,6 +139,10 @@ const BookDemoModal: React.FC<BookDemoModalProps> = ({ isOpen, onClose }) => {
         userTimezone: userTimezone, // Include user timezone for email conversion
       })
 
+      // Invalidate demo bookings queries to update the dashboard
+      queryClient.invalidateQueries('adminDemoBookings')
+      queryClient.invalidateQueries('demoBookings')
+      
       toast.success('Demo session booked successfully! Check your email for confirmation.')
       handleClose()
     } catch (error: any) {

@@ -76,7 +76,26 @@ const ParentDashboard: React.FC = () => {
     { 
       select: (response) => {
         console.log('[ParentDashboard] Bookings response:', response)
-        return response.data || []
+        const bookingsData = response.data || []
+        console.log('[ParentDashboard] Total bookings received:', bookingsData.length)
+        // Log bookings grouped by child
+        const bookingsByChild = bookingsData.reduce((acc: any, booking: any) => {
+          const childId = booking.child?.id || 'unknown'
+          const childName = booking.child?.name || 'Unknown'
+          if (!acc[childId]) {
+            acc[childId] = { childName, bookings: [] }
+          }
+          acc[childId].bookings.push({
+            id: booking.id,
+            childName: booking.child?.name,
+            therapistName: booking.therapist?.name,
+            startTime: booking.timeSlot?.startTime,
+            status: booking.status
+          })
+          return acc
+        }, {})
+        console.log('[ParentDashboard] Bookings grouped by child:', bookingsByChild)
+        return bookingsData
       },
       // Auto-refetch every 30 seconds when there are active sessions (reduced from 10s for better performance)
       refetchInterval: (data) => {

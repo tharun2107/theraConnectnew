@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useQueryClient } from 'react-query'
 import { Star, MessageSquare, Shield, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { feedbackAPI } from '../lib/api'
@@ -25,6 +26,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedRating, setSelectedRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
@@ -67,6 +69,11 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
         consentToDataSharing: data.consentToDataSharing,
       })
 
+      // Invalidate bookings queries to update all dashboards
+      queryClient.invalidateQueries('parentBookings')
+      queryClient.invalidateQueries('therapistBookings')
+      queryClient.invalidateQueries('allBookings') // For AdminDashboard/AdminAnalytics
+      
       toast.success('Thank you for your feedback!')
       onSuccess()
     } catch (error: any) {

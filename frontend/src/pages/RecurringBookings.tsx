@@ -74,6 +74,11 @@ const CreateRecurringBookingModal: React.FC<CreateRecurringBookingModalProps> = 
 
   const createMutation = useMutation(bookingAPI.createRecurringBooking, {
     onSuccess: () => {
+      // Invalidate bookings queries to update all dashboards
+      queryClient.invalidateQueries('recurringBookings')
+      queryClient.invalidateQueries('parentBookings')
+      queryClient.invalidateQueries('therapistBookings')
+      queryClient.invalidateQueries('allBookings') // For AdminDashboard/AdminAnalytics
       toast.success('Recurring booking created successfully!')
       onSuccess()
       onClose()
@@ -284,6 +289,8 @@ const RecurringBookings: React.FC = () => {
       toast.success('Recurring booking cancelled successfully')
       queryClient.invalidateQueries('recurringBookings')
       queryClient.invalidateQueries('parentBookings')
+      queryClient.invalidateQueries('therapistBookings')
+      queryClient.invalidateQueries('allBookings') // For AdminDashboard/AdminAnalytics
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to cancel recurring booking')

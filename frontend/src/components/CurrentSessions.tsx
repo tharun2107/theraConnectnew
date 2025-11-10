@@ -245,8 +245,8 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
         <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
           {/* Session Info */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <Avatar className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-r from-blue-500 to-purple-600 flex-shrink-0">
-              <AvatarFallback className="text-white font-bold text-base sm:text-lg">
+            <Avatar className="h-12 w-12 sm:h-16 sm:w-16 bg-white border-2 border-black dark:[background:#000000] dark:border-2 dark:border-white flex-shrink-0">
+              <AvatarFallback className="bg-white dark:bg-black text-black dark:text-white font-bold text-base sm:text-lg">
                 {userRole === 'THERAPIST' 
                   ? (booking.child?.name?.charAt(0).toUpperCase() || 'C')
                   : booking.child?.name?.charAt(0).toUpperCase() || 'C'
@@ -269,7 +269,7 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
               </p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
+                  <Calendar className="h-4 w-4 mr-1 text-gray-600 dark:text-gray-400" />
                   {formatDate(booking.timeSlot.startTime)}
                 </div>
                 <div className="flex items-center">
@@ -281,13 +281,13 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
           </div>
 
           {/* Session Details */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-gray-700">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:[background:#000000] dark:border dark:border-gray-700 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-gray-700">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
               <div>
-                <span className="font-medium text-gray-700">
+                <span className="font-medium text-gray-700 dark:text-white">
                   {userRole === 'THERAPIST' ? 'Child:' : 'Child:'}
                 </span>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-white">
                   {booking.child?.name || 'Child details hidden'} 
                   {booking.child?.age && ` (${booking.child.age} years)`}
                 </p>
@@ -298,17 +298,17 @@ const CurrentSessionCard: React.FC<CurrentSessionProps> = ({ booking, onJoinSess
                 )}
               </div>
               <div>
-                <span className="font-medium text-gray-700">
+                <span className="font-medium text-gray-700 dark:text-white">
                   {userRole === 'THERAPIST' ? 'Parent:' : 'Therapist:'}
                 </span>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-white">
                   {userRole === 'THERAPIST' 
                     ? (booking.parent?.name || 'Parent details hidden')
                     : booking.therapist.name
                   }
                 </p>
                 {userRole === 'PARENT' && (
-                  <p className="text-xs text-gray-500">{booking.therapist.specialization}</p>
+                  <p className="text-xs text-gray-500 dark:text-white">{booking.therapist.specialization}</p>
                 )}
               </div>
             </div>
@@ -439,8 +439,8 @@ interface CurrentSessionsProps {
 }
 
 const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSession, userRole = 'PARENT', onRefresh }) => {
-  console.log('[CurrentSessions] Received bookings:', bookings?.length || 0, 'bookings')
-  console.log('[CurrentSessions] Bookings data:', bookings)
+  // console.log('[CurrentSessions] Received bookings:', bookings?.length || 0, 'bookings')
+  // console.log('[CurrentSessions] Bookings data:', bookings)
   
   // Find current/upcoming sessions that can be joined
   // Slots are stored in UTC with literal hours/minutes (e.g., 19:00 UTC means 7:00 PM display time)
@@ -498,32 +498,32 @@ const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSessi
     
     const willInclude = isToday && isScheduled && isWithinWindow
     
-    // Debug logging for all bookings (not just scheduled)
-    console.log('[CurrentSessions] Checking booking:', {
-      bookingId: booking.id?.slice(-8),
-      status: booking.status,
-      now: now.toLocaleString(),
-      nowISO: now.toISOString(),
-      slotStartUTC: slotStartUTC.toISOString(),
-      slotStartLocal: startTime.toLocaleString(),
-      slotEndLocal: endTime.toLocaleString(),
-      windowStart: sessionWindowStart.toLocaleString(),
-      windowStartISO: sessionWindowStart.toISOString(),
-      todayDate: todayMidnight.toLocaleDateString(),
-      sessionDateStr: sessionDateMidnight.toLocaleDateString(),
-      todayTime: todayMidnight.getTime(),
-      sessionDateTime: sessionDateMidnight.getTime(),
-      isToday,
-      isWithinWindow,
-      isScheduled,
-      willInclude,
-      nowTime,
-      windowStartTime,
-      endTimeTime,
-      timeDiffMinutes: Math.round((nowTime - windowStartTime) / 60000),
-      minutesUntilStart: Math.round((startTime.getTime() - nowTime) / 60000),
-      minutesUntilEnd: Math.round((endTime.getTime() - nowTime) / 60000)
-    })
+    // Debug logging for all bookings (not just scheduled) - commented out to reduce console spam
+    // console.log('[CurrentSessions] Checking booking:', {
+    //   bookingId: booking.id?.slice(-8),
+    //   status: booking.status,
+    //   now: now.toLocaleString(),
+    //   nowISO: now.toISOString(),
+    //   slotStartUTC: slotStartUTC.toISOString(),
+    //   slotStartLocal: startTime.toLocaleString(),
+    //   slotEndLocal: endTime.toLocaleString(),
+    //   windowStart: sessionWindowStart.toLocaleString(),
+    //   windowStartISO: sessionWindowStart.toISOString(),
+    //   todayDate: todayMidnight.toLocaleDateString(),
+    //   sessionDateStr: sessionDateMidnight.toLocaleDateString(),
+    //   todayTime: todayMidnight.getTime(),
+    //   sessionDateTime: sessionDateMidnight.getTime(),
+    //   isToday,
+    //   isWithinWindow,
+    //   isScheduled,
+    //   willInclude,
+    //   nowTime,
+    //   windowStartTime,
+    //   endTimeTime,
+    //   timeDiffMinutes: Math.round((nowTime - windowStartTime) / 60000),
+    //   minutesUntilStart: Math.round((startTime.getTime() - nowTime) / 60000),
+    //   minutesUntilEnd: Math.round((endTime.getTime() - nowTime) / 60000)
+    // })
     
     // Show if it's scheduled for today and within the 10-minute window
     return willInclude
@@ -548,7 +548,7 @@ const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSessi
     return aStartLocal.getTime() - bStartLocal.getTime()
   })
 
-  console.log('[CurrentSessions] Filtered current sessions:', currentSessions.length)
+  // console.log('[CurrentSessions] Filtered current sessions:', currentSessions.length)
   
   if (currentSessions.length === 0) {
     // Check if there are any bookings at all
@@ -559,13 +559,13 @@ const CurrentSessions: React.FC<CurrentSessionsProps> = ({ bookings, onJoinSessi
       return new Date(b.timeSlot.startTime) > new Date() && b.status === 'SCHEDULED'
     }).length
     
-    console.log('[CurrentSessions] No active sessions found:', {
-      totalBookings,
-      scheduledBookings,
-      upcomingBookings,
-      now: new Date().toISOString(),
-      nowLocal: new Date().toLocaleString()
-    })
+    // console.log('[CurrentSessions] No active sessions found:', {
+    //   totalBookings,
+    //   scheduledBookings,
+    //   upcomingBookings,
+    //   now: new Date().toISOString(),
+    //   nowLocal: new Date().toLocaleString()
+    // })
     
     return (
       <motion.div

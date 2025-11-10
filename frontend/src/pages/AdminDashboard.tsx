@@ -151,16 +151,12 @@ const AdminDashboard: React.FC = () => {
                 Manage your therapy platform and support your team.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 md:gap-3 w-full lg:w-auto">
-              <Link to="/admin/create-therapist" className="w-full">
-                <Button className="w-full bg-black hover:bg-[#1A1A1A] text-white shadow-gentle hover:shadow-calm transition-all duration-300 text-sm sm:text-sm md:text-base">
-                  <Stethoscope className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Create Therapist</span>
-                  <span className="sm:hidden">Create</span>
-                </Button>
-              </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2 md:gap-3 w-full lg:w-auto">
               <Link to="/admin/demo-slots" className="w-full">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-sm md:text-base">
+                <Button
+                  variant="outline"
+                  className="w-full border-gray-border text-[#1A1A1A] hover:bg-[#F9F9F9] text-sm sm:text-sm md:text-base"
+                >
                   <Calendar className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Manage Demo Slots</span>
                   <span className="sm:hidden">Demo Slots</span>
@@ -251,7 +247,7 @@ const AdminDashboard: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 sm:p-5 md:p-6 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                    className="bg-gradient-to-r from-gray-50 to-gray-100 dark:bg-black dark:from-black dark:to-black dark:border dark:border-gray-700 p-4 sm:p-5 md:p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                   >
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                       <div className="flex items-center space-x-3 sm:space-x-3 md:space-x-4 flex-1 min-w-0 w-full md:w-auto">

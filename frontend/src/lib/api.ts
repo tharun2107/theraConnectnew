@@ -205,6 +205,7 @@ export const bookingAPI = {
     timeSlotId: string
   }) => api.post('/bookings', data),
   getMyBookings: () => api.get('/bookings/me'),
+  getTherapistBookings: (therapistId: string) => api.get(`/bookings/therapist/${therapistId}`),
   createZoomMeeting: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/create`),
   markHostStarted: (bookingId: string) => api.post(`/bookings/${bookingId}/zoom/host-started`),
   getSignature: (bookingId: string) => api.get(`/bookings/${bookingId}/zoom/signature`),

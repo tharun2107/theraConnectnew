@@ -292,7 +292,7 @@ const ParentConsentManagement: React.FC = () => {
 
                 {child.lastSession && (
                   <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                    <Calendar className="h-3 w-3 mr-1" />
+                    <Calendar className="h-3 w-3 mr-1 text-gray-600 dark:text-gray-400" />
                     Last session: {new Date(child.lastSession).toLocaleDateString()}
                   </div>
                 )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import { motion } from 'framer-motion'
 import { bookingAPI } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
@@ -39,6 +39,7 @@ interface Booking {
 
 const TherapistBookings: React.FC = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [joiningId, setJoiningId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'current' | 'past' | 'completed'>('all')
 
@@ -66,6 +67,11 @@ const TherapistBookings: React.FC = () => {
       console.log('[TherapistBookings] Marking host started for booking', bookingId)
       await bookingAPI.markHostStarted(bookingId)
       
+      // Invalidate bookings queries to update all dashboards
+      queryClient.invalidateQueries('therapistBookings')
+      queryClient.invalidateQueries('parentBookings')
+      queryClient.invalidateQueries('allBookings') // For AdminDashboard/AdminAnalytics
+      
       // Navigate to video call
       console.log('[TherapistBookings] Navigating to video call')
       setJoiningId(bookingId)
@@ -76,6 +82,39 @@ const TherapistBookings: React.FC = () => {
       alert(errorMessage)
     }
   }
+
+  // Calculate counts for each filter type
+  const filterCounts = React.useMemo(() => {
+    const now = new Date()
+    
+    const allCount = bookings.length
+    
+    const upcomingCount = bookings.filter((booking: Booking) => 
+      new Date(booking.timeSlot.startTime) > now && booking.status === 'SCHEDULED'
+    ).length
+    
+    const currentCount = bookings.filter((booking: Booking) => {
+      const startTime = new Date(booking.timeSlot.startTime)
+      const timeDiff = (startTime.getTime() - now.getTime()) / 60000 // minutes
+      return booking.status === 'SCHEDULED' && timeDiff <= 15 && timeDiff >= -60
+    }).length
+    
+    const pastCount = bookings.filter((booking: Booking) => 
+      new Date(booking.timeSlot.startTime) < now && booking.status !== 'COMPLETED'
+    ).length
+    
+    const completedCount = bookings.filter((booking: Booking) => 
+      booking.status === 'COMPLETED'
+    ).length
+    
+    return {
+      all: allCount,
+      upcoming: upcomingCount,
+      current: currentCount,
+      past: pastCount,
+      completed: completedCount
+    }
+  }, [bookings])
 
   // Filter bookings based on selected filter
   const filteredBookings = React.useMemo(() => {
@@ -226,7 +265,7 @@ const TherapistBookings: React.FC = () => {
               ? 'bg-black hover:bg-[#1A1A1A] text-white dark:bg-black dark:hover:bg-gray-900 dark:text-white' 
               : ''}
           >
-            {filterOption.label} ({filterOption.key === 'all' ? bookings.length : filteredBookings.length})
+            {filterOption.label} ({filterCounts[filterOption.key as keyof typeof filterCounts]})
           </Button>
         ))}
       </motion.div>

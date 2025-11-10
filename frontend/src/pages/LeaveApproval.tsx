@@ -244,7 +244,12 @@ const LeaveApproval: React.FC = () => {
       onSuccess: (response, variables) => {
         console.log('[LeaveApproval] Leave processed successfully:', response)
         toast.success(`Leave request ${variables.action === 'APPROVE' ? 'approved' : 'rejected'} successfully`)
+        // Invalidate leaves queries to update all dashboards
         queryClient.invalidateQueries('adminLeaves')
+        queryClient.invalidateQueries('allLeaves')
+        queryClient.invalidateQueries('therapistLeaves')
+        queryClient.invalidateQueries('therapistBookings') // Leave affects bookings
+        queryClient.invalidateQueries('parentBookings') // Parents need to see cancelled bookings
         setShowDetailsModal(false)
         setSelectedLeave(null)
       },

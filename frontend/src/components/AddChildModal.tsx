@@ -1,6 +1,6 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import { useMutation } from 'react-query'
+import { useMutation, useQueryClient } from 'react-query'
 import { parentAPI } from '../lib/api'
 import { X, User } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -19,6 +19,7 @@ interface ChildFormData {
 }
 
 const AddChildModal: React.FC<AddChildModalProps> = ({ onClose, onSuccess }) => {
+  const queryClient = useQueryClient()
   
   const {
     register,
@@ -28,6 +29,10 @@ const AddChildModal: React.FC<AddChildModalProps> = ({ onClose, onSuccess }) => 
 
   const addChildMutation = useMutation(parentAPI.addChild, {
     onSuccess: () => {
+      // Invalidate and refetch children queries to update all dashboards
+      queryClient.invalidateQueries('parentChildren')
+      queryClient.invalidateQueries('children')
+      queryClient.invalidateQueries('allChildren') // For AdminDashboard/AdminChildrenView
       toast.success('Child added successfully!')
       onSuccess()
     },

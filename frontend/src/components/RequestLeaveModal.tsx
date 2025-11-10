@@ -1,6 +1,6 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import { useMutation } from 'react-query'
+import { useMutation, useQueryClient } from 'react-query'
 import { therapistAPI } from '../lib/api'
 import { X, Calendar, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -17,6 +17,7 @@ interface LeaveFormData {
 }
 
 const RequestLeaveModal: React.FC<RequestLeaveModalProps> = ({ onClose, onSuccess }) => {
+  const queryClient = useQueryClient()
   
   const {
     register,
@@ -26,6 +27,11 @@ const RequestLeaveModal: React.FC<RequestLeaveModalProps> = ({ onClose, onSucces
 
   const requestLeaveMutation = useMutation(therapistAPI.requestLeave, {
     onSuccess: () => {
+      // Invalidate leaves queries to update the dashboard
+      queryClient.invalidateQueries('therapistLeaves')
+      queryClient.invalidateQueries('allLeaves')
+      queryClient.invalidateQueries('therapistBookings') // Leave affects bookings
+      queryClient.invalidateQueries('parentBookings') // Parents need to see cancelled bookings
       toast.success('Leave request submitted successfully!')
       onSuccess()
     },

@@ -182,7 +182,7 @@ const TherapistChildrenView: React.FC = () => {
                     
                     {child.lastSession && (
                       <div className="flex items-center text-xs text-green-600 dark:text-green-400">
-                        <Calendar className="h-3 w-3 mr-1" />
+                        <Calendar className="h-3 w-3 mr-1 text-gray-600 dark:text-gray-400" />
                         Last session: {new Date(child.lastSession).toLocaleDateString()}
                       </div>
                     )}
@@ -245,7 +245,7 @@ const TherapistChildrenView: React.FC = () => {
                     
                     {child.lastSession && (
                       <div className="flex items-center text-xs text-orange-600 dark:text-orange-400">
-                        <Calendar className="h-3 w-3 mr-1" />
+                        <Calendar className="h-3 w-3 mr-1 text-orange-600 dark:text-orange-400" />
                         Last session: {new Date(child.lastSession).toLocaleDateString()}
                       </div>
                     )}

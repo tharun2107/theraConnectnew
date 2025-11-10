@@ -89,8 +89,8 @@ const TherapistTasksView: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: sessionIndex * 0.1 }}
           >
-            <Card className="bg-white dark:bg-gray-900 shadow-lg">
-              <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+            <Card className="bg-white dark:bg-black shadow-lg">
+              <CardHeader className="border-b border-gray-200 dark:border-gray-700 dark:bg-black">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
@@ -110,7 +110,7 @@ const TherapistTasksView: React.FC = () => {
               <CardContent className="pt-6">
                 {/* Session Details */}
                 {session.sessionDetails && session.sessionDetails.length > 0 && (
-                  <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="mb-6 p-4 bg-blue-50 dark:bg-black dark:border dark:border-gray-700 rounded-lg">
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
                       Session Details:
                     </h4>
@@ -128,7 +128,7 @@ const TherapistTasksView: React.FC = () => {
                 {/* Tasks Table */}
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
+                    <thead className="bg-gray-50 dark:bg-black dark:border-b dark:border-gray-700">
                       <tr>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                           Task Given
@@ -146,7 +146,7 @@ const TherapistTasksView: React.FC = () => {
                         <tr
                           key={task.id}
                           className={`border-t border-gray-200 dark:border-gray-700 ${
-                            taskIndex % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'
+                            taskIndex % 2 === 0 ? 'bg-white dark:bg-black' : 'bg-gray-50 dark:bg-black'
                           }`}
                         >
                           <td className="px-4 py-4 text-gray-800 dark:text-gray-200">

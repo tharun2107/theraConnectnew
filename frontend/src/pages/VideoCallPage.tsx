@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useQueryClient } from 'react-query'
 import { bookingAPI, feedbackAPI } from '../lib/api'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -25,6 +26,7 @@ const VideoCallPage: React.FC = () => {
   const { bookingId } = useParams<{ bookingId: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const clientRef = useRef<any>(null)
   const joinStartedRef = useRef<boolean>(false)
@@ -206,6 +208,11 @@ const VideoCallPage: React.FC = () => {
       try {
         await bookingAPI.markSessionCompleted(bookingId!)
         console.log('✅ Session marked as completed successfully')
+        // Invalidate bookings queries to update all dashboards
+        queryClient.invalidateQueries('parentBookings')
+        queryClient.invalidateQueries('therapistBookings')
+        queryClient.invalidateQueries('recurringBookings')
+        queryClient.invalidateQueries('allBookings') // For AdminDashboard/AdminAnalytics
       } catch (completionError) {
         console.error('❌ Failed to mark session as completed:', completionError)
         // Continue anyway - we'll show the form with fallback data

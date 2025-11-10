@@ -198,10 +198,15 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
         console.log('[BookSessionModal] Booking successful!')
         toast.success('Session booked successfully!')
         
-        // Invalidate and refetch bookings for both parent and therapist
+        // Invalidate and refetch bookings for all dashboards
         queryClient.invalidateQueries('parentBookings')
         queryClient.invalidateQueries('therapistBookings')
         queryClient.invalidateQueries('childBookings')
+        queryClient.invalidateQueries('allBookings') // For AdminDashboard/AdminAnalytics
+        // Also invalidate therapist bookings query used in booking modal
+        if (selectedTherapist) {
+          queryClient.invalidateQueries(['therapistBookings', selectedTherapist])
+        }
         
         // Close modal first
         onClose()
@@ -472,7 +477,7 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <Calendar className="h-5 w-5" />
+                  <Calendar className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                   <span>Book Session</span>
                 </span>
               )}

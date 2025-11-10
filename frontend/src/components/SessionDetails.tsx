@@ -220,6 +220,12 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
     return ratings[rating] || ''
   }
 
+  // Check if booking time has passed and status is still SCHEDULED
+  const bookingStartTime = new Date(booking.timeSlot.startTime)
+  const now = new Date()
+  const isPastScheduled = booking.status === 'SCHEDULED' && bookingStartTime < now
+  const displayStatus = isPastScheduled ? 'CANCELLED' : booking.status
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -230,22 +236,22 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
         <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <CardTitle className="text-base sm:text-lg flex items-center">
-              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600 dark:text-blue-400" />
               {formatDate(booking.timeSlot.startTime)}
             </CardTitle>
             <div className="flex items-center space-x-2">
               <Badge 
                 className={
-                  booking.status === 'COMPLETED'
+                  displayStatus === 'COMPLETED'
                     ? 'bg-green-500 text-white border-green-600 hover:bg-green-600'
-                    : booking.status === 'SCHEDULED'
+                    : displayStatus === 'SCHEDULED'
                     ? 'bg-blue-500 text-white border-blue-600 hover:bg-blue-600'
-                    : booking.status.includes('CANCELLED')
+                    : displayStatus.includes('CANCELLED')
                     ? 'bg-red-500 text-white border-red-600 hover:bg-red-600'
                     : 'bg-gray-500 text-white border-gray-600 hover:bg-gray-600'
                 }
               >
-                {booking.status}
+                {displayStatus}
               </Badge>
               <Button
                 variant="ghost"
@@ -276,13 +282,26 @@ const SessionDetails: React.FC<SessionDetailsProps> = ({ booking, userRole }) =>
               <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               <span className="text-sm text-gray-600 dark:text-gray-300">
                 {userRole === 'PARENT' 
-                  ? `Therapist: ${booking.therapist?.name || 'Unknown Therapist'}`
+                  ? `Child: ${booking.child?.name || 'Unknown Child'}`
                   : userRole === 'ADMIN'
                   ? `Child: ${booking.child?.name || 'Unknown Child'} | Therapist: ${booking.therapist?.name || 'Unknown Therapist'}`
                   : `Child: ${booking.child?.name || 'Unknown Child'}`
                 }
               </span>
             </div>
+            {userRole === 'PARENT' && booking.therapist && (
+              <div className="flex items-center space-x-2 sm:col-span-2">
+                <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Therapist: {booking.therapist.name}
+                  {booking.therapist.specialization && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                      ({booking.therapist.specialization})
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Expanded Details */}

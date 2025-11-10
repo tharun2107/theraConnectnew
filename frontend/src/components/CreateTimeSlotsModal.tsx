@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation, useQuery } from 'react-query'
+import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { therapistAPI } from '../lib/api'
 import { X, Clock, CheckSquare, Square } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -21,6 +21,7 @@ const generateTimeOptions = () => {
 }
 
 const CreateTimeSlotsModal: React.FC<CreateTimeSlotsModalProps> = ({ onClose, onSuccess, isMandatory = false }) => {
+  const queryClient = useQueryClient()
   const timeOptions = generateTimeOptions()
   const [selectedTimes, setSelectedTimes] = useState<string[]>([])
 
@@ -40,6 +41,10 @@ const CreateTimeSlotsModal: React.FC<CreateTimeSlotsModalProps> = ({ onClose, on
 
   const setSlotsMutation = useMutation(therapistAPI.setAvailableSlotTimes, {
     onSuccess: () => {
+      // Invalidate therapist profile and related queries to update all dashboards
+      queryClient.invalidateQueries('therapistProfile')
+      queryClient.invalidateQueries('therapistHasActiveSlots')
+      queryClient.invalidateQueries('allTherapists') // For AdminDashboard/AdminAnalytics
       toast.success('Available time slots saved successfully! These slots are now locked and will apply to all future dates.')
       onSuccess()
     },

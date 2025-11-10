@@ -148,6 +148,11 @@ const TherapistDashboard: React.FC = () => {
       console.log('[TherapistDashboard] Marking host started for booking', bookingId)
       await bookingAPI.markHostStarted(bookingId)
       
+      // Invalidate bookings queries to update all dashboards
+      queryClient.invalidateQueries('therapistBookings')
+      queryClient.invalidateQueries('parentBookings')
+      queryClient.invalidateQueries('allBookings') // For AdminDashboard/AdminAnalytics
+      
       // Navigate to video call
       console.log('[TherapistDashboard] Navigating to video call')
       setJoiningId(bookingId)
@@ -381,31 +386,62 @@ const TherapistDashboard: React.FC = () => {
                       hour12: true 
                     })
                     
-                    // Check if this slot time is booked for the current month
+                    // UPDATED LOGIC: Check if slot is booked based on latest booking date
+                    // 1. Find all bookings for this time slot (regardless of date)
+                    // 2. Find the latest booking date for this time slot
+                    // 3. If current date is AFTER latest booking date, slot is available
+                    // 4. If current date is BEFORE or ON latest booking date, check if bookings exist in current month
+                    
                     const now = new Date()
                     const currentMonth = now.getMonth()
                     const currentYear = now.getFullYear()
+                    const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate())
                     
-                    // Count how many times this slot is booked in the current month
-                    const bookingsThisMonth = bookings.filter((booking: Booking) => {
+                    // Find all bookings for this time slot (regardless of date)
+                    const allBookingsForSlotTime = bookings.filter((booking: Booking) => {
                       if (!booking.timeSlot || booking.status !== 'SCHEDULED') return false
                       
-                      const bookingDate = new Date(booking.timeSlot.startTime)
-                      const bookingMonth = bookingDate.getMonth()
-                      const bookingYear = bookingDate.getFullYear()
-                      
-                      // Check if booking is in current month
-                      if (bookingMonth !== currentMonth || bookingYear !== currentYear) return false
-                      
                       // Check if booking time matches this slot time
-                      // Compare using local time components
+                      const bookingDate = new Date(booking.timeSlot.startTime)
                       const bookingHours = bookingDate.getHours()
                       const bookingMinutes = bookingDate.getMinutes()
                       return bookingHours === hours && bookingMinutes === minutes
                     })
                     
-                    const isBookedThisMonth = bookingsThisMonth.length > 0
-                    const bookingCount = bookingsThisMonth.length
+                    // If no bookings exist for this time slot, it's available
+                    let isBookedThisMonth = false
+                    let bookingCount = 0
+                    
+                    if (allBookingsForSlotTime.length > 0) {
+                      // Find the latest booking date for this time slot
+                      const latestBookingDate = allBookingsForSlotTime.reduce((latest: Date | null, booking: Booking) => {
+                        const bookingDate = new Date(booking.timeSlot.startTime)
+                        // Extract just the date part (ignore time)
+                        const bookingDateOnly = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate())
+                        if (!latest) return bookingDateOnly
+                        const latestDateOnly = new Date(latest.getFullYear(), latest.getMonth(), latest.getDate())
+                        return bookingDateOnly > latestDateOnly ? bookingDateOnly : latestDateOnly
+                      }, null)
+                      
+                      // If current date is AFTER the latest booking date, slot is available
+                      if (latestBookingDate && currentDateOnly > latestBookingDate) {
+                        isBookedThisMonth = false
+                        bookingCount = 0
+                      } else {
+                        // If current date is BEFORE or ON latest booking date, check if bookings exist in current month
+                        const bookingsThisMonth = allBookingsForSlotTime.filter((booking: Booking) => {
+                          const bookingDate = new Date(booking.timeSlot.startTime)
+                          const bookingMonth = bookingDate.getMonth()
+                          const bookingYear = bookingDate.getFullYear()
+                          
+                          // Check if booking is in current month
+                          return bookingMonth === currentMonth && bookingYear === currentYear
+                        })
+                        
+                        isBookedThisMonth = bookingsThisMonth.length > 0
+                        bookingCount = bookingsThisMonth.length
+                      }
+                    }
                     
                     return (
                       <motion.div

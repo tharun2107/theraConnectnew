@@ -97,7 +97,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
         {/* Session Details */}
         <div className="space-y-3 mb-4">
           <div className="flex items-center space-x-2 text-sm text-[#4D4D4D]">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             <span>{startDate.toLocaleDateString()}</span>
           </div>
           
