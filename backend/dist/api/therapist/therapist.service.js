@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAvailableSlotTimes = exports.hasActiveSlots = exports.getMySlotsForDate = exports.requestLeave = exports.createTimeSlots = exports.getTherapistProfile = void 0;
 const client_1 = require("@prisma/client");
-const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 const getTherapistProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     return prisma_1.default.therapistProfile.findUnique({ where: { userId } });
@@ -115,19 +114,20 @@ const requestLeave = (therapistId, input) => __awaiter(void 0, void 0, void 0, f
     yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         yield tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason, status: client_1.LeaveStatus.PENDING } });
     }));
+    // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
     // Notify all admins via notification/email
-    const admins = yield prisma_1.default.user.findMany({ where: { role: 'ADMIN' } });
-    yield Promise.all(admins.map((admin) => (0, notification_service_1.sendNotification)({
-        userId: admin.id,
-        message: `Leave request pending approval: ${therapist.name} on ${startOfDay.toDateString()} (${input.type}).`,
-        sendAt: new Date()
-    })));
+    // const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+    // await Promise.all(admins.map((admin) => sendNotification({
+    //   userId: admin.id,
+    //   message: `Leave request pending approval: ${therapist.name} on ${startOfDay.toDateString()} (${input.type}).`,
+    //   sendAt: new Date()
+    // })));
     // Acknowledge therapist
-    yield (0, notification_service_1.sendNotification)({
-        userId: therapist.userId,
-        message: `Your leave request for ${startOfDay.toDateString()} has been submitted for admin approval.`,
-        sendAt: new Date()
-    });
+    // await sendNotification({
+    //   userId: therapist.userId,
+    //   message: `Your leave request for ${startOfDay.toDateString()} has been submitted for admin approval.`,
+    //   sendAt: new Date()
+    // });
     return { message: 'Leave request submitted for approval.' };
 });
 exports.requestLeave = requestLeave;

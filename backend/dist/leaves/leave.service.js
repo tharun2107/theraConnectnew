@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.leaveService = exports.LeaveService = void 0;
 const client_1 = require("@prisma/client");
 const date_fns_1 = require("date-fns");
-const email_services_1 = require("../services/email.services");
 const prisma_1 = __importDefault(require("../utils/prisma"));
 class LeaveService {
     /**
@@ -574,11 +573,14 @@ class LeaveService {
                         sendAt: new Date()
                     }
                 }));
+                // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
                 // Send email
-                if (payload.parentEmail) {
-                    const emailBody = `Dear Parent,\n\n${message}\n\nPlease book another available slot.\n\nWe apologize for the inconvenience.`;
-                    notificationPromises.push((0, email_services_1.sendemail)(payload.parentEmail, emailBody));
-                }
+                // if (payload.parentEmail) {
+                //   const emailBody = `Dear Parent,\n\n${message}\n\nPlease book another available slot.\n\nWe apologize for the inconvenience.`;
+                //   notificationPromises.push(
+                //     sendemail(payload.parentEmail, emailBody)
+                //   );
+                // }
             }
             try {
                 yield Promise.all(notificationPromises);
@@ -608,9 +610,13 @@ class LeaveService {
                         sendAt: new Date()
                     }
                 });
-                if (admin.email) {
-                    yield (0, email_services_1.sendemail)(admin.email, `Therapist: ${therapistName}\nDate: ${(0, date_fns_1.format)(leave.date, 'MMMM dd, yyyy')}\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nCurrent Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nPlease review and approve/reject this request in the admin dashboard.`);
-                }
+                // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+                // if (admin.email) {
+                //   await sendemail(
+                //     admin.email,
+                //     `Therapist: ${therapistName}\nDate: ${format(leave.date, 'MMMM dd, yyyy')}\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nCurrent Balances:\nCasual: ${leave.casualRemaining}\nSick: ${leave.sickRemaining}\nFestive: ${leave.festiveRemaining}\nOptional: ${leave.optionalRemaining}\n\nPlease review and approve/reject this request in the admin dashboard.`
+                //   );
+                // }
             }
         });
     }
@@ -619,7 +625,11 @@ class LeaveService {
      */
     notifyTherapistLeaveSubmitted(therapistEmail, leave) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield (0, email_services_1.sendemail)(therapistEmail, `Your leave request for ${(0, date_fns_1.format)(leave.date, 'MMMM dd, yyyy')} has been submitted successfully.\n\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nYou will be notified once the admin reviews your request.`);
+            // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+            // await sendemail(
+            //   therapistEmail,
+            //   `Your leave request for ${format(leave.date, 'MMMM dd, yyyy')} has been submitted successfully.\n\nType: ${leave.type}\nReason: ${leave.reason || 'N/A'}\n\nYou will be notified once the admin reviews your request.`
+            // );
         });
     }
     /**
@@ -639,8 +649,9 @@ class LeaveService {
                     sendAt: new Date()
                 }
             });
+            // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
             // Send email notification
-            yield (0, email_services_1.sendemail)(therapistEmail, message);
+            // await sendemail(therapistEmail, message);
         });
     }
     /**
@@ -660,8 +671,9 @@ class LeaveService {
                     sendAt: new Date()
                 }
             });
+            // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
             // Send email notification
-            yield (0, email_services_1.sendemail)(therapistEmail, message);
+            // await sendemail(therapistEmail, message);
         });
     }
 }

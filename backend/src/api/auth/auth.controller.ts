@@ -169,12 +169,13 @@ If you have any questions, please contact our support team at support@therabee.c
   `.trim();
 
     // Send Notification
-    await sendNotificationAfterAnEvent({
-      userId: user.id,
-      message: welcomeText,
-      sendAt: new Date(),
-      welcomeHtml: welcomeHTML
-    });
+    // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+    // await sendNotificationAfterAnEvent({
+    //   userId: user.id,
+    //   message: welcomeText,
+    //   sendAt: new Date(),
+    //   welcomeHtml: welcomeHTML
+    // });
 
     
     res.status(201).json({ message: 'Parent registered successfully', user: userWithoutPassword ,token});
@@ -557,12 +558,13 @@ Need help? Contact our therapist support team at therapists@therabee.com
 `.trim();
               
               
-        await sendNotificationAfterAnEvent({
-          userId: user.id,
-          message: therapistWelcomeText,
-          welcomeHtml: therapistWelcomeHTML,
-          sendAt: new Date()
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationAfterAnEvent({
+        //   userId: user.id,
+        //   message: therapistWelcomeText,
+        //   welcomeHtml: therapistWelcomeHTML,
+        //   sendAt: new Date()
+        // });
     res.status(201).json({ message: 'Therapist registered successfully', user: userWithoutPassword, token });
   } catch (error) {
     handleServiceError(res, error);
@@ -908,12 +910,13 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
                   The Therabee Team
                   `.trim();
               // Send Notification
-      await sendNotificationAfterAnEvent({
-        userId: user.id,
-        message: adminWelcomeText,
-        welcomeHtml:adminWelcomeHTML,
-        sendAt: new Date()
-        });
+      // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+      // await sendNotificationAfterAnEvent({
+      //   userId: user.id,
+      //   message: adminWelcomeText,
+      //   welcomeHtml:adminWelcomeHTML,
+      //   sendAt: new Date()
+      // });
 
     res.status(201).json({ message: 'Admin registered successfully', user: userWithoutPassword,token });
   } catch (error) {

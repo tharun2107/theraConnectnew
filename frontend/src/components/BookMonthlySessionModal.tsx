@@ -2,8 +2,11 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { parentAPI, bookingAPI } from '../lib/api'
-import { X, Calendar, Clock } from 'lucide-react'
+import { X, Calendar, Clock, Loader2 } from 'lucide-react'
+import { Button } from './ui/button'
+import { LoadingSpinner } from './ui/loading-spinner'
 import toast from 'react-hot-toast'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface BookMonthlySessionModalProps {
   onClose: () => void
@@ -36,6 +39,8 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
   const queryClient = useQueryClient()
   const [selectedTherapist, setSelectedTherapist] = useState<string>(therapistId || '')
   const [selectedStartDate, setSelectedStartDate] = useState<string>('')
+  const [slotAvailability, setSlotAvailability] = useState<{ [slotTime: string]: { booked: number; total: number } }>({})
+  const [checkingAvailability, setCheckingAvailability] = useState(false)
 
   const {
     register,
@@ -119,6 +124,80 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
     
     setSelectedStartDate(normalized)
     setValue('startDate', normalized, { shouldValidate: true })
+    
+    // Check availability for all slots when date changes
+    if (selectedTherapist && selectedTherapistData?.availableSlotTimes) {
+      selectedTherapistData.availableSlotTimes.forEach((slotTime: string) => {
+        checkSlotAvailability(selectedTherapist, normalized, slotTime)
+      })
+    }
+  }
+
+  // Check slot availability for the date range
+  const checkSlotAvailability = async (therapistId: string, startDate: string, slotTime: string) => {
+    if (!therapistId || !startDate || !slotTime) return
+
+    setCheckingAvailability(true)
+    try {
+      const end = calculateEndDate(startDate)
+      // Check a sample of dates in the range (first, middle, last weekdays)
+      const start = new Date(startDate)
+      const endDateObj = new Date(end)
+      const datesToCheck: string[] = []
+      
+      // Add first weekday
+      let current = new Date(start)
+      while (current <= endDateObj && datesToCheck.length < 1) {
+        const dayOfWeek = current.getDay()
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          datesToCheck.push(current.toISOString().split('T')[0])
+          break
+        }
+        current.setDate(current.getDate() + 1)
+      }
+
+      // Add a date from the middle
+      const midDate = new Date(start)
+      midDate.setDate(midDate.getDate() + Math.floor((endDateObj.getTime() - start.getTime()) / (2 * 24 * 60 * 60 * 1000)))
+      while (midDate <= endDateObj && datesToCheck.length < 2) {
+        const dayOfWeek = midDate.getDay()
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          datesToCheck.push(midDate.toISOString().split('T')[0])
+          break
+        }
+        midDate.setDate(midDate.getDate() + 1)
+      }
+
+      // Check slots for sample dates
+      let bookedCount = 0
+      let totalChecked = 0
+      for (const date of datesToCheck) {
+        try {
+          const response = await bookingAPI.getAvailableSlots(therapistId, date)
+          const slots = response.data || []
+          const slotForTime = slots.find((s: any) => {
+            const slotDate = new Date(s.startTime)
+            const [hours, minutes] = slotTime.split(':').map(Number)
+            return slotDate.getHours() === hours && slotDate.getMinutes() === minutes
+          })
+          if (slotForTime && slotForTime.isBooked) {
+            bookedCount++
+          }
+          totalChecked++
+        } catch (error) {
+          console.error(`Error checking slot for ${date}:`, error)
+        }
+      }
+
+      setSlotAvailability(prev => ({
+        ...prev,
+        [slotTime]: { booked: bookedCount, total: totalChecked }
+      }))
+    } catch (error) {
+      console.error('Error checking slot availability:', error)
+    } finally {
+      setCheckingAvailability(false)
+    }
   }
 
   // Calculate end date (exactly one month from start date, minus 1 day)
@@ -220,7 +299,55 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-black dark:border dark:border-gray-700 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {bookMonthlyMutation.isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4"
+            >
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="relative">
+                  <Loader2 className="h-16 w-16 animate-spin text-blue-600 dark:text-blue-400" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-full border-4 border-blue-200 dark:border-blue-800 border-t-transparent animate-spin"></div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Booking Monthly Sessions
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Please wait while we create all sessions for the month...
+                  </p>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                  <motion.div
+                    className="h-full bg-blue-600 dark:bg-blue-400 rounded-full"
+                    initial={{ width: '0%' }}
+                    animate={{ width: '100%' }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-white dark:bg-black dark:border dark:border-gray-700 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
+      >
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
             <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg flex-shrink-0">
@@ -357,22 +484,56 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
                       hour12: true
                     })
                     
+                    const availability = slotAvailability[time]
+                    const hasBookedSlots = availability && availability.booked > 0
+                    // For recurring bookings, if ANY date is booked, the slot is unavailable
+                    const isUnavailable = hasBookedSlots
+                    
                     return (
-                      <label key={time} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer dark:border-gray-700 transition-colors">
+                      <label 
+                        key={time} 
+                        className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors relative ${
+                          isUnavailable
+                            ? 'opacity-50 bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 cursor-not-allowed'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 cursor-pointer'
+                        }`}
+                        title={
+                          isUnavailable
+                            ? `This slot has conflicts in the selected date range. For monthly recurring bookings, all dates must be available.`
+                            : 'Available for the complete month'
+                        }
+                      >
                         <input
                           {...register('slotTime', { required: 'Please select a time slot' })}
                           type="radio"
                           value={time}
                           className="text-primary-600 focus:ring-2 focus:ring-primary-500"
+                          disabled={isUnavailable}
                         />
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          <div className={`text-sm font-medium ${
+                            isUnavailable
+                              ? 'text-gray-500 dark:text-gray-400 line-through'
+                              : 'text-gray-900 dark:text-white'
+                          }`}>
                             {displayTime}
                           </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Daily at this time
+                          <div className={`text-xs ${
+                            isUnavailable
+                              ? 'text-red-600 dark:text-red-400 font-medium'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                            {isUnavailable
+                              ? 'Not Available (Has Conflicts)'
+                              : 'Available for Complete Month'
+                            }
                           </div>
                         </div>
+                        {isUnavailable && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">✕</span>
+                          </div>
+                        )}
                       </label>
                     )
                   })}
@@ -406,23 +567,43 @@ const BookMonthlySessionModal: React.FC<BookMonthlySessionModalProps> = ({ onClo
           )}
 
           <div className="flex space-x-3 pt-4">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="btn btn-outline flex-1"
+              variant="outline"
+              className="flex-1"
+              disabled={bookMonthlyMutation.isLoading}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={bookMonthlyMutation.isLoading || !selectedTherapist || !selectedStartDate || !selectedSlotTime || !selectedChildId}
-              className="btn btn-primary flex-1"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
             >
-              {bookMonthlyMutation.isLoading ? 'Booking...' : 'Book Monthly Sessions'}
-            </button>
+              {bookMonthlyMutation.isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Booking Sessions...</span>
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  <span>Book Monthly Sessions</span>
+                </span>
+              )}
+              {bookMonthlyMutation.isLoading && (
+                <motion.div
+                  className="absolute inset-0 bg-blue-700/20"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                />
+              )}
+            </Button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   )
 }

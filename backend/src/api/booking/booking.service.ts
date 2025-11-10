@@ -37,18 +37,19 @@ export const markSessionCompleted = async (bookingId: string) => {
     },
   })
 
+  // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
   // Send notifications
-  await sendNotificationAfterAnEventSessionCompleted({
-    userId: booking.parent.userId,
-    message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
-    sendAt: new Date()
-  })
+  // await sendNotificationAfterAnEventSessionCompleted({
+  //   userId: booking.parent.userId,
+  //   message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
+  //   sendAt: new Date()
+  // })
 
-  await sendNotificationAfterAnEventSessionCompleted({
-    userId: booking.therapist.userId,
-    message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
-    sendAt: new Date()
-  })
+  // await sendNotificationAfterAnEventSessionCompleted({
+  //   userId: booking.therapist.userId,
+  //   message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
+  //   sendAt: new Date()
+  // })
 
   return updatedBooking
 }
@@ -144,13 +145,31 @@ export const getAvailableSlots = async (therapistId: string, date: string) => {
         await prisma.timeSlot.createMany({ data: slotsToCreate });
     }
     
-    // Return available slots for the date (only those matching availableSlotTimes)
+    // Return ALL slots for the date (both booked and available) to show booking status in UI
+    // Include booking information to show which child/parent has booked
     const slots = await prisma.timeSlot.findMany({
         where: {
             therapistId,
-            isBooked: false,
             isActive: true,
             startTime: { gte: startOfDay, lte: endOfDay },
+        },
+        include: {
+            booking: {
+                include: {
+                    child: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    },
+                    parent: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    }
+                }
+            }
         },
         orderBy: { startTime: 'asc' },
     });
@@ -168,13 +187,13 @@ export const getAvailableSlots = async (therapistId: string, date: string) => {
     
     console.log('[booking.service.getAvailableSlots] therapist availableSlotTimes:', therapist.availableSlotTimes);
     console.log('[booking.service.getAvailableSlots] created', slotsToCreate.length, 'new slots');
-    console.log('[booking.service.getAvailableSlots] found', filteredSlots.length, 'valid slots out of', slots.length, 'total');
+    console.log('[booking.service.getAvailableSlots] returning', filteredSlots.length, 'slots (available + booked)');
     filteredSlots.forEach((slot: any) => {
         const slotDate = new Date(slot.startTime);
         const slotHours = slotDate.getUTCHours();
         const slotMinutes = slotDate.getUTCMinutes();
         const slotTimeStr = `${slotHours.toString().padStart(2, '0')}:${slotMinutes.toString().padStart(2, '0')}`;
-        console.log('[booking.service.getAvailableSlots] slot:', slotTimeStr, 'startTime:', slot.startTime.toISOString(), 'local:', slotDate.toLocaleString());
+        console.log('[booking.service.getAvailableSlots] slot:', slotTimeStr, 'isBooked:', slot.isBooked, 'startTime:', slot.startTime.toISOString());
     });
     return filteredSlots;
 };
@@ -182,11 +201,12 @@ export const getAvailableSlots = async (therapistId: string, date: string) => {
 export const createBooking = async (parentId: string, input: CreateBookingInput) => {
     const { childId, timeSlotId } = input;
 
+    // Check slot availability with atomic check
     const timeSlot = await prisma.timeSlot.findFirst({
         where: { id: timeSlotId, isBooked: false },
         include: { therapist: true },
     });
-    if (!timeSlot) throw new Error('This time slot is not available.');
+    if (!timeSlot) throw new Error('This time slot is not available. It may have been booked by another parent.');
     if (timeSlot.therapist.status !== TherapistStatus.ACTIVE) {
         throw new Error('This therapist is not available for booking.');
     }
@@ -242,16 +262,17 @@ export const createBooking = async (parentId: string, input: CreateBookingInput)
         return newBooking;
     });
 
-    await sendNotificationBookingConfirmed({
-        userId: timeSlot.therapist.userId,
-        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
-        sendAt: new Date()
-    });
-    await sendNotificationBookingConfirmed({
-        userId: parent!.userId,
-        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
-        sendAt: new Date()
-    });
+    // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+    // await sendNotificationBookingConfirmed({
+    //     userId: timeSlot.therapist.userId,
+    //     message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
+    //     sendAt: new Date()
+    // });
+    // await sendNotificationBookingConfirmed({
+    //     userId: parent!.userId,
+    //     message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
+    //     sendAt: new Date()
+    // });
 
     return booking;
 };
@@ -363,10 +384,86 @@ export class RecurringBookingService {
     });
     if (!therapist) throw new Error('Therapist not found or not active');
 
+    // Validate slot time is in therapist's available slots
+    if (!therapist.availableSlotTimes || !therapist.availableSlotTimes.includes(input.slotTime)) {
+      throw new Error(`Selected time slot ${input.slotTime} is not available for this therapist. Please select from available slots.`);
+    }
+
     // Validate dates
     const startDate = new Date(input.startDate);
     const endDate = new Date(input.endDate);
     const today = startOfDay(new Date());
+
+    // Pre-check: Count how many slots in the date range are already booked
+    // This helps prevent creating recurring bookings when most slots are unavailable
+    const [hours, minutes] = input.slotTime.split(':').map(Number);
+    const slotDurationMinutes = therapist.slotDurationInMinutes || 60;
+    
+    // Generate all dates in the range to check availability
+    let datesToCheck: Date[] = [];
+    if (input.recurrencePattern === RecurrencePattern.DAILY) {
+      const allDays = eachDayOfInterval({ start: startDate, end: endDate });
+      datesToCheck = allDays.filter(day => !isWeekend(day) && day >= today);
+    } else if (input.recurrencePattern === RecurrencePattern.WEEKLY && input.dayOfWeek) {
+      const dayOfWeekMap: { [key in DayOfWeek]: number } = {
+        MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6
+      };
+      const targetDay = dayOfWeekMap[input.dayOfWeek];
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        if (currentDate.getDay() === targetDay && currentDate >= today) {
+          datesToCheck.push(new Date(currentDate));
+        }
+        currentDate = addDays(currentDate, 1);
+      }
+    }
+
+    // Check how many slots are already booked
+    let bookedCount = 0;
+    for (const date of datesToCheck) {
+      // Check if therapist has leave
+      const hasLeave = await prisma.therapistLeave.findFirst({
+        where: {
+          therapistId: input.therapistId,
+          date: date,
+          status: 'APPROVED'
+        }
+      });
+      if (hasLeave) {
+        bookedCount++;
+        continue;
+      }
+
+      // Check if slot is already booked
+      const slotStart = new Date(date);
+      slotStart.setHours(hours, minutes, 0, 0);
+      slotStart.setSeconds(0, 0);
+      const slotEnd = new Date(slotStart.getTime() + slotDurationMinutes * 60000);
+
+      const existingSlot = await prisma.timeSlot.findFirst({
+        where: {
+          therapistId: input.therapistId,
+          startTime: slotStart,
+          endTime: slotEnd,
+          isBooked: true
+        }
+      });
+
+      if (existingSlot) {
+        bookedCount++;
+      }
+    }
+
+    // For recurring bookings, ALL slots in the date range must be available
+    // If any slot is already booked, reject the recurring booking
+    if (bookedCount > 0) {
+      const availableCount = datesToCheck.length - bookedCount;
+      throw new Error(
+        `Cannot create recurring booking: ${bookedCount} slot(s) in the selected date range are already booked. ` +
+        `For monthly recurring bookings, all dates must be available. ` +
+        `Only ${availableCount} out of ${datesToCheck.length} slots are available. Please select a different time slot or date range.`
+      );
+    }
 
     if (startDate < today) {
       throw new Error('Start date cannot be in the past');
@@ -530,16 +627,30 @@ export class RecurringBookingService {
             continue;
           }
 
-          // Check if slot already exists
+          // Check if slot already exists and is booked
           const existingSlot = await prisma.timeSlot.findFirst({
             where: {
               therapistId: recurring.therapistId,
               startTime: slotStart,
               endTime: slotEnd
+            },
+            include: {
+              booking: {
+                include: {
+                  child: true,
+                  parent: true
+                }
+              }
             }
           });
 
           if (existingSlot && existingSlot.isBooked) {
+            // Log which parent/child has booked this slot
+            const bookings = Array.isArray(existingSlot.booking) ? existingSlot.booking : (existingSlot.booking ? [existingSlot.booking] : []);
+            if (bookings.length > 0) {
+              const bookingInfo = bookings[0] as any;
+              console.log(`[RecurringBooking] Slot ${slotStart.toISOString()} already booked by ${bookingInfo.parent?.name} for ${bookingInfo.child?.name}`);
+            }
             continue; // Skip if already booked
           }
 

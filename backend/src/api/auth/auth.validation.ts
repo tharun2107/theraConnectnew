@@ -12,7 +12,7 @@ export const registerParentSchema = z.object({
 export const registerTherapistSchema = z.object({
   body: z.object({
     email: z.string().email({ message: "Please provide a valid email address." }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters long." }),
+    password: z.string().min(8, { message: "Password must be at least 8 characters long." }).optional(), // Optional for admin-created therapists (Google OAuth)
     name: z.string().min(2, { message: "Name must be at least 2 characters long." }),
     phone: z.string().min(10, { message: "Phone number must be at least 10 characters long." }),
     specialization: z.string().min(3, { message: "Specialization must be at least 3 characters long." }),

@@ -1,15 +1,12 @@
 import React, { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, UserPlus, Stethoscope, ArrowLeft } from 'lucide-react'
+import { UserPlus, Stethoscope, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authAPI } from '../lib/api'
 
 interface RegisterFormData {
   email: string
-  password: string
-  confirmPassword: string
   name: string
   phone: string
   specialization: string
@@ -18,58 +15,30 @@ interface RegisterFormData {
 }
 
 const TherapistRegister: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { register: registerUser, user } = useAuth()
   const navigate = useNavigate()
-  const { search } = useLocation()
-  const isAdminFlow = user?.role === 'ADMIN' || new URLSearchParams(search).get('from') === 'admin'
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm<RegisterFormData>()
 
-  const password = watch('password')
-
   const onSubmit = async (data: RegisterFormData) => {
-    if (data.password !== data.confirmPassword) {
-      toast.error('Passwords do not match')
-      return
-    }
-
     setIsLoading(true)
     try {
-      if (isAdminFlow) {
-        // Admin creating a therapist: call API directly, do NOT log in as therapist
-        await authAPI.registerTherapist({
-          email: data.email,
-          password: data.password,
-          name: data.name,
-          phone: data.phone,
-          specialization: data.specialization,
-          experience: data.experience,
-          baseCostPerSession: data.baseCostPerSession,
-        })
-        toast.success('Therapist created successfully')
-        navigate('/admin')
-      } else {
-        // Self registration: proceed with normal register (auto-login)
-        await registerUser(
-          data.email,
-          data.password,
-          data.name,
-          data.phone,
-          'THERAPIST',
-          data.specialization,
-          data.experience,
-          data.baseCostPerSession
-        )
-        toast.success('Account created successfully! Welcome to Therabee!')
-      }
+      // Admin creating a therapist: call API directly, do NOT log in as therapist
+      // No password needed - therapist will use Google OAuth to login
+      await authAPI.registerTherapist({
+        email: data.email,
+        name: data.name,
+        phone: data.phone,
+        specialization: data.specialization,
+        experience: data.experience,
+        baseCostPerSession: data.baseCostPerSession,
+      })
+      toast.success('Therapist created successfully')
+      navigate('/admin')
     } catch (error: any) {
       const status = error?.response?.status
       const message = error?.response?.data?.message || error?.message || 'Registration failed'
@@ -104,11 +73,11 @@ const TherapistRegister: React.FC = () => {
             </p>
             <div className="mt-4">
               <Link
-                to={isAdminFlow ? '/admin' : '/'}
+                to="/admin"
                 className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                {isAdminFlow ? 'Back to Admin' : 'Back to Home'}
+                Back to Admin
               </Link>
             </div>
           </div>
@@ -242,64 +211,11 @@ const TherapistRegister: React.FC = () => {
                 {errors.baseCostPerSession && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.baseCostPerSession.message}</p>}
               </div>
 
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
-                </label>
-                <div className="mt-1 relative">
-                  <input
-                    {...register('password', {
-                      required: 'Password is required',
-                      minLength: { value: 8, message: 'Password must be at least 8 characters' },
-                    })}
-                    type={showPassword ? 'text' : 'password'}
-                    className="input w-full pr-10"
-                    placeholder="Create a password"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>}
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Confirm Password
-                </label>
-                <div className="mt-1 relative">
-                  <input
-                    {...register('confirmPassword', {
-                      required: 'Please confirm your password',
-                      validate: (value) => value === password || 'Passwords do not match',
-                    })}
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    className="input w-full pr-10"
-                    placeholder="Confirm your password"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                    )}
-                  </button>
-                </div>
-                {errors.confirmPassword && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword.message}</p>}
+              {/* Info message - Therapists use Google OAuth */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Note:</strong> The therapist will use Google OAuth to sign in. No password is required.
+                </p>
               </div>
             </div>
 

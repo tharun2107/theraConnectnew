@@ -41,7 +41,7 @@ export const registerParent = async (input: RegisterParentInput) => {
 
 export const registerTherapist = async (input: RegisterTherapistInput) => {
     const { email, password, name, phone, specialization, experience, baseCostPerSession } = input;
-    console.log('[AUTH][REGISTER_THERAPIST] Attempt:', { email, phone })
+    console.log('[AUTH][REGISTER_THERAPIST] Attempt:', { email, phone, hasPassword: !!password })
 
     // Pre-checks to surface conflicts as 409
     const [existingUser, existingPhone] = await Promise.all([
@@ -51,7 +51,8 @@ export const registerTherapist = async (input: RegisterTherapistInput) => {
     if (existingUser) throw new Error('User with this email already exists');
     if (existingPhone) throw new Error('Therapist with this phone already exists');
 
-    const hashedPassword = await hashPassword(password);
+    // Hash password if provided (for self-registration), otherwise use empty string (for admin-created, OAuth-only)
+    const hashedPassword = password ? await hashPassword(password) : '';
     try {
         return await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({

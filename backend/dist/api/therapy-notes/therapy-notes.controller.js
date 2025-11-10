@@ -289,6 +289,25 @@ class TherapyNotesController {
             }
         });
     }
+    getCurrentMonthTasksForTherapist(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const therapistId = yield getTherapistId(req.user.userId);
+                const reports = yield therapy_notes_service_1.therapyNotesService.getCurrentMonthTasksForTherapist(therapistId);
+                return res.json({
+                    success: true,
+                    data: reports
+                });
+            }
+            catch (error) {
+                console.error('[TherapyNotesController] getCurrentMonthTasksForTherapist error:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: error.message || 'Failed to fetch current month tasks'
+                });
+            }
+        });
+    }
 }
 exports.TherapyNotesController = TherapyNotesController;
 exports.therapyNotesController = new TherapyNotesController();

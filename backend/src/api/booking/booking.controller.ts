@@ -311,12 +311,13 @@ export const markSessionCompletedHandler = async (req: Request, res: Response) =
 
                 Need assistance? Contact our support team at help@therabee.com
                 `.trim();
-            await sendNotificationAfterAnEventSessionCompleted({
-                userId: parentId.parentId,
-                message: sessionCompletedText,
-                welcomeHtml:sessionCompletedHTML,
-                sendAt: new Date()
-            });
+            // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+            // await sendNotificationAfterAnEventSessionCompleted({
+            //     userId: parentId.parentId,
+            //     message: sessionCompletedText,
+            //     welcomeHtml:sessionCompletedHTML,
+            //     sendAt: new Date()
+            // });
 
     res.status(200).json({ 
       message: 'Session marked as completed', 
@@ -1053,19 +1054,20 @@ export const createBookingHandler = async (req: Request, res: Response) => {
                             Therapist support: therapists@therabee.com
                             `.trim();
 
-                        await sendNotificationToTherapistSessionBooked({
-                        userId:findTimeSlot.therapist.userId,
-                        message: therapistText,
-                        welcomeHtml:therapistHTML,
-                        sendAt: new Date(),
-                        })
+                        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+                        // await sendNotificationToTherapistSessionBooked({
+                        // userId:findTimeSlot.therapist.userId,
+                        // message: therapistText,
+                        // welcomeHtml:therapistHTML,
+                        // sendAt: new Date(),
+                        // })
 
-                        await sendNotificationBookingConfirmed({
-                        userId:parent.userId,
-                        message: parentText,
-                        welcomeHtml:parentHTML,
-                        sendAt: new Date(),
-                        })
+                        // await sendNotificationBookingConfirmed({
+                        // userId:parent.userId,
+                        // message: parentText,
+                        // welcomeHtml:parentHTML,
+                        // sendAt: new Date(),
+                        // })
             const reminderTime = new Date(new Date(findTimeSlot.startTime).getTime() - 15 * 60 * 1000);
 
             // await sendNotification({

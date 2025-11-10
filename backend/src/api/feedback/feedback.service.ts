@@ -171,7 +171,7 @@ export const getSessionDetails = async (bookingId: string) => {
 const updateTherapistRating = async (therapistId: string) => {
   const feedbacks = await (prisma as any).sessionFeedback.findMany({
     where: {
-      Booking: {
+      booking: {
         therapistId,
       },
     },

@@ -112,20 +112,21 @@ export const requestLeave = async (therapistId: string, input: RequestLeaveInput
     await tx.therapistLeave.create({ data: { therapistId, date: startOfDay, type: input.type, reason: input.reason, status: LeaveStatus.PENDING } });
   });
 
+  // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
   // Notify all admins via notification/email
-  const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
-  await Promise.all(admins.map((admin) => sendNotification({
-    userId: admin.id,
-    message: `Leave request pending approval: ${therapist.name} on ${startOfDay.toDateString()} (${input.type}).`,
-    sendAt: new Date()
-  })));
+  // const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+  // await Promise.all(admins.map((admin) => sendNotification({
+  //   userId: admin.id,
+  //   message: `Leave request pending approval: ${therapist.name} on ${startOfDay.toDateString()} (${input.type}).`,
+  //   sendAt: new Date()
+  // })));
 
   // Acknowledge therapist
-  await sendNotification({
-    userId: therapist.userId,
-    message: `Your leave request for ${startOfDay.toDateString()} has been submitted for admin approval.`,
-    sendAt: new Date()
-  });
+  // await sendNotification({
+  //   userId: therapist.userId,
+  //   message: `Your leave request for ${startOfDay.toDateString()} has been submitted for admin approval.`,
+  //   sendAt: new Date()
+  // });
 
   return { message: 'Leave request submitted for approval.' };
 };

@@ -2,7 +2,9 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { parentAPI, bookingAPI } from '../lib/api'
-import { X, Calendar, Clock } from 'lucide-react'
+import { X, Calendar, Clock, Loader2 } from 'lucide-react'
+import { Button } from './ui/button'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 interface BookSessionModalProps {
@@ -393,22 +395,38 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
                       hour12: true
                     })
                     
+                    const isBooked = slot.isBooked
+                    
                     return (
-                      <label key={slot.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <label 
+                        key={slot.id} 
+                        className={`flex items-center space-x-3 p-3 border rounded-lg transition-all relative ${
+                          isBooked 
+                            ? 'opacity-50 bg-red-50 border-red-300 cursor-not-allowed' 
+                            : 'hover:bg-gray-50 border-gray-300 hover:border-primary-500 cursor-pointer'
+                        }`}
+                        title={isBooked ? 'This slot is already booked by another parent' : 'Available slot'}
+                      >
                         <input
                           {...register('timeSlotId', { required: 'Please select a time slot' })}
                           type="radio"
                           value={slot.id}
                           className="text-primary-600"
+                          disabled={isBooked}
                         />
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className={`text-sm font-medium ${isBooked ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
                             {displayTime}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            Duration: 1 hour
+                          <div className={`text-xs ${isBooked ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+                            {isBooked ? 'Already Booked' : 'Duration: 1 hour'}
                           </div>
                         </div>
+                        {isBooked && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">✕</span>
+                          </div>
+                        )}
                       </label>
                     )
                   })}
@@ -433,20 +451,40 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
           )}
 
           <div className="flex space-x-3 pt-4">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="btn btn-outline flex-1"
+              variant="outline"
+              className="flex-1"
+              disabled={bookSlotMutation.isLoading}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={bookSlotMutation.isLoading || !selectedTherapist || !selectedDate || !selectedTimeSlotId}
-              className="btn btn-primary flex-1"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
             >
-              {bookSlotMutation.isLoading ? 'Booking...' : 'Book Session'}
-            </button>
+              {bookSlotMutation.isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Booking Session...</span>
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  <span>Book Session</span>
+                </span>
+              )}
+              {bookSlotMutation.isLoading && (
+                <motion.div
+                  className="absolute inset-0 bg-blue-700/20"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                />
+              )}
+            </Button>
           </div>
         </form>
       </div>
@@ -455,4 +493,5 @@ const BookSessionModal: React.FC<BookSessionModalProps> = ({ onClose, onSuccess,
 }
 
 export default BookSessionModal
+
 

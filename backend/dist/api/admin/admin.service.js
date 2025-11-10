@@ -103,26 +103,55 @@ const getAllBookings = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getAllBookings = getAllBookings;
 const getProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const admin = yield prisma_1.default.adminProfile.findUnique({
+    let admin = yield prisma_1.default.adminProfile.findUnique({
         where: { userId },
         include: { user: true },
     });
+    // If admin profile doesn't exist, create it (for existing admins)
     if (!admin) {
-        throw new Error('Admin profile not found');
+        const user = yield prisma_1.default.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user || user.role !== 'ADMIN') {
+            throw new Error('Admin profile not found');
+        }
+        // Create the admin profile
+        admin = yield prisma_1.default.adminProfile.create({
+            data: { userId },
+            include: { user: true },
+        });
     }
-    return admin;
+    // Return a flattened structure matching what the frontend expects
+    return {
+        id: admin.id,
+        name: admin.user.name || '',
+        email: admin.user.email,
+        phone: admin.user.phone || '',
+        role: admin.user.role,
+        createdAt: admin.user.createdAt,
+    };
 });
 exports.getProfile = getProfile;
 const updateProfile = (userId, data) => __awaiter(void 0, void 0, void 0, function* () {
-    // Update the user's name, not the admin profile (AdminProfile doesn't have a name field)
+    var _a;
+    // Update the user's name and phone, not the admin profile (AdminProfile doesn't have these fields)
     const updatedUser = yield prisma_1.default.user.update({
         where: { id: userId },
         data: {
             name: data.name,
+            phone: data.phone,
         },
         include: { adminProfile: true },
     });
-    return updatedUser;
+    // Return a flattened structure matching what the frontend expects
+    return {
+        id: ((_a = updatedUser.adminProfile) === null || _a === void 0 ? void 0 : _a.id) || '',
+        name: updatedUser.name || '',
+        email: updatedUser.email,
+        phone: updatedUser.phone || '',
+        role: updatedUser.role,
+        createdAt: updatedUser.createdAt,
+    };
 });
 exports.updateProfile = updateProfile;
 const getPlatformSettings = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -184,20 +213,22 @@ const approveLeaveRequest = (leaveId) => __awaiter(void 0, void 0, void 0, funct
         }
     }));
     for (const booking of affectedBookings) {
-        yield (0, notification_service_1.sendNotificationBookingCancelled)({
-            userId: booking.parent.userId,
-            message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
-            sendAt: new Date(),
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationBookingCancelled({
+        //   userId: booking.parent.userId,
+        //   message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
+        //   sendAt: new Date(),
+        // });
     }
     // Acknowledge therapist
     const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: leave.therapistId } });
     if (therapist) {
-        yield (0, notification_service_1.sendNotification)({
-            userId: therapist.userId,
-            message: `Your leave request for ${startOfDay.toDateString()} has been approved.`,
-            sendAt: new Date(),
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotification({
+        //   userId: therapist.userId,
+        //   message: `Your leave request for ${startOfDay.toDateString()} has been approved.`,
+        //   sendAt: new Date(),
+        // });
     }
     return { message: 'Leave approved' };
 });
@@ -209,11 +240,12 @@ const rejectLeaveRequest = (leaveId, reason) => __awaiter(void 0, void 0, void 0
     yield prisma_1.default.therapistLeave.update({ where: { id: leaveId }, data: { status: client_1.LeaveStatus.REJECTED, reason: reason || leave.reason } });
     const therapist = yield prisma_1.default.therapistProfile.findUnique({ where: { id: leave.therapistId } });
     if (therapist) {
-        yield (0, notification_service_1.sendNotification)({
-            userId: therapist.userId,
-            message: `Your leave request for ${leave.date.toDateString()} was rejected${reason ? `: ${reason}` : ''}.`,
-            sendAt: new Date(),
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotification({
+        //   userId: therapist.userId,
+        //   message: `Your leave request for ${leave.date.toDateString()} was rejected${reason ? `: ${reason}` : ''}.`,
+        //   sendAt: new Date(),
+        // });
     }
     return { message: 'Leave rejected' };
 });

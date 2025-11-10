@@ -73,6 +73,12 @@ router.get(
   therapyNotesController.getCurrentMonthTasks.bind(therapyNotesController)
 )
 
+router.get(
+  '/therapist/tasks/current-month',
+  authenticate,
+  therapyNotesController.getCurrentMonthTasksForTherapist.bind(therapyNotesController)
+)
+
 // ============================================
 // SHARED ROUTES
 // ============================================

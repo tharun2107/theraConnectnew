@@ -47,7 +47,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateAdminDemoSlotsHandler = exports.createAdminDemoSlotsHandler = exports.getAdminDemoSlotsHandler = exports.updateDemoBookingNotesHandler = exports.getDemoBookingHistoryHandler = exports.getDemoBookingsHandler = exports.createDemoZoomMeetingHandler = exports.createDemoBookingHandler = exports.getAvailableDemoSlotsHandler = void 0;
 const demoService = __importStar(require("./demo.service"));
-const email_services_1 = require("../../services/email.services");
 const zoom_service_1 = require("../../services/zoom.service");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
 // Get available demo slots (public)
@@ -147,28 +146,30 @@ const createDemoBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0,
         <p>Best regards,<br>Therabee Team</p>
       </div>
     `;
-        yield (0, email_services_1.sendemail)(email, 'Demo Session Confirmation', emailHtml, 'Demo Session Confirmation - Therabee');
+        // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+        // await sendemail(email, 'Demo Session Confirmation', emailHtml, 'Demo Session Confirmation - Therabee')
         // Send notification email to admin
-        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
-        if (adminEmail) {
-            const adminEmailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5;">New Demo Booking - Therabee</h2>
-          <p>A new demo session has been booked:</p>
-          <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Booking Details:</h3>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Mobile:</strong> ${mobile}</p>
-            <p><strong>Date:</strong> ${new Date(slotDate).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> ${formatTime12Hour(slotTimeString)}</p>
-            <p><strong>Reason:</strong> ${reason}</p>
-          </div>
-          <p>Please log in to the admin dashboard to manage this booking.</p>
-        </div>
-      `;
-            yield (0, email_services_1.sendemail)(adminEmail, 'New Demo Booking', adminEmailHtml, 'New Demo Booking - Therabee');
-        }
+        // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+        // const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER
+        // if (adminEmail) {
+        //   const adminEmailHtml = `
+        //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        //       <h2 style="color: #4F46E5;">New Demo Booking - Therabee</h2>
+        //       <p>A new demo session has been booked:</p>
+        //       <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        //         <h3 style="margin-top: 0;">Booking Details:</h3>
+        //         <p><strong>Name:</strong> ${name}</p>
+        //         <p><strong>Email:</strong> ${email}</p>
+        //         <p><strong>Mobile:</strong> ${mobile}</p>
+        //         <p><strong>Date:</strong> ${new Date(slotDate).toLocaleDateString()}</p>
+        //         <p><strong>Time:</strong> ${formatTime12Hour(slotTimeString)}</p>
+        //         <p><strong>Reason:</strong> ${reason}</p>
+        //       </div>
+        //       <p>Please log in to the admin dashboard to manage this booking.</p>
+        //     </div>
+        //   `
+        //   await sendemail(adminEmail, 'New Demo Booking', adminEmailHtml, 'New Demo Booking - Therabee')
+        // }
         res.status(201).json(booking);
     }
     catch (error) {
@@ -248,7 +249,8 @@ const createDemoZoomMeetingHandler = (req, res) => __awaiter(void 0, void 0, voi
         <p>Best regards,<br>Therabee Team</p>
       </div>
     `;
-        yield (0, email_services_1.sendemail)(booking.email, 'Your Demo Session Zoom Link', emailHtml, 'Your Demo Session Zoom Link - Therabee');
+        // EMAIL INTEGRATION - COMMENTED OUT FOR FUTURE USE
+        // await sendemail(booking.email, 'Your Demo Session Zoom Link', emailHtml, 'Your Demo Session Zoom Link - Therabee')
         res.status(201).json({
             meetingId: updated.meetingId,
             password: updated.meetingPassword,

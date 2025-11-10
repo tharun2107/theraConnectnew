@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { X, Plus, Trash2, Save, Calendar, User } from 'lucide-react'
+import { X, Plus, Trash2, Save, Calendar, User, Loader2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { therapyNotesAPI } from '../lib/api'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 interface TherapyNotesModalProps {
@@ -283,7 +284,7 @@ const TherapyNotesModal: React.FC<TherapyNotesModalProps> = ({
                     placeholder="Add a new goal..."
                     className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
-                  <Button onClick={handleAddGoal} className="flex items-center gap-2">
+                  <Button onClick={handleAddGoal} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
                     <Plus className="h-4 w-4" />
                     Add
                   </Button>
@@ -294,7 +295,7 @@ const TherapyNotesModal: React.FC<TherapyNotesModalProps> = ({
                 <Button
                   onClick={handleSaveGoals}
                   variant="outline"
-                  className="w-full"
+                  className="w-full text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
                   disabled={updateGoalsMutation.isLoading}
                 >
                   <Save className="h-4 w-4 mr-2" />
@@ -335,7 +336,7 @@ const TherapyNotesModal: React.FC<TherapyNotesModalProps> = ({
                   placeholder="Add session detail..."
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
-                <Button onClick={handleAddDetail} className="flex items-center gap-2">
+                <Button onClick={handleAddDetail} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
                   <Plus className="h-4 w-4" />
                   Add
                 </Button>
@@ -403,7 +404,7 @@ const TherapyNotesModal: React.FC<TherapyNotesModalProps> = ({
                   placeholder="Add a task for the parent..."
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
-                <Button onClick={handleAddTask} className="flex items-center gap-2">
+                <Button onClick={handleAddTask} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
                   <Plus className="h-4 w-4" />
                   Add Task
                 </Button>
@@ -417,16 +418,34 @@ const TherapyNotesModal: React.FC<TherapyNotesModalProps> = ({
               variant="outline"
               onClick={onClose}
               disabled={createReportMutation.isLoading}
+              className="text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={createReportMutation.isLoading || sessionDetails.length === 0 || tasks.length === 0}
-              className="flex items-center gap-2 px-6"
+              className="flex items-center gap-2 px-6 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
             >
-              <Save className="h-4 w-4" />
-              {createReportMutation.isLoading ? 'Saving...' : 'Save Therapy Notes'}
+              {createReportMutation.isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <Save className="h-4 w-4" />
+                  <span>Save Therapy Notes</span>
+                </span>
+              )}
+              {createReportMutation.isLoading && (
+                <motion.div
+                  className="absolute inset-0 bg-blue-700/20"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                />
+              )}
             </Button>
           </div>
         </div>

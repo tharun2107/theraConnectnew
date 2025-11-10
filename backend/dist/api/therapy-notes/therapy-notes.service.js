@@ -417,6 +417,62 @@ class TherapyNotesService {
             });
         });
     }
+    /**
+     * Get all tasks for current month sessions for a therapist
+     */
+    getCurrentMonthTasksForTherapist(therapistId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+            return yield prisma.sessionReport.findMany({
+                where: {
+                    therapistId,
+                    booking: {
+                        timeSlot: {
+                            startTime: {
+                                gte: startOfMonth,
+                                lte: endOfMonth
+                            }
+                        },
+                        isCompleted: true
+                    }
+                },
+                include: {
+                    tasks: {
+                        orderBy: {
+                            createdAt: 'asc'
+                        }
+                    },
+                    booking: {
+                        include: {
+                            timeSlot: true,
+                            child: true,
+                            parent: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    },
+                    therapist: {
+                        select: {
+                            name: true
+                        }
+                    },
+                    child: {
+                        select: {
+                            name: true,
+                            age: true
+                        }
+                    }
+                },
+                orderBy: {
+                    createdAt: 'asc'
+                }
+            });
+        });
+    }
 }
 exports.TherapyNotesService = TherapyNotesService;
 exports.therapyNotesService = new TherapyNotesService();

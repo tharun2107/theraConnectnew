@@ -99,7 +99,7 @@ exports.getAllBookingsHandler = getAllBookingsHandler;
 const getProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
@@ -107,14 +107,18 @@ const getProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(200).json(profile);
     }
     catch (error) {
-        res.status(500).json({ message: 'Failed to retrieve profile' });
+        if (error.message === 'Admin profile not found') {
+            return res.status(404).json({ message: error.message });
+        }
+        console.error('[admin.controller.getProfileHandler] Error:', error);
+        res.status(500).json({ message: error.message || 'Failed to retrieve profile' });
     }
 });
 exports.getProfileHandler = getProfileHandler;
 const updateProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
@@ -122,7 +126,8 @@ const updateProfileHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
         res.status(200).json(profile);
     }
     catch (error) {
-        res.status(500).json({ message: 'Failed to update profile' });
+        console.error('[admin.controller.updateProfileHandler] Error:', error);
+        res.status(500).json({ message: error.message || 'Failed to update profile' });
     }
 });
 exports.updateProfileHandler = updateProfileHandler;

@@ -60,7 +60,6 @@ exports.googleOAuthHandler = exports.changePasswordHandler = exports.loginHandle
 const authService = __importStar(require("./auth.service"));
 const jwt_1 = require("../../utils/jwt");
 const prisma_1 = __importDefault(require("../../utils/prisma"));
-const notification_service_1 = require("../../services/notification.service");
 const auth_validation_1 = require("./auth.validation");
 const handleServiceError = (res, error) => {
     var _a;
@@ -223,12 +222,13 @@ The Therabee Team
 If you have any questions, please contact our support team at support@therabee.com
   `.trim();
         // Send Notification
-        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
-            userId: user.id,
-            message: welcomeText,
-            sendAt: new Date(),
-            welcomeHtml: welcomeHTML
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationAfterAnEvent({
+        //   userId: user.id,
+        //   message: welcomeText,
+        //   sendAt: new Date(),
+        //   welcomeHtml: welcomeHTML
+        // });
         res.status(201).json({ message: 'Parent registered successfully', user: userWithoutPassword, token });
     }
     catch (error) {
@@ -608,12 +608,13 @@ The Therabee Team
 
 Need help? Contact our therapist support team at therapists@therabee.com
 `.trim();
-        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
-            userId: user.id,
-            message: therapistWelcomeText,
-            welcomeHtml: therapistWelcomeHTML,
-            sendAt: new Date()
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationAfterAnEvent({
+        //   userId: user.id,
+        //   message: therapistWelcomeText,
+        //   welcomeHtml: therapistWelcomeHTML,
+        //   sendAt: new Date()
+        // });
         res.status(201).json({ message: 'Therapist registered successfully', user: userWithoutPassword, token });
     }
     catch (error) {
@@ -959,12 +960,13 @@ const registerAdminHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                   The Therabee Team
                   `.trim();
         // Send Notification
-        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
-            userId: user.id,
-            message: adminWelcomeText,
-            welcomeHtml: adminWelcomeHTML,
-            sendAt: new Date()
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationAfterAnEvent({
+        //   userId: user.id,
+        //   message: adminWelcomeText,
+        //   welcomeHtml:adminWelcomeHTML,
+        //   sendAt: new Date()
+        // });
         res.status(201).json({ message: 'Admin registered successfully', user: userWithoutPassword, token });
     }
     catch (error) {

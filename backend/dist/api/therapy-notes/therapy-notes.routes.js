@@ -23,6 +23,7 @@ router.put('/parent/task/:taskId/completion', auth_middleware_1.authenticate, th
 router.put('/parent/task/:taskId/observation', auth_middleware_1.authenticate, therapy_notes_controller_1.therapyNotesController.updateTaskObservation.bind(therapy_notes_controller_1.therapyNotesController));
 router.get('/parent/tasks/pending', auth_middleware_1.authenticate, therapy_notes_controller_1.therapyNotesController.getPendingTasks.bind(therapy_notes_controller_1.therapyNotesController));
 router.get('/parent/tasks/current-month', auth_middleware_1.authenticate, therapy_notes_controller_1.therapyNotesController.getCurrentMonthTasks.bind(therapy_notes_controller_1.therapyNotesController));
+router.get('/therapist/tasks/current-month', auth_middleware_1.authenticate, therapy_notes_controller_1.therapyNotesController.getCurrentMonthTasksForTherapist.bind(therapy_notes_controller_1.therapyNotesController));
 // ============================================
 // SHARED ROUTES
 // ============================================

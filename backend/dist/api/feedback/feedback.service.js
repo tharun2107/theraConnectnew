@@ -158,7 +158,7 @@ exports.getSessionDetails = getSessionDetails;
 const updateTherapistRating = (therapistId) => __awaiter(void 0, void 0, void 0, function* () {
     const feedbacks = yield prisma_1.default.sessionFeedback.findMany({
         where: {
-            Booking: {
+            booking: {
                 therapistId,
             },
         },

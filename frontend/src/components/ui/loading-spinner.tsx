@@ -1,32 +1,31 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { cn } from '../../lib/utils'
+import { Loader2 } from 'lucide-react'
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
+  text?: string
+}
+
+const sizeClasses = {
+  sm: 'h-4 w-4',
+  md: 'h-6 w-6',
+  lg: 'h-8 w-8',
+  xl: 'h-12 w-12',
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
   size = 'md', 
-  className = '' 
+  className,
+  text 
 }) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12'
-  }
-
   return (
-    <motion.div
-      className={`${sizeClasses[size]} ${className}`}
-      animate={{ rotate: 360 }}
-      transition={{
-        duration: 1,
-        repeat: Infinity,
-        ease: "linear"
-      }}
-    >
-      <div className="h-full w-full rounded-full border-2 border-gray-300 border-t-blue-600"></div>
-    </motion.div>
+    <div className={cn('flex items-center justify-center gap-2', className)}>
+      <Loader2 className={cn('animate-spin text-current', sizeClasses[size])} />
+      {text && <span className="text-sm">{text}</span>}
+    </div>
   )
 }
+
+export default LoadingSpinner

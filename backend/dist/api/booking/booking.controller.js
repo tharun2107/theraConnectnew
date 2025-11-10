@@ -48,7 +48,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.cancelRecurringBookingHandler = exports.getUpcomingSessionsHandler = exports.getRecurringBookingsHandler = exports.createRecurringBookingHandler = exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = exports.markSessionCompletedHandler = void 0;
 const bookingService = __importStar(require("./booking.service"));
 const prisma_1 = __importDefault(require("../../utils/prisma"));
-const notification_service_1 = require("../../services/notification.service");
 const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { bookingId } = req.params;
@@ -356,12 +355,13 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
 
                 Need assistance? Contact our support team at help@therabee.com
                 `.trim();
-        yield (0, notification_service_1.sendNotificationAfterAnEventSessionCompleted)({
-            userId: parentId.parentId,
-            message: sessionCompletedText,
-            welcomeHtml: sessionCompletedHTML,
-            sendAt: new Date()
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationAfterAnEventSessionCompleted({
+        //     userId: parentId.parentId,
+        //     message: sessionCompletedText,
+        //     welcomeHtml:sessionCompletedHTML,
+        //     sendAt: new Date()
+        // });
         res.status(200).json({
             message: 'Session marked as completed',
             booking: updatedBooking
@@ -1090,18 +1090,19 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
 
                             Therapist support: therapists@therabee.com
                             `.trim();
-        yield (0, notification_service_1.sendNotificationToTherapistSessionBooked)({
-            userId: findTimeSlot.therapist.userId,
-            message: therapistText,
-            welcomeHtml: therapistHTML,
-            sendAt: new Date(),
-        });
-        yield (0, notification_service_1.sendNotificationBookingConfirmed)({
-            userId: parent.userId,
-            message: parentText,
-            welcomeHtml: parentHTML,
-            sendAt: new Date(),
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationToTherapistSessionBooked({
+        // userId:findTimeSlot.therapist.userId,
+        // message: therapistText,
+        // welcomeHtml:therapistHTML,
+        // sendAt: new Date(),
+        // })
+        // await sendNotificationBookingConfirmed({
+        // userId:parent.userId,
+        // message: parentText,
+        // welcomeHtml:parentHTML,
+        // sendAt: new Date(),
+        // })
         const reminderTime = new Date(new Date(findTimeSlot.startTime).getTime() - 15 * 60 * 1000);
         // await sendNotification({
         // userId: parent.userId,
@@ -1140,6 +1141,15 @@ const createRecurringBookingHandler = (req, res) => __awaiter(void 0, void 0, vo
     try {
         const userId = req.user.userId;
         const bookingData = req.body;
+        console.log('[createRecurringBooking] Request data:', {
+            userId,
+            childId: bookingData.childId,
+            therapistId: bookingData.therapistId,
+            slotTime: bookingData.slotTime,
+            startDate: bookingData.startDate,
+            endDate: bookingData.endDate,
+            recurrencePattern: bookingData.recurrencePattern
+        });
         const recurringBooking = yield bookingService.recurringBookingService.createRecurringBooking(userId, bookingData);
         return res.status(201).json({
             success: true,
@@ -1154,19 +1164,40 @@ const createRecurringBookingHandler = (req, res) => __awaiter(void 0, void 0, vo
         });
     }
     catch (error) {
-        console.error('Error creating recurring booking:', error);
+        console.error('[createRecurringBooking] Error:', error);
         if (error instanceof Error) {
+            // Log the full error for debugging
+            console.error('[createRecurringBooking] Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            // Handle specific error types
             if (error.message.includes('not found') || error.message.includes('does not belong')) {
                 return res.status(404).json({ success: false, message: error.message });
             }
             if (error.message.includes('already have') || error.message.includes('not available')) {
                 return res.status(409).json({ success: false, message: error.message });
             }
-            if (error.message.includes('Cannot create') || error.message.includes('Only') || error.message.includes('in the past')) {
+            if (error.message.includes('Cannot create') ||
+                error.message.includes('Only') ||
+                error.message.includes('in the past') ||
+                error.message.includes('Invalid') ||
+                error.message.includes('format') ||
+                error.message.includes('required')) {
                 return res.status(400).json({ success: false, message: error.message });
             }
+            // Return the error message for other known errors
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to create recurring booking'
+            });
         }
-        return res.status(500).json({ success: false, message: 'Failed to create recurring booking' });
+        // Unknown error type
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to create recurring booking. Please try again or contact support.'
+        });
     }
 });
 exports.createRecurringBookingHandler = createRecurringBookingHandler;

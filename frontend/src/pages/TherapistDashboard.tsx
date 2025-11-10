@@ -20,6 +20,8 @@ import RequestLeaveModal from '../components/RequestLeaveModal'
 import CurrentSessions from '../components/CurrentSessions'
 import SessionDetails from '../components/SessionDetails'
 import TherapistChildrenView from '../components/TherapistChildrenView'
+import TherapistTasksView from '../components/TherapistTasksView'
+import TherapistCurrentMonthBookings from '../components/TherapistCurrentMonthBookings'
 import { useNavigate } from 'react-router-dom'
 
 interface Booking {
@@ -379,22 +381,78 @@ const TherapistDashboard: React.FC = () => {
                       hour12: true 
                     })
                     
+                    // Check if this slot time is booked for the current month
+                    const now = new Date()
+                    const currentMonth = now.getMonth()
+                    const currentYear = now.getFullYear()
+                    
+                    // Count how many times this slot is booked in the current month
+                    const bookingsThisMonth = bookings.filter((booking: Booking) => {
+                      if (!booking.timeSlot || booking.status !== 'SCHEDULED') return false
+                      
+                      const bookingDate = new Date(booking.timeSlot.startTime)
+                      const bookingMonth = bookingDate.getMonth()
+                      const bookingYear = bookingDate.getFullYear()
+                      
+                      // Check if booking is in current month
+                      if (bookingMonth !== currentMonth || bookingYear !== currentYear) return false
+                      
+                      // Check if booking time matches this slot time
+                      // Compare using local time components
+                      const bookingHours = bookingDate.getHours()
+                      const bookingMinutes = bookingDate.getMinutes()
+                      return bookingHours === hours && bookingMinutes === minutes
+                    })
+                    
+                    const isBookedThisMonth = bookingsThisMonth.length > 0
+                    const bookingCount = bookingsThisMonth.length
+                    
                     return (
                       <motion.div
                         key={time}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3 }}
-                        className="group relative flex flex-col items-center justify-center p-5 border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-purple-500/10"
+                        className={`group relative flex flex-col items-center justify-center p-5 border rounded-xl transition-all duration-300 hover:shadow-lg ${
+                          isBookedThisMonth
+                            ? 'border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/20 hover:border-red-500 dark:hover:border-red-500'
+                            : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:border-purple-400 dark:hover:border-purple-500 dark:hover:shadow-purple-500/10'
+                        }`}
+                        title={
+                          isBookedThisMonth
+                            ? `This slot has ${bookingCount} booking(s) scheduled for the current month (${now.toLocaleString('default', { month: 'long', year: 'numeric' })})`
+                            : 'Available slot - No bookings for current month'
+                        }
                       >
-                        <div className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1 text-center">
+                        {isBookedThisMonth && (
+                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 dark:bg-red-500 rounded-full flex items-center justify-center z-10 shadow-lg">
+                            <span className="text-white text-xs font-bold">!</span>
+                          </div>
+                        )}
+                        <div className={`text-base sm:text-lg font-semibold mb-1 text-center ${
+                          isBookedThisMonth
+                            ? 'text-red-800 dark:text-red-200'
+                            : 'text-gray-800 dark:text-gray-200'
+                        }`}>
                           {time12h}
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2 text-center">
+                        <div className={`text-xs sm:text-sm mb-2 text-center ${
+                          isBookedThisMonth
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-gray-500 dark:text-gray-400'
+                        }`}>
                           to {endTime12h}
                         </div>
-                        <div className="mt-1 px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-400 font-medium">
-                          1 Hour
+                        <div className={`mt-1 px-3 py-1 rounded-full text-xs font-medium ${
+                          isBookedThisMonth
+                            ? 'bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200'
+                            : 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                        }`}>
+                          {isBookedThisMonth 
+                            ? bookingCount > 1 
+                              ? `${bookingCount} Bookings` 
+                              : 'Booked This Month'
+                            : '1 Hour'}
                         </div>
                       </motion.div>
                     )
@@ -423,11 +481,55 @@ const TherapistDashboard: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Past Sessions */}
+      {/* Current Month Bookings */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
+      >
+        <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+          <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <Calendar className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+              Current Month Bookings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <React.Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-600 dark:text-gray-400 mt-4 ml-4">Loading bookings...</p>
+              </div>
+            }>
+              <TherapistCurrentMonthBookings />
+            </React.Suspense>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Current Month Session Tasks */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.75 }}
+      >
+        <React.Suspense fallback={
+          <Card className="bg-white dark:bg-black shadow-lg rounded-lg">
+            <CardContent className="py-12 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 dark:text-gray-400 mt-4">Loading tasks...</p>
+            </CardContent>
+          </Card>
+        }>
+          <TherapistTasksView />
+        </React.Suspense>
+      </motion.div>
+
+      {/* Past Sessions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
       >
         <Card className="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
           <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700">

@@ -49,7 +49,7 @@ const registerParent = (input) => __awaiter(void 0, void 0, void 0, function* ()
 exports.registerParent = registerParent;
 const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name, phone, specialization, experience, baseCostPerSession } = input;
-    console.log('[AUTH][REGISTER_THERAPIST] Attempt:', { email, phone });
+    console.log('[AUTH][REGISTER_THERAPIST] Attempt:', { email, phone, hasPassword: !!password });
     // Pre-checks to surface conflicts as 409
     const [existingUser, existingPhone] = yield Promise.all([
         prisma_1.default.user.findUnique({ where: { email } }),
@@ -59,7 +59,8 @@ const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function*
         throw new Error('User with this email already exists');
     if (existingPhone)
         throw new Error('Therapist with this phone already exists');
-    const hashedPassword = yield (0, password_1.hashPassword)(password);
+    // Hash password if provided (for self-registration), otherwise use empty string (for admin-created, OAuth-only)
+    const hashedPassword = password ? yield (0, password_1.hashPassword)(password) : '';
     try {
         return yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
             const user = yield tx.user.create({

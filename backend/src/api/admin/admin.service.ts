@@ -212,21 +212,23 @@ export const approveLeaveRequest = async (leaveId: string) => {
   });
 
   for (const booking of affectedBookings) {
-    await sendNotificationBookingCancelled({
-      userId: booking.parent.userId,
-      message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
-      sendAt: new Date(),
-    });
+    // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+    // await sendNotificationBookingCancelled({
+    //   userId: booking.parent.userId,
+    //   message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
+    //   sendAt: new Date(),
+    // });
   }
 
   // Acknowledge therapist
   const therapist = await prisma.therapistProfile.findUnique({ where: { id: leave.therapistId } });
   if (therapist) {
-    await sendNotification({
-      userId: therapist.userId,
-      message: `Your leave request for ${startOfDay.toDateString()} has been approved.`,
-      sendAt: new Date(),
-    });
+    // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+    // await sendNotification({
+    //   userId: therapist.userId,
+    //   message: `Your leave request for ${startOfDay.toDateString()} has been approved.`,
+    //   sendAt: new Date(),
+    // });
   }
 
   return { message: 'Leave approved' };
@@ -240,11 +242,12 @@ export const rejectLeaveRequest = async (leaveId: string, reason?: string) => {
 
   const therapist = await prisma.therapistProfile.findUnique({ where: { id: leave.therapistId } });
   if (therapist) {
-    await sendNotification({
-      userId: therapist.userId,
-      message: `Your leave request for ${leave.date.toDateString()} was rejected${reason ? `: ${reason}` : ''}.`,
-      sendAt: new Date(),
-    });
+    // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+    // await sendNotification({
+    //   userId: therapist.userId,
+    //   message: `Your leave request for ${leave.date.toDateString()} was rejected${reason ? `: ${reason}` : ''}.`,
+    //   sendAt: new Date(),
+    // });
   }
   return { message: 'Leave rejected' };
 };

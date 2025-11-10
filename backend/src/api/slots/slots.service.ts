@@ -187,16 +187,17 @@ export const bookSlot = async (parentId: string, childId: string, timeSlotId: st
     // ... (logic for payment and data access permission creation would go here)
 
     // After transaction succeeds, send notifications
-    await sendNotificationBookingConfirmed({
-      userId: slot.therapist.user.id,
-      message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
-      sendAt: new Date()
-    });
-    await sendNotificationBookingConfirmed({
-      userId: child.parent.user.id,
-      message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
-      sendAt: new Date()
-    });
+    // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+    // await sendNotificationBookingConfirmed({
+    //   userId: slot.therapist.user.id,
+    //   message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
+    //   sendAt: new Date()
+    // });
+    // await sendNotificationBookingConfirmed({
+    //   userId: child.parent.user.id,
+    //   message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
+    //   sendAt: new Date()
+    // });
 
     return newBooking;
   });

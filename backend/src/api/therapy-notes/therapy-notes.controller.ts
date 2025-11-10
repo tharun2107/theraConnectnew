@@ -307,6 +307,25 @@ export class TherapyNotesController {
       })
     }
   }
+
+  async getCurrentMonthTasksForTherapist(req: Request, res: Response) {
+    try {
+      const therapistId = await getTherapistId(req.user!.userId)
+
+      const reports = await therapyNotesService.getCurrentMonthTasksForTherapist(therapistId)
+
+      return res.json({
+        success: true,
+        data: reports
+      })
+    } catch (error: any) {
+      console.error('[TherapyNotesController] getCurrentMonthTasksForTherapist error:', error)
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to fetch current month tasks'
+      })
+    }
+  }
 }
 
 export const therapyNotesController = new TherapyNotesController()

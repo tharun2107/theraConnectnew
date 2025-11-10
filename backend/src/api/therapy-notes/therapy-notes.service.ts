@@ -420,6 +420,62 @@ export class TherapyNotesService {
       }
     })
   }
+
+  /**
+   * Get all tasks for current month sessions for a therapist
+   */
+  async getCurrentMonthTasksForTherapist(therapistId: string) {
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+
+    return await prisma.sessionReport.findMany({
+      where: {
+        therapistId,
+        booking: {
+          timeSlot: {
+            startTime: {
+              gte: startOfMonth,
+              lte: endOfMonth
+            }
+          },
+          isCompleted: true
+        }
+      },
+      include: {
+        tasks: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
+        booking: {
+          include: {
+            timeSlot: true,
+            child: true,
+            parent: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        therapist: {
+          select: {
+            name: true
+          }
+        },
+        child: {
+          select: {
+            name: true,
+            age: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    })
+  }
 }
 
 export const therapyNotesService = new TherapyNotesService()

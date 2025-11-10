@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bookSlot = exports.generateAndGetAvailableSlots = void 0;
 const prisma_1 = __importDefault(require("../../utils/prisma"));
-const notification_service_1 = require("../../services/notification.service");
 /**
  * Checks if a given time falls within any of the therapist's breaks.
  * @param time - The Date object to check.
@@ -147,6 +146,12 @@ const bookSlot = (parentId, childId, timeSlotId) => __awaiter(void 0, void 0, vo
         if (slot.startTime > thirtyDaysFromNow) {
             throw new Error('Bookings are allowed only within the next 30 days.');
         }
+        // Check if the booking date is a weekend (Saturday or Sunday)
+        const bookingDate = new Date(slot.startTime);
+        const dayOfWeek = bookingDate.getUTCDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            throw new Error('Bookings are not available on weekends (Saturday and Sunday)');
+        }
         // Step 2: Mark the slot as booked
         yield tx.timeSlot.update({
             where: { id: timeSlotId },
@@ -169,16 +174,17 @@ const bookSlot = (parentId, childId, timeSlotId) => __awaiter(void 0, void 0, vo
         // Step 5 & 6 (optional but good practice): Create Payment and Permissions
         // ... (logic for payment and data access permission creation would go here)
         // After transaction succeeds, send notifications
-        yield (0, notification_service_1.sendNotificationBookingConfirmed)({
-            userId: slot.therapist.user.id,
-            message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
-            sendAt: new Date()
-        });
-        yield (0, notification_service_1.sendNotificationBookingConfirmed)({
-            userId: child.parent.user.id,
-            message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
-            sendAt: new Date()
-        });
+        // EMAIL FUNCTIONALITY TEMPORARILY DISABLED - COMMENTED OUT FOR FUTURE USE
+        // await sendNotificationBookingConfirmed({
+        //   userId: slot.therapist.user.id,
+        //   message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
+        //   sendAt: new Date()
+        // });
+        // await sendNotificationBookingConfirmed({
+        //   userId: child.parent.user.id,
+        //   message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
+        //   sendAt: new Date()
+        // });
         return newBooking;
     }));
 });

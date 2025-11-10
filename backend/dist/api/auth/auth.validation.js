@@ -13,7 +13,7 @@ exports.registerParentSchema = zod_1.z.object({
 exports.registerTherapistSchema = zod_1.z.object({
     body: zod_1.z.object({
         email: zod_1.z.string().email({ message: "Please provide a valid email address." }),
-        password: zod_1.z.string().min(8, { message: "Password must be at least 8 characters long." }),
+        password: zod_1.z.string().min(8, { message: "Password must be at least 8 characters long." }).optional(), // Optional for admin-created therapists (Google OAuth)
         name: zod_1.z.string().min(2, { message: "Name must be at least 2 characters long." }),
         phone: zod_1.z.string().min(10, { message: "Phone number must be at least 10 characters long." }),
         specialization: zod_1.z.string().min(3, { message: "Specialization must be at least 3 characters long." }),

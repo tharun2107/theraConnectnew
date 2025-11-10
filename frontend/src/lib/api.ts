@@ -300,6 +300,10 @@ export const therapyNotesAPI = {
   getCurrentMonthTasks: () =>
     api.get('/therapy-notes/parent/tasks/current-month'),
   
+  // Therapist - Task Viewing
+  getCurrentMonthTasksForTherapist: () =>
+    api.get('/therapy-notes/therapist/tasks/current-month'),
+  
   // Shared
   getSessionReportShared: (bookingId: string) =>
     api.get(`/therapy-notes/session-report/${bookingId}`),
