@@ -22,6 +22,7 @@ const allowedOrigins: string[] = [
   "http://localhost:3000",
   "https://therabee.in",
   "https://www.therabee.in",
+  "https://thera-connectnew-git-test3-tharuns-projects-f6787344.vercel.app",
 ];
 // Global Middleware
 const corsOptions: CorsOptions = {
