@@ -18,10 +18,12 @@ import prisma from './utils/prisma.js';
 // Load environment variables
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const allowedOrigins: string[] = [
   "https://thera-connectnew.vercel.app",
   "http://localhost:3001",
+  "https://therabee.in",
+  "https://www.therabee.in",
 ];
 // Global Middleware
 const corsOptions: CorsOptions = {
