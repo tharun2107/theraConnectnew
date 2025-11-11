@@ -21,22 +21,42 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const allowedOrigins: string[] = [
   "https://thera-connectnew.vercel.app",
-  "http://localhost:3000",
   "https://therabee.in",
   "https://www.therabee.in",
+  "http://localhost:3001",
+  "http://localhost:3000",
+  "http://localhost:5173",
+  
 ];
 // Global Middleware
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+  // Allow non-browser clients (no Origin), and match against list or known patterns
+  const cleanedAllowed = allowedOrigins.filter(Boolean).map(o => o.replace(/\/+$/, ''));
+  const normalized = (origin || '').replace(/\/+$/, '');
+  const isAllowed =
+    !origin ||
+    cleanedAllowed.includes(normalized) ||
+    normalized.endsWith('.vercel.app') || // Allow Vercel previews
+    normalized === 'https://therabee.in' ||
+    normalized === 'https://www.therabee.in';
+
+  if (isAllowed) {
       callback(null, true);
     } else {
+      // eslint-disable-next-line no-console
+      console.warn('[CORS] Blocked origin:', origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
+  optionsSuccessStatus: 204,
 };
 
+// Handle preflight first
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -50,6 +70,12 @@ app.use((req, res, next) => {
     // eslint-disable-next-line no-console
     console.log('[RES]', req.method, req.originalUrl, res.statusCode, ms + 'ms');
   });
+  next();
+});
+
+// Relax opener policy for OAuth popups (window.postMessage)
+app.use((_req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   next();
 });
 
