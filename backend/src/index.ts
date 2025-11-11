@@ -11,51 +11,28 @@ import bookingRoutes from './api/booking/booking.routes.js';
 import slotRoutes from './api/slots/slots.routes.js';
 import feedbackRoutes from './api/feedback/feedback.routes.js';
 import demoRoutes from './api/demo/demo.routes.js';
-import { therapistLeaveRoutes, adminLeaveRoutes } from './leaves/leave.route.js';
-import therapyNotesRoutes from './api/therapy-notes/therapy-notes.routes.js';
 import prisma from './utils/prisma.js';
 
 // Load environment variables
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 const allowedOrigins: string[] = [
   "https://thera-connectnew.vercel.app",
+  "http://localhost:3000",
   "https://therabee.in",
   "https://www.therabee.in",
-  "http://localhost:3001",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "http://localhost:5173",
-  process.env.FRONTEND_URL || "",
-  process.env.FRONTEND_URL_ALT || "",
 ];
 // Global Middleware
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-  // Allow non-browser clients (no Origin), and match against list or known patterns
-  const cleanedAllowed = allowedOrigins.filter(Boolean).map(o => o.replace(/\/+$/, ''));
-  const normalized = (origin || '').replace(/\/+$/, '');
-  const isAllowed =
-    !origin ||
-    cleanedAllowed.includes(normalized) ||
-    normalized.endsWith('.vercel.app') || // Allow Vercel previews
-    normalized === 'https://therabee.in' ||
-    normalized === 'https://www.therabee.in';
-
-  if (isAllowed) {
-      // eslint-disable-next-line no-console
-      if (origin) console.log('[CORS] Allowed origin:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      // eslint-disable-next-line no-console
-      console.warn('[CORS] Blocked origin:', origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
@@ -74,12 +51,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Relax opener policy for OAuth popups (window.postMessage)
-app.use((_req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  next();
-});
-
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
@@ -89,9 +60,6 @@ app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/slots', slotRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/demo', demoRoutes);
-app.use('/api/v1/therapist', therapistLeaveRoutes);
-app.use('/api/v1/admin', adminLeaveRoutes);
-app.use('/api/v1/therapy-notes', therapyNotesRoutes);
 
 // Health endpoint for connectivity checks
 app.get('/api/v1/health', (_req, res) => {
